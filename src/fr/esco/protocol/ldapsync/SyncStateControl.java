@@ -1,4 +1,4 @@
-package fr.esco.protocol.ldapsyn;
+package fr.esco.protocol.ldapsync;
 
 import com.novell.ldap.LDAPControl;
 import com.novell.ldap.asn1.ASN1Enumerated;

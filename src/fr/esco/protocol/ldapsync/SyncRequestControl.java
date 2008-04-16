@@ -1,4 +1,4 @@
-package fr.esco.protocol.ldapsyn;
+package fr.esco.protocol.ldapsync;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

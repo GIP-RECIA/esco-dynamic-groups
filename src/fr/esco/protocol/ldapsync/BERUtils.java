@@ -1,7 +1,7 @@
 /**
  * 
  */
-package fr.esco.protocol.ldapsyn;
+package fr.esco.protocol.ldapsync;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
