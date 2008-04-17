@@ -11,6 +11,7 @@ import java.util.InvalidPropertiesFormatException;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
+import org.esco.dynamicgroups.ldap.syncrepl.client.ISyncReplMessagesHandlerBuilder;
 
 
 
@@ -38,6 +39,12 @@ public class ESCODynamicGroupsParameters implements Serializable {
 
     /** Singleton instance. loaded at the first use. */
     private static ESCODynamicGroupsParameters instance = new ESCODynamicGroupsParameters();
+    
+    /** To convert milliseconds into seconds.*/
+    private static final  int MILLIS_TO_SECONDS_FACTOR = 1000; 
+    
+    /** Properties instance used to initialize this instance. */
+    private Properties parametersProperties;
 
     /** Initialization flag. */
     private boolean loadedFromProperties;
@@ -65,9 +72,20 @@ public class ESCODynamicGroupsParameters implements Serializable {
 
     /** Attributes returned by the search operations. */
     private String[] ldapSearchAttributes;
+    
+    /** Ldap attribute used for the uid. */
+    private String ldapUIDAttribute;
 
+    /** Idle duration for the syncrepl client. */
+    private int syncreplClientIdle;
+    
+    /** Builder class for the SyncRepl messages Handler. */
+    private Class<ISyncReplMessagesHandlerBuilder> syncReplMessageHandlerBuilderClass;
+    
     /** The String representation of the instance. */
     private String stringRepresentation;
+    
+    
 
 
     /**
@@ -76,7 +94,7 @@ public class ESCODynamicGroupsParameters implements Serializable {
     private ESCODynamicGroupsParameters() {
         /* Private constructor. */
     }
-    
+
     /**
      * Gives the singleton.
      * @return The singleton.
@@ -90,7 +108,6 @@ public class ESCODynamicGroupsParameters implements Serializable {
                     LOGGER.debug("Loaded values: " + instance);
                 }
             }
-
             return instance;
         }
     }
@@ -110,6 +127,7 @@ public class ESCODynamicGroupsParameters implements Serializable {
             params.load(is);
             loadFromProperties(params);
             loadedFromProperties = true;
+            setParametersProperties(params);
 
         } catch (InvalidPropertiesFormatException e) {
             LOGGER.error(e, e);
@@ -122,6 +140,7 @@ public class ESCODynamicGroupsParameters implements Serializable {
      * Loads the values from a properties instance.
      * @param params The properties that contains the values to load.
      */
+    @SuppressWarnings("unchecked")
     private void loadFromProperties(final Properties params) {
         final String ldapHostKey = PROPERTIES_PREFIX + "ldap.host";
         final String ldapPortKey = PROPERTIES_PREFIX + "ldap.port";
@@ -131,7 +150,10 @@ public class ESCODynamicGroupsParameters implements Serializable {
         final String ldapSearchBaseKey = PROPERTIES_PREFIX + "ldap.search.base";
         final String ldapSearchFilterKey = PROPERTIES_PREFIX + "ldap.search.filter";
         final String ldapSearchAttributesKey = PROPERTIES_PREFIX + "ldap.search.attributes";
-
+        final String ldapUIDAttributeKey = PROPERTIES_PREFIX + "ldap.uid.attribute";
+        final String synreplClientIDLEKey = PROPERTIES_PREFIX + "syncrepl.client.idle";
+        final String synreplHandlerBuilderKey = PROPERTIES_PREFIX + "syncrepl.handler.builder.class";
+        
         setLdapHost(parseStringFromProperty(params, ldapHostKey));
         setLdapPort(parseIntegerFromProperty(params, ldapPortKey));
         setLdapVersion(parseIntegerFromProperty(params, ldapVersionKey));
@@ -140,6 +162,20 @@ public class ESCODynamicGroupsParameters implements Serializable {
         setLdapSearchBase(parseStringFromProperty(params, ldapSearchBaseKey));
         setLdapSearchFilter(parseStringFromProperty(params, ldapSearchFilterKey));
         setLdapSearchAttributes(parseStringArrayFromProperty(params, ldapSearchAttributesKey));
+        setLdapUIDAttribute(parseStringFromProperty(params, ldapUIDAttributeKey));
+        setSyncreplClientIdle(parseIntegerFromProperty(params, synreplClientIDLEKey) * MILLIS_TO_SECONDS_FACTOR);
+        final String builderClass = parseStringFromProperty(params, synreplHandlerBuilderKey);
+        if (builderClass != null) {
+            try {
+                syncReplMessageHandlerBuilderClass = 
+                    (Class<ISyncReplMessagesHandlerBuilder>) getClass().getClassLoader().loadClass(builderClass);
+                
+            } catch (ClassNotFoundException e) {
+                LOGGER.fatal(e, e);
+            }
+        }
+        
+        
     }
 
     /**
@@ -233,6 +269,13 @@ public class ESCODynamicGroupsParameters implements Serializable {
             } else {
                 sb.append(Arrays.toString(getLdapSearchAttributes()));
             }
+            
+            sb.append("; SyncRepl Client idle: ");
+            sb.append(getSyncreplClientIdle());
+            
+            sb.append("; SyncRepl Messages Handler builder: ");
+            sb.append(getSyncReplMessageHandlerBuilderClass());
+            
             sb.append("}");
             stringRepresentation = sb.toString();
         }
@@ -382,5 +425,70 @@ public class ESCODynamicGroupsParameters implements Serializable {
      */
     public void setLdapSearchAttributes(final String[] ldapSearchAttributes) {
         this.ldapSearchAttributes = ldapSearchAttributes;
+    }
+
+    /**
+     * Getter for syncreplClientIdle.
+     * @return the syncreplClientIdle
+     */
+    public int getSyncreplClientIdle() {
+        return syncreplClientIdle;
+    }
+
+    /**
+     * Setter for syncreplClientIdle.
+     * @param syncreplClientIdle the syncreplClientIdle to set
+     */
+    public void setSyncreplClientIdle(final int syncreplClientIdle) {
+        this.syncreplClientIdle = syncreplClientIdle;
+    }
+
+    /**
+     * Getter for ldapUIDAttribute.
+     * @return the ldapUIDAttribute
+     */
+    public String getLdapUIDAttribute() {
+        return ldapUIDAttribute;
+    }
+
+    /**
+     * Setter for ldapUIDAttribute.
+     * @param ldapUIDAttribute the ldapUIDAttribute to set
+     */
+    public void setLdapUIDAttribute(final String ldapUIDAttribute) {
+        this.ldapUIDAttribute = ldapUIDAttribute;
+    }
+
+    /**
+     * Getter for parametersProperties.
+     * @return the parametersProperties
+     */
+    public Properties getParametersProperties() {
+        return parametersProperties;
+    }
+
+    /**
+     * Setter for parametersProperties.
+     * @param parametersProperties the parametersProperties to set
+     */
+    public void setParametersProperties(final Properties parametersProperties) {
+        this.parametersProperties = parametersProperties;
+    }
+
+    /**
+     * Getter for syncReplMessageHandlerBuilderClass.
+     * @return the syncReplMessageHandlerBuilderClass
+     */
+    public Class<ISyncReplMessagesHandlerBuilder> getSyncReplMessageHandlerBuilderClass() {
+        return syncReplMessageHandlerBuilderClass;
+    }
+
+    /**
+     * Setter for syncReplMessageHandlerBuilderClass.
+     * @param syncReplMessageHandlerBuilderClass the syncReplMessageHandlerBuilderClass to set
+     */
+    public void setSyncReplMessageHandlerBuilderClass(
+            final Class<ISyncReplMessagesHandlerBuilder> syncReplMessageHandlerBuilderClass) {
+        this.syncReplMessageHandlerBuilderClass = syncReplMessageHandlerBuilderClass;
     }
 }
