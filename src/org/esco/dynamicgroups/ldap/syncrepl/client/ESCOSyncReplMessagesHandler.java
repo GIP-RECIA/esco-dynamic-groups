@@ -81,6 +81,6 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler {
                 return (SyncStateControl) control;
             }
         }
-        return null;
+        return null; 
     }
 }
