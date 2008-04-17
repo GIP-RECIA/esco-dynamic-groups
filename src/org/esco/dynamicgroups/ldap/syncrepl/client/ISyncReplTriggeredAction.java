@@ -3,9 +3,11 @@
  */
 package org.esco.dynamicgroups.ldap.syncrepl.client;
 
-import java.io.Serializable;
+
 
 import com.novell.ldap.LDAPEntry;
+
+import java.io.Serializable;
 
 /**
  * Interface for the action triggered by an SyncRepl notification.

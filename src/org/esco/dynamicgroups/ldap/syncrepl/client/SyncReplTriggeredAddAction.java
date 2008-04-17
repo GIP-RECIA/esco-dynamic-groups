@@ -3,10 +3,11 @@
  */
 package org.esco.dynamicgroups.ldap.syncrepl.client;
 
-import org.apache.log4j.Logger;
+
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPEntry;
+import org.apache.log4j.Logger;
 
 /**
  * Add action trigerred by an Ldap Synchronization Replication notification.

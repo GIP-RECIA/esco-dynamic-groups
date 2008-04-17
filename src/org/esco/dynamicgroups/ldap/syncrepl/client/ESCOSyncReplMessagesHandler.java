@@ -1,12 +1,13 @@
 package org.esco.dynamicgroups.ldap.syncrepl.client;
 
-import org.apache.log4j.Logger;
-import org.esco.dynamicgroups.ldap.syncrepl.ldapsync.protocol.SyncStateControl;
 
 import com.novell.ldap.LDAPControl;
 import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPMessage;
 import com.novell.ldap.LDAPSearchResult;
+
+import org.apache.log4j.Logger;
+import org.esco.dynamicgroups.ldap.syncrepl.ldapsync.protocol.SyncStateControl;
 
 /**
  * Reference implementation for the LDAP Messages handler.

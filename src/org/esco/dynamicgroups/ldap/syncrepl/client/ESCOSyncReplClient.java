@@ -2,16 +2,10 @@ package org.esco.dynamicgroups.ldap.syncrepl.client;
 
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPControl;
-import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPIntermediateResponse;
-import com.novell.ldap.LDAPMessage;
 import com.novell.ldap.LDAPSearchConstraints;
 import com.novell.ldap.LDAPSearchQueue;
-import com.novell.ldap.LDAPSearchResult;
-import com.novell.ldap.LDAPSearchResultReference;
-import com.novell.ldap.controls.LDAPEntryChangeControl;
-import com.novell.ldap.controls.LDAPPersistSearchControl;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -30,25 +24,25 @@ import org.esco.dynamicgroups.ldap.syncrepl.ldapsync.protocol.SyncStateControl;
  *
  */
 public class ESCOSyncReplClient {
-    
+
     /** Number of idle loops between two marks. */
     private static final int MARK_INTERVAL = 2;
-    
+
     /** Prefix for the marks. */
     private static final String MARK_PREFIX = "--- MARK --- ";
-    
+
     /** Suffix for the marks. */
     private static final String MARK_SUFFIX = " ---";
-    
+
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(ESCOSyncReplClient.class);
-    
+
     /** Message handler. */
     private ISyncReplMessagesHandler messageHandler;
-    
+
     /** Counter for the idle loops. */
     private int idleCount;
-    
+
     /**
      * Constructor for ESCOSyncReplClient.
      */
@@ -64,7 +58,7 @@ public class ESCOSyncReplClient {
         ESCOSyncReplClient client  = new ESCOSyncReplClient();
         client.launch();
     }
-    
+
     /**
      * Launches the client.
      * @throws IOException 
@@ -130,24 +124,26 @@ public class ESCOSyncReplClient {
         }
 
         try {   
-            while (true) {
-                if (!queue.isResponseReceived()) {
+            if (queue != null) {
+                while (true) {
+                    if (!queue.isResponseReceived()) {
                         Thread.sleep(idle);
                         idleCount++;
                         mark();
-                    
-                } else {
-                    try {
-                        idleCount = 0;
-                        messageHandler.processLDAPMessage(queue.getResponse());
-                    } catch (LDAPException e) {
-                        e.printStackTrace();
+
+                    } else {
+                        try {
+                            idleCount = 0;
+                            messageHandler.processLDAPMessage(queue.getResponse());
+                        } catch (LDAPException e) {
+                            e.printStackTrace();
+                        }
                     }
+//                  if (!checkForAChange(queue)) {
+//                  break;
+//                  }
+//                  Thread.sleep(IDLE_LOOP);
                 }
-//                if (!checkForAChange(queue)) {
-//                    break;
-//                }
-//                Thread.sleep(IDLE_LOOP);
             }
         } catch (InterruptedException e) {
             /* Noting to do */
@@ -170,71 +166,71 @@ public class ESCOSyncReplClient {
      * @param queue
      * @return true if there is a change.
      */
-    private static boolean checkForAChange(final LDAPSearchQueue queue) {
+//  private static boolean checkForAChange(final LDAPSearchQueue queue) {
 
-        LDAPMessage message;
-        boolean result = true;
+//  LDAPMessage message;
+//  boolean result = true;
 
-        try {
-            message = queue.getResponse();
-            System.out.println("MESSAGE =>>> " + message + "<=== " + queue.isResponseReceived());
-             
-            if (queue.isResponseReceived()) {
+//  try {
+//  message = queue.getResponse();
+//  System.out.println("MESSAGE =>>> " + message + "<=== " + queue.isResponseReceived());
 
-                //message = queue.getResponse();
-                if (message == null) {
-                    System.out.println("MESSAGE NUL.");
-                } else {
-                    System.out.println("MESSAGE: " + message.getClass().getSimpleName() + " => " + message);
+//  if (queue.isResponseReceived()) {
 
-                    // is the response a search result reference?
+//  //message = queue.getResponse();
+//  if (message == null) {
+//  System.out.println("MESSAGE NUL.");
+//  } else {
+//  System.out.println("MESSAGE: " + message.getClass().getSimpleName() + " => " + message);
 
-                    if (message instanceof SyncInfoMessage) {
-                        System.out.println("INSTANCE of intermediate message");
-                    } else if (message instanceof LDAPSearchResultReference) {
+//  // is the response a search result reference?
 
-                        String[] urls = ((LDAPSearchResultReference) message).getReferrals();
-                        System.out.println("\nSearch result references:");
-                        for (int i = 0; i < urls.length; i++) {
-                            System.out.println(urls[i]);
-                        }
-                    } else if (message instanceof LDAPSearchResult) {
-                        System.out.println("--LDAPSEARCHRESULT--");
-                        LDAPControl[] controls = message.getControls();
+//  if (message instanceof SyncInfoMessage) {
+//  System.out.println("INSTANCE of intermediate message");
+//  } else if (message instanceof LDAPSearchResultReference) {
 
-                        for (int i = 0; i < controls.length; i++) {
-                            System.out.println("CONTROL " + controls[i].getClass().getSimpleName() 
-                                    + "==>" + controls[i]);
-                            if (controls[i] instanceof LDAPEntryChangeControl) {
-                                LDAPEntryChangeControl ecCtrl = (LDAPEntryChangeControl) controls[i];
+//  String[] urls = ((LDAPSearchResultReference) message).getReferrals();
+//  System.out.println("\nSearch result references:");
+//  for (int i = 0; i < urls.length; i++) {
+//  System.out.println(urls[i]);
+//  }
+//  } else if (message instanceof LDAPSearchResult) {
+//  System.out.println("--LDAPSEARCHRESULT--");
+//  LDAPControl[] controls = message.getControls();
 
-                                int changeType = ecCtrl.getChangeType();
-                                System.out.println("\n\nchange type: " + getChangeTypeString(changeType));
-                                if (changeType == LDAPPersistSearchControl.MODDN) {
-                                    System.out.println("Prev. DN: " + ecCtrl.getPreviousDN());
-                                }
+//  for (int i = 0; i < controls.length; i++) {
+//  System.out.println("CONTROL " + controls[i].getClass().getSimpleName() 
+//  + "==>" + controls[i]);
+//  if (controls[i] instanceof LDAPEntryChangeControl) {
+//  LDAPEntryChangeControl ecCtrl = (LDAPEntryChangeControl) controls[i];
 
-                                if (ecCtrl.getHasChangeNumber()) {
-                                    System.out.println("Change Number: " + ecCtrl.getChangeNumber());
-                                }
+//  int changeType = ecCtrl.getChangeType();
+//  System.out.println("\n\nchange type: " + getChangeTypeString(changeType));
+//  if (changeType == LDAPPersistSearchControl.MODDN) {
+//  System.out.println("Prev. DN: " + ecCtrl.getPreviousDN());
+//  }
 
-                                LDAPEntry entry = ((LDAPSearchResult) message).getEntry();
-                                System.out.println("entry: " + entry.getDN());
-                            }
+//  if (ecCtrl.getHasChangeNumber()) {
+//  System.out.println("Change Number: " + ecCtrl.getChangeNumber());
+//  }
 
-                        }
-                    }
-                }
+//  LDAPEntry entry = ((LDAPSearchResult) message).getEntry();
+//  System.out.println("entry: " + entry.getDN());
+//  }
 
-            } else {
-                System.out.println("No message");
-            }
-        } catch (LDAPException e) {
-            e.printStackTrace();
-            result = false;
-        }
-        return result;
-    }
+//  }
+//  }
+//  }
+
+//  } else {
+//  System.out.println("No message");
+//  }
+//  } catch (LDAPException e) {
+//  e.printStackTrace();
+//  result = false;
+//  }
+//  return result;
+//  }
 
     /**
      * Writes a mark in the log if needed.
@@ -245,34 +241,34 @@ public class ESCOSyncReplClient {
             LOGGER.info(MARK_PREFIX + Calendar.getInstance().getTime() + MARK_SUFFIX);
         }
     }
-    
+
     /**
      * Return a string indicating the type of change represented by the
      * changeType parameter.
      * @param changeType The change type.
      * @return The string indicating the type of change.
      */
-    private static String getChangeTypeString(final int changeType) {
+//  private static String getChangeTypeString(final int changeType) {
 
-        String changeTypeString;
-        switch (changeType) {
-        case LDAPPersistSearchControl.ADD:
-            changeTypeString = "ADD";
-            break;
-        case LDAPPersistSearchControl.MODIFY:
-            changeTypeString = "MODIFY";
-            break;
-        case LDAPPersistSearchControl.MODDN:
-            changeTypeString = "MODDN";
-            break;
-        case LDAPPersistSearchControl.DELETE:
-            changeTypeString = "DELETE";
-            break;
-        default:
-            changeTypeString = "Unknown change type: " + String.valueOf(changeType);
-        break;
-        }
-        return changeTypeString;
-    }
+//  String changeTypeString;
+//  switch (changeType) {
+//  case LDAPPersistSearchControl.ADD:
+//  changeTypeString = "ADD";
+//  break;
+//  case LDAPPersistSearchControl.MODIFY:
+//  changeTypeString = "MODIFY";
+//  break;
+//  case LDAPPersistSearchControl.MODDN:
+//  changeTypeString = "MODDN";
+//  break;
+//  case LDAPPersistSearchControl.DELETE:
+//  changeTypeString = "DELETE";
+//  break;
+//  default:
+//  changeTypeString = "Unknown change type: " + String.valueOf(changeType);
+//  break;
+//  }
+//  return changeTypeString;
+//  }
 }
 
