@@ -41,7 +41,7 @@ public class SyncReplTriggeredAddAction implements ISyncReplTriggeredAction {
     public void trigger(final LDAPEntry entry) {
         final LDAPAttribute uid = entry.getAttribute(uidAttribute);
         if (uid != null) {
-            
+            /* */
         }
 
     }
