@@ -6,9 +6,10 @@ package org.esco.dynamicgroups;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.InvalidPropertiesFormatException;
 import java.util.Properties;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.ldap.syncrepl.client.ISyncReplMessagesHandlerBuilder;
@@ -71,12 +72,12 @@ public class ESCODynamicGroupsParameters implements Serializable {
     private String ldapSearchFilter;
 
     /** Attributes returned by the search operations. */
-    private String[] ldapSearchAttributes;
+    private Set<String> ldapSearchAttributes;
     
-    /** Ldap attribute used for the uid. */
-    private String ldapUIDAttribute;
+    /** LDAP id attribute. */
+    private String ldapIdAttribute;
 
-    /** Idle duration for the syncrepl client. */
+    /** Idle duration for the SyncRepl client. */
     private int syncreplClientIdle;
     
     /** Builder class for the SyncRepl messages Handler. */
@@ -85,9 +86,6 @@ public class ESCODynamicGroupsParameters implements Serializable {
     /** The String representation of the instance. */
     private String stringRepresentation;
     
-    
-
-
     /**
      * Constructor for ESCODynamicGroupsParameters.
      */
@@ -142,6 +140,7 @@ public class ESCODynamicGroupsParameters implements Serializable {
      */
     @SuppressWarnings("unchecked")
     private void loadFromProperties(final Properties params) {
+        // keys used to retrieve the values in the properties instance. 
         final String ldapHostKey = PROPERTIES_PREFIX + "ldap.host";
         final String ldapPortKey = PROPERTIES_PREFIX + "ldap.port";
         final String ldapVersionKey = PROPERTIES_PREFIX + "ldap.version";
@@ -150,10 +149,11 @@ public class ESCODynamicGroupsParameters implements Serializable {
         final String ldapSearchBaseKey = PROPERTIES_PREFIX + "ldap.search.base";
         final String ldapSearchFilterKey = PROPERTIES_PREFIX + "ldap.search.filter";
         final String ldapSearchAttributesKey = PROPERTIES_PREFIX + "ldap.search.attributes";
-        final String ldapUIDAttributeKey = PROPERTIES_PREFIX + "ldap.uid.attribute";
+        final String ldapIdAttributeKey = PROPERTIES_PREFIX + "ldap.id.attribute";
         final String synreplClientIDLEKey = PROPERTIES_PREFIX + "syncrepl.client.idle";
         final String synreplHandlerBuilderKey = PROPERTIES_PREFIX + "syncrepl.handler.builder.class";
         
+        // Retrieves the values.
         setLdapHost(parseStringFromProperty(params, ldapHostKey));
         setLdapPort(parseIntegerFromProperty(params, ldapPortKey));
         setLdapVersion(parseIntegerFromProperty(params, ldapVersionKey));
@@ -161,9 +161,11 @@ public class ESCODynamicGroupsParameters implements Serializable {
         setLdapCredentials(parseStringFromProperty(params, ldapCredentialsKey));
         setLdapSearchBase(parseStringFromProperty(params, ldapSearchBaseKey));
         setLdapSearchFilter(parseStringFromProperty(params, ldapSearchFilterKey));
-        setLdapSearchAttributes(parseStringArrayFromProperty(params, ldapSearchAttributesKey));
-        setLdapUIDAttribute(parseStringFromProperty(params, ldapUIDAttributeKey));
+        setLdapSearchAttributesFromArray(parseStringArrayFromProperty(params, ldapSearchAttributesKey));
+        setLdapIdAttribute(parseStringFromProperty(params, ldapIdAttributeKey));
         setSyncreplClientIdle(parseIntegerFromProperty(params, synreplClientIDLEKey) * MILLIS_TO_SECONDS_FACTOR);
+        
+        // Retrieves the class for the builder of SyncRepl Messages.
         final String builderClass = parseStringFromProperty(params, synreplHandlerBuilderKey);
         if (builderClass != null) {
             try {
@@ -174,6 +176,9 @@ public class ESCODynamicGroupsParameters implements Serializable {
                 LOGGER.fatal(e, e);
             }
         }
+        
+        // Adds the LDAP id attributes in the search attributes.
+        ldapSearchAttributes.add(ldapIdAttribute);
         
         
     }
@@ -267,7 +272,7 @@ public class ESCODynamicGroupsParameters implements Serializable {
             if (getLdapSearchAttributes() == null) {
                 sb.append(getLdapSearchAttributes());
             } else {
-                sb.append(Arrays.toString(getLdapSearchAttributes()));
+                sb.append(getLdapSearchAttributes());
             }
             
             sb.append("; SyncRepl Client idle: ");
@@ -415,17 +420,36 @@ public class ESCODynamicGroupsParameters implements Serializable {
      * Getter for ldapSearchAttributes.
      * @return the ldapSearchAttributes
      */
-    public String[] getLdapSearchAttributes() {
+    public Set<String> getLdapSearchAttributes() {
         return ldapSearchAttributes;
     }
 
     /**
+     * Gives the LDAP search attributes as an array.
+     * @return The array of LDAP search attributes.
+     */
+    public String[] getLdapSearchAttributesAsArray() {
+        return ldapSearchAttributes.toArray(new String[ldapSearchAttributes.size()]);
+    }
+    
+    /**
      * Setter for ldapSearchAttributes.
      * @param ldapSearchAttributes the ldapSearchAttributes to set
      */
-    public void setLdapSearchAttributes(final String[] ldapSearchAttributes) {
+    public void setLdapSearchAttributes(final Set<String> ldapSearchAttributes) {
         this.ldapSearchAttributes = ldapSearchAttributes;
     }
+    
+   /**
+    * Setter for ldapSearchAttributes.
+    * @param ldapSearchAttributes the ldapSearchAttributes to set
+    */
+   protected void setLdapSearchAttributesFromArray(final String[] ldapSearchAttributes) {
+       this.ldapSearchAttributes = new HashSet<String>(ldapSearchAttributes.length);
+       for (String ldapSearchAttribute : ldapSearchAttributes) {
+           this.ldapSearchAttributes.add(ldapSearchAttribute);
+       }
+   }
 
     /**
      * Getter for syncreplClientIdle.
@@ -444,19 +468,19 @@ public class ESCODynamicGroupsParameters implements Serializable {
     }
 
     /**
-     * Getter for ldapUIDAttribute.
-     * @return the ldapUIDAttribute
+     * Getter for ldapIdAttribute.
+     * @return the ldapIdAttribute
      */
-    public String getLdapUIDAttribute() {
-        return ldapUIDAttribute;
+    public String getLdapIdAttribute() {
+        return ldapIdAttribute;
     }
 
     /**
-     * Setter for ldapUIDAttribute.
-     * @param ldapUIDAttribute the ldapUIDAttribute to set
+     * Setter for ldapIdAttribute.
+     * @param ldapIdAttribute the ldapIdAttribute to set
      */
-    public void setLdapUIDAttribute(final String ldapUIDAttribute) {
-        this.ldapUIDAttribute = ldapUIDAttribute;
+    public void setLdapIdAttribute(final String ldapIdAttribute) {
+        this.ldapIdAttribute = ldapIdAttribute;
     }
 
     /**

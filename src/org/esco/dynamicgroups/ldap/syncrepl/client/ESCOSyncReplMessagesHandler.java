@@ -23,11 +23,53 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler {
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(ESCOSyncReplMessagesHandler.class); 
     
+    /** Add Action.*/
+    private ISyncReplTriggeredAction addAction;
+
+    /** Modify Action.*/
+    private ISyncReplTriggeredAction modifyAction;
+
+    /** Delete Action.*/
+    private ISyncReplTriggeredAction deleteAction;
+
+    /** Present Action.*/
+    private ISyncReplTriggeredAction presentAction;
+    
+    /** The string representation of the message handler. */
+    private String stringRepresentation;
+    
     /**
      * Constructor for ESCOSyncReplMessagesHandler.
+     * @param addAction Action associated to a Add tagged SyncStateControl.
+     * @param modifyAction Action associated to a Modify tagged SyncStateControl.
+     * @param deleteAction Action associated to a Delete tagged SyncStateControl.
+     * @param presentAction Action associated to a Present tagged SyncStateControl.
      */
-    public ESCOSyncReplMessagesHandler() {
-       /* */ 
+    public ESCOSyncReplMessagesHandler(final ISyncReplTriggeredAction addAction,
+            final ISyncReplTriggeredAction modifyAction,
+            final ISyncReplTriggeredAction deleteAction,
+            final ISyncReplTriggeredAction presentAction) {
+       this.addAction = addAction;
+       this.modifyAction = modifyAction;
+       this.deleteAction = deleteAction;
+       this.presentAction = presentAction;
+       LOGGER.info("SyncRepl message handler used: " + this);
+    }
+    
+    /**
+     * Gives the string representation of the handler.
+     * @return The string representation.
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        if (stringRepresentation == null) {
+            stringRepresentation = getClass().getSimpleName() + "#{Add action: "
+                + addAction + "; Modify action: " + modifyAction 
+                + "; Delete action: " + deleteAction 
+                + "; Present action: " + presentAction + "}";
+        }
+        return stringRepresentation;
     }
     
     /**
@@ -38,7 +80,7 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler {
      */
     public void processLDAPMessage(final LDAPMessage message) {
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Handling the message: " + message);
+            LOGGER.trace("Handling the message: " + message);
         }
         if (message instanceof LDAPSearchResult) {
             handleLDAPSearchResult((LDAPSearchResult) message);
@@ -53,20 +95,19 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler {
         final SyncStateControl control = retrieveSyncStateControl(searchResultMessage);
         
         if (control != null) {
-            final LDAPEntry entry = searchResultMessage.getEntry(); 
+            LOGGER.trace("A SyncStateControl is present in the message.");
+            final LDAPEntry entry = searchResultMessage.getEntry();
             if (control.isAdd()) {
-                
-                LOGGER.debug("SyncStateControl with state ADD." 
-                        +  entry.getAttribute("uid"));
-            } else if (control.isDelete()) {
-                LOGGER.debug("SyncStateControl with state DELETE.");
+                addAction.trigger(entry);
             } else if (control.isModify()) {
-                LOGGER.debug("SyncStateControl with state MODIFY.");
+                modifyAction.trigger(entry);
+            } else if (control.isDelete()) {
+                deleteAction.trigger(entry);    
             } else if (control.isPresent()) {
-                LOGGER.debug("SyncStateControl with state PRESENT.");
+                presentAction.trigger(entry);
             }
         } else {
-            LOGGER.debug("No SyncStateControl in the message.");
+            LOGGER.trace("No SyncStateControl in the message.");
         }
         
     }
@@ -83,5 +124,38 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler {
             }
         }
         return null; 
+    }
+
+    /**
+     * Getter for addAction.
+     * @return the addAction
+     */
+    public ISyncReplTriggeredAction getAddAction() {
+        return addAction;
+    }
+
+    /**
+     * Getter for modifyAction.
+     * @return the modifyAction
+     */
+    public ISyncReplTriggeredAction getModifyAction() {
+        return modifyAction;
+ 
+    }
+
+    /**
+     * Getter for deleteAction.
+     * @return the deleteAction
+     */
+    public ISyncReplTriggeredAction getDeleteAction() {
+        return deleteAction;
+    }
+
+    /**
+     * Getter for presentAction.
+     * @return the presentAction
+     */
+    public ISyncReplTriggeredAction getPresentAction() {
+        return presentAction;
     }
 }

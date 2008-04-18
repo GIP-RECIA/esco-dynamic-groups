@@ -1,0 +1,19 @@
+<!-- 
+
+	JVM Directive to specify the aop configuration file : 
+	-Daspectwerkz.definition.file=<Path-to-this-file> 
+-->
+
+<aspectwerkz>
+
+    <system id="ESCO-Dynamic-Groups.AOP">
+    
+    	<package name="org.esco.dynamicgroups.aop">
+    		<aspect class="TestAspect">
+    			<pointcut name="allGroupMethods" expression="execution(java.lang.String edu.internet2.middleware.grouper.Group.getName())"/>
+            	<advice name="display" type="around" bind-to="allGroupMethods"/>
+            </aspect>
+        </package>
+       
+    </system>
+</aspectwerkz>

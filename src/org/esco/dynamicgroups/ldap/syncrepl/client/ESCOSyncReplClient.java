@@ -27,6 +27,9 @@ public class ESCOSyncReplClient {
 
     /** Number of idle loops between two marks. */
     private static final int MARK_INTERVAL = 2;
+    
+    /** Idle duration for the initialization step. */
+    private static final int REFRESH_STAGE_IDLE = 1000;
 
     /** Prefix for the marks. */
     private static final String MARK_PREFIX = "--- MARK --- ";
@@ -74,7 +77,7 @@ public class ESCOSyncReplClient {
         final String credentials = parameters.getLdapCredentials();
         final String searchFilter = parameters.getLdapSearchFilter();
         final String searchBase = parameters.getLdapSearchBase();
-        final String[] attributes = parameters.getLdapSearchAttributes();
+        final String[] attributes = parameters.getLdapSearchAttributesAsArray();
         final int idle = parameters.getSyncreplClientIdle();
         try {
             final ISyncReplMessagesHandlerBuilder messageHandlerBuilder = 
@@ -125,14 +128,16 @@ public class ESCOSyncReplClient {
 
         try {   
             if (queue != null) {
+                int contextualIdle = REFRESH_STAGE_IDLE;
                 while (true) {
                     if (!queue.isResponseReceived()) {
-                        Thread.sleep(idle);
+                        Thread.sleep(contextualIdle);
                         idleCount++;
                         mark();
 
                     } else {
                         try {
+                            contextualIdle = idle;
                             idleCount = 0;
                             messageHandler.processLDAPMessage(queue.getResponse());
                         } catch (LDAPException e) {
