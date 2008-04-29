@@ -12,7 +12,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Calendar;
 
 import org.apache.log4j.Logger;
-import org.esco.dynamicgroups.ESCODynamicGroupsParameters;
+import org.esco.dynamicgroups.ldap.ESCODynamicGroupsParameters;
 import org.esco.dynamicgroups.ldap.syncrepl.ldapsync.protocol.SyncDoneControl;
 import org.esco.dynamicgroups.ldap.syncrepl.ldapsync.protocol.SyncInfoMessage;
 import org.esco.dynamicgroups.ldap.syncrepl.ldapsync.protocol.SyncRequestControl;

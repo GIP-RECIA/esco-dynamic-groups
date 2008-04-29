@@ -26,14 +26,14 @@ public class ESCOEntryDTOFactory implements Serializable {
     private static final long serialVersionUID = -5063551721940325754L;
     
     /** LDAP id attribute. */
-    private String uidAttribute;
+    private String idAttribute;
     
     /**
      * Constructor for ESCOEntryDTOFactory.
-     * @param uidAttribute The LDAP id attribute.
+     * @param idAttribute The LDAP id attribute.
      */
-    public ESCOEntryDTOFactory(final String uidAttribute) {
-       this.uidAttribute = uidAttribute;
+    public ESCOEntryDTOFactory(final String idAttribute) {
+       this.idAttribute = idAttribute;
     }
     
     /**
@@ -55,7 +55,7 @@ public class ESCOEntryDTOFactory implements Serializable {
             final String[] values = attribute.getStringValueArray();
             
             // Retrieves the id and the other attributes.
-            if (name.equals(uidAttribute)) {
+            if (name.equals(idAttribute)) {
                 entryId = values[0];
             } else {
                 entryAttributes.put(name, values);
