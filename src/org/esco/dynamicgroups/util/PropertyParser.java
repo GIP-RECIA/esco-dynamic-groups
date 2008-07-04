@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.esco.dynamicgroups.util;
+package org.esco.grouper.util;
 
 import java.io.Serializable;
 import java.util.Properties;
@@ -24,6 +24,9 @@ public class PropertyParser implements Serializable {
 
     /** Separator in the property keys. */
     private static final String PROP_KEY_SEP = ".";
+    
+    /** Constant String. */
+    private static final String IN_FILE = " in file: ";
     
     /** Singleton. */
     private static final PropertyParser INSTANCE = new PropertyParser();
@@ -57,7 +60,7 @@ public class PropertyParser implements Serializable {
             final String key) {
         final String strValue = properties.getProperty(key);
         if (strValue == null) {
-            logger.error("Unable to find a value for " + key + " in file: " + propertiesSourceName);
+            logger.error("Unable to find a value for " + key + IN_FILE + propertiesSourceName);
             return null;
         }
         return strValue.trim();
@@ -93,7 +96,7 @@ public class PropertyParser implements Serializable {
             final String key) {
         final String strValue = properties.getProperty(key);
         if (strValue == null) {
-            logger.error("Unable to find a value for " + key + " in file: " + propertiesSourceName);
+            logger.error("Unable to find a value for " + key + IN_FILE + propertiesSourceName);
             return null;
         }
         final String[] arrayValue = strValue.split(ATTRIBUTES_SEP);
@@ -117,14 +120,41 @@ public class PropertyParser implements Serializable {
             final String key) {
         final String strValue = properties.getProperty(key);
         if (strValue == null) {
-            logger.error("Unable to find a value for " + key + " in file: " + propertiesSourceName);
+            logger.error("Unable to find a value for " + key + IN_FILE + propertiesSourceName);
             return null;
         }
         try {
             final int intValue = Integer.parseInt(strValue.trim());
             return intValue;
         } catch (NumberFormatException e) {
-            logger.error("Invalid value for " + key + ": " + strValue + " in file: " + propertiesSourceName);
+            logger.error("Invalid value for " + key + ": " + strValue + IN_FILE + propertiesSourceName);
+            logger.error(e, e);
+            return null;
+        }
+    }
+    
+    /**
+     * Retrieves the double value from a properties INSTANCE for a given key.
+     * @param logger The logger to use.
+     * @param propertiesSourceName The name of the source used to load the properties.
+     * @param properties The properties INSTANCE.
+     * @param key The considered key.
+     * @return The double value if available in the properties, null otherwise.
+     */
+    public Double parseDoubleFromProperty(final Logger logger,
+            final String propertiesSourceName,
+            final Properties properties, 
+            final String key) {
+        final String strValue = properties.getProperty(key);
+        if (strValue == null) {
+            logger.error("Unable to find a value for " + key + IN_FILE + propertiesSourceName);
+            return null;
+        }
+        try {
+            final double doubleValue = Double.parseDouble(strValue.trim());
+            return doubleValue;
+        } catch (NumberFormatException e) {
+            logger.error("Invalid value for " + key + ": " + strValue + IN_FILE + propertiesSourceName);
             logger.error(e, e);
             return null;
         }
