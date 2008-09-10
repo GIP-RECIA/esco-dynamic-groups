@@ -14,7 +14,7 @@ import org.apache.log4j.Logger;
  * 29 avr. 08
  *
  */
-public class PropertyParser implements Serializable {
+public class PropertyParser implements Serializable { 
     
     /** Serial version UID. */
     private static final long serialVersionUID = 7763505305410596203L;
