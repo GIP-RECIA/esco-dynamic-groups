@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/log4j-1.2.13.jar"/>
+	<classpathentry kind="lib" path="lib/aspectwerkz-2.0.RC3.jar"/>
+	<classpathentry kind="lib" path="lib/aspectwerkz-core-2.0.RC3.jar"/>
+	<classpathentry kind="lib" path="lib/grouper.jar" sourcepath="/Grouper-1.3.0"/>
+	<classpathentry kind="lib" path="lib/ldap.jar"/>
+	<classpathentry kind="lib" path="lib/subject-0.3.0-rc1-cvs.jar"/>
+	<classpathentry kind="output" path="classes"/>
+</classpath>

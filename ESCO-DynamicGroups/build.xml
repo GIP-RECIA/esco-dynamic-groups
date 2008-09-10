@@ -1,0 +1,103 @@
+<?xml version="1.0"?>
+
+
+<project name="ESCO-DynammicGroups" default="esco-dg.weaving" basedir=".">
+    <description>PAGS Groups for Grouper</description>
+	
+	<!-- Properties Section -->
+	<property file="build.properties"/>
+	<property name="esco-dg.lib.dir" value="lib/"/>
+	<property name="esco-dg.build.dir" value="build/"/>
+	<property name="esco-dg.classes.dir" value="${esco-dg.build.dir}classes/"/>
+	<property name="esco-dg.dist.dir" value="dist/"/>
+	<property name="esco-dg.tmp.dir" value="tmp/"/>
+	<property name="esco-dg.prop.dir" value="properties/"/>
+	
+	<property name="esco-dg.src.dir" value="src/"/>
+	<property name="esco-dg.aspectwerkz.aop.def" value="META-INF/esco-dynamic-groups.aop.xml"/>
+	<property name="esco-dg.version" value="0.1.0-alpha0"/>
+	<property name="esco-dg.grouper-dg.lib" value="grouper-esco-dg-${esco-dg.version}.jar"/>
+	<property name="esco-dg.mapping" value="${esco-dg.prop.dir}esco-dynamicGroupsMapping.xml"/>
+	
+	<!-- Path Section -->
+	<path id="esco-dg.classpath">
+	   <pathelement path="${esco-dg.build.dir}"/>
+		<fileset dir="${esco-dg.lib.dir}" includes="**/*.jar" />
+	</path>
+	
+	<!-- Target Section -->
+	<target name="esco-dg.display" description="Displays the user properties">
+		 <property name = "esco-dg.classpath.value" refid="esco-dg.classpath"/>
+		<echo >
+			esco-dg.lib.dir                    = ${esco-dg.lib.dir}
+			esco-dg.classes.dir                = ${esco-dg.classes.dir}
+			esco-dg.build.dir                  = ${esco-dg.build.dir}
+			esco-dg.dist.dir                   = ${esco-dg.dist.dir}
+			esco-dg.src.dir                    = ${esco-dg.src.dir}
+			esco-dg.prop.dir                    = ${esco-dg.prop.dir}
+			sco-dg.tmp.dir                     = ${esco-dg.tmp.dir}
+			esco-dg.classpath                  = ${esco-dg.classpath.value}
+			esco-dg.grouper.lib                = ${grouper.lib}
+			esco-dg.aspectwerkz.aop.def        = ${esco-dg.aspectwerkz.aop.def}
+			esco-dg.mapping                    = ${esco-dg.mapping}
+			esco-db.version                    = ${esco-dg.version}
+			esco-dg.grouper-dg.lib             = ${esco-dg.grouper-dg.lib}
+		</echo>
+	</target>
+	
+	<target name="esco-dg.create.build.dir">
+		<mkdir dir="${esco-dg.build.dir}"/>
+	</target>
+	
+	<target name="esco-dg.create.dist.dir">
+		<mkdir dir="${esco-dg.dist.dir}"/>
+	</target>
+	
+	<target name="esco-dg.create.tmp.dir" description="Creates the tmp directory.">
+		<delete quiet="true" dir="${esco-dg.tmp.dir}"/>
+		<mkdir dir="${esco-dg.tmp.dir}"/>
+	</target>
+	
+	<target name="esco-dg.grouper.unzip" description="Unzip the grouper jar" depends="esco-dg.create.build.dir">
+		 <unzip dest="${esco-dg.build.dir}" src="${esco-dg.grouper.lib}"/>
+	</target>
+	  
+	<target name="esco-dg.weaving" 
+		description="Weaving the aspects into the grouper classes."
+		depends="esco-dg.grouper.unzip, esco-dg.compile">
+		<taskdef name="awc" classname="org.codehaus.aspectwerkz.compiler.AspectWerkzCTask" classpathref="esco-dg.classpath"/>
+		<awc verbose="true" taskverbose="true" details="true" definition="${esco-dg.aspectwerkz.aop.def}" classpathref="esco-dg.classpath">
+			<target path="${esco-dg.build.dir}"/>
+		</awc>
+	</target>
+
+	<target name="esco-dg.compile" description="Compilation of the aspects.">
+		<mkdir dir="${esco-dg.build.dir}"/>
+		<javac  srcdir="${esco-dg.src.dir}"
+						 includes="org/esco/dynamicgroups/**"
+				         excludes="org/esco/dynamicgroups/ldap/**"
+						 destdir="${esco-dg.build.dir}"
+				         debug="true"
+				         deprecation="true"
+				         optimize="true"
+				 		 classpathref="esco-dg.classpath">
+		 </javac>
+	</target>
+	
+	<target name="esco-dg.grouper-dg.jar" 
+		description="Creates the jar for grouper with dynamic groups support." 
+		depends="esco-dg.weaving, esco-dg.create.dist.dir" >
+		<copy file="${esco-dg.mapping}" todir="${esco-dg.build.dir}"/>
+	 	<jar destfile="${esco-dg.dist.dir}${esco-dg.grouper-dg.lib}" basedir="${esco-dg.build.dir}">
+	  	   		<manifest>
+	  	   			<attribute name="Built-By"                value="A. Deman - GIP RECIA"/>
+			        <attribute name="Implementation-Vendor"   value="Internet2 for all the grouper part and esco for the dynamic groups add on."/>
+			        <attribute name="Implementation-Title"    value="grouper with dynamic groups support"/>
+			        <attribute name="Implementation-Version"  value="${esco-dg.version}"/>
+			        <attribute name="Implementation-URL"      value="http://middleware.internet2.edu/dir/groups/grouper/"/>
+			    </manifest>
+			</jar>
+	</target>
+	
+	
+</project>
