@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.esco.grouper.util;
+package org.esco.dynamicgroups.util;
 
 import java.io.Serializable;
 import java.util.Properties;
