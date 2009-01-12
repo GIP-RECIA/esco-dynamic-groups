@@ -24,10 +24,10 @@ public class PropertyParser implements Serializable {
 
     /** Separator in the property keys. */
     private static final String PROP_KEY_SEP = ".";
-    
+
     /** Constant String. */
     private static final String IN_FILE = " in file: ";
-    
+
     /** Singleton. */
     private static final PropertyParser INSTANCE = new PropertyParser();
 

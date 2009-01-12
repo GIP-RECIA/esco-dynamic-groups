@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.esco.dynamicgroups.ldap.syncrepl.client;
+package org.esco.dynamicgroups.dao.ldap.syncrepl.client;
 
 
 
@@ -12,12 +12,12 @@ import org.esco.dynamicgroups.ESCOEntryDTOFactory;
 import org.esco.dynamicgroups.IEntryDTO;
 
 /**
- * Delete action triggered by an LDAP Synchronization Replication notification.
- * @author GIP RECIA - A. Deman.
+ * Modify action triggered by an LDAP Synchronization Replication notification.
+ * @author GIP RECIA - A. Deman
  * 17 avr. 08
  *
  */
-public class DeleteSyncReplTriggeredAction implements ISyncReplTriggeredAction {
+public class ModifySyncReplTriggeredAction implements ISyncReplTriggeredAction {
 
     /** Serial version UID. */
     private static final long serialVersionUID = -8354685420509950293L;
@@ -27,17 +27,17 @@ public class DeleteSyncReplTriggeredAction implements ISyncReplTriggeredAction {
 
     /** The LDAP attribute for the id. */
     private String idAttribute;
-    
+        
     /** The String representation of the action. */
     private String stringRepresentation;
-    
+
     /** EntryDTO factory. */
     private ESCOEntryDTOFactory entryDTOFactory;
     /**
-     * Constructor for DeleteSyncReplTriggeredAction.
+     * Constructor for ModifySyncReplTriggeredAction.
      * @param idAttribute The LDAP attribute for the id.
      */
-    public DeleteSyncReplTriggeredAction(final String idAttribute) {
+    public ModifySyncReplTriggeredAction(final String idAttribute) {
         this.idAttribute = idAttribute;
         entryDTOFactory = new ESCOEntryDTOFactory(idAttribute);
         LOGGER.debug("Creation of an instance of " + getClass().getSimpleName() + ".");
@@ -65,13 +65,11 @@ public class DeleteSyncReplTriggeredAction implements ISyncReplTriggeredAction {
     public void trigger(final LDAPEntry ldapEntry) {
         final LDAPAttribute id = ldapEntry.getAttribute(idAttribute);
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Delete action - id of the entry:" + id);
+            LOGGER.trace("Modify action - id of the entry:" + id);
         }
         if (id != null) {
             final IEntryDTO entryDTO = entryDTOFactory.createEntryDTO(ldapEntry);
             LOGGER.debug(entryDTO);
         }
-
     }
-
 }

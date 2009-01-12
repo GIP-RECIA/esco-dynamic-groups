@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.esco.dynamicgroups.ldap.syncrepl.client;
+package org.esco.dynamicgroups.dao.ldap.syncrepl.client;
 
 
 
@@ -12,12 +12,12 @@ import org.esco.dynamicgroups.ESCOEntryDTOFactory;
 import org.esco.dynamicgroups.IEntryDTO;
 
 /**
- * Modify action triggered by an LDAP Synchronization Replication notification.
+ * Add action triggered by an LDAP Synchronization Replication notification.
  * @author GIP RECIA - A. Deman
  * 17 avr. 08
  *
  */
-public class ModifySyncReplTriggeredAction implements ISyncReplTriggeredAction {
+public class AddSyncReplTriggeredAction implements ISyncReplTriggeredAction {
 
     /** Serial version UID. */
     private static final long serialVersionUID = -8354685420509950293L;
@@ -27,17 +27,18 @@ public class ModifySyncReplTriggeredAction implements ISyncReplTriggeredAction {
 
     /** The LDAP attribute for the id. */
     private String idAttribute;
-        
+    
     /** The String representation of the action. */
     private String stringRepresentation;
-
+    
     /** EntryDTO factory. */
     private ESCOEntryDTOFactory entryDTOFactory;
+    
     /**
-     * Constructor for ModifySyncReplTriggeredAction.
+     * Constructor for AddSyncReplTriggeredAction.
      * @param idAttribute The LDAP attribute for the id.
      */
-    public ModifySyncReplTriggeredAction(final String idAttribute) {
+    public AddSyncReplTriggeredAction(final String idAttribute) {
         this.idAttribute = idAttribute;
         entryDTOFactory = new ESCOEntryDTOFactory(idAttribute);
         LOGGER.debug("Creation of an instance of " + getClass().getSimpleName() + ".");
@@ -65,7 +66,7 @@ public class ModifySyncReplTriggeredAction implements ISyncReplTriggeredAction {
     public void trigger(final LDAPEntry ldapEntry) {
         final LDAPAttribute id = ldapEntry.getAttribute(idAttribute);
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Modify action - id of the entry:" + id);
+            LOGGER.trace("Add action - id of the entry:" + id);
         }
         if (id != null) {
             final IEntryDTO entryDTO = entryDTOFactory.createEntryDTO(ldapEntry);
