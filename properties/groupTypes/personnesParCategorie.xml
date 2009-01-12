@@ -1,9 +1,0 @@
-<registry>  
-  <metadata>  
-    <groupTypesMetaData>  
-    <groupTypeDef name='PersonnesParCategorie'>
-      <field name='categorie' required='true' type='attribute' readPriv='admin' writePriv='admin'/>       
-    </groupTypeDef>  
-    </groupTypesMetaData>  
-  </metadata>  
-</registry> 
