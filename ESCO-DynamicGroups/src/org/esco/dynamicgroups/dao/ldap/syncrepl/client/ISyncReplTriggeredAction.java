@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.esco.dynamicgroups.ldap.syncrepl.client;
+package org.esco.dynamicgroups.dao.ldap.syncrepl.client;
 
 
 

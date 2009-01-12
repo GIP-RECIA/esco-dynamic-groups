@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.esco.dynamicgroups.ldap;
+package org.esco.dynamicgroups.dao.ldap;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,7 +12,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.esco.dynamicgroups.ldap.syncrepl.client.ISyncReplMessagesHandlerBuilder;
+import org.esco.dynamicgroups.dao.ldap.syncrepl.client.ISyncReplMessagesHandlerBuilder;
 import org.esco.dynamicgroups.util.PropertyParser;
 
 

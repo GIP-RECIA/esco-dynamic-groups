@@ -1,4 +1,4 @@
-package org.esco.dynamicgroups.ldap.syncrepl.client;
+package org.esco.dynamicgroups.dao.ldap.syncrepl.client;
 
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPControl;
@@ -12,11 +12,11 @@ import java.io.UnsupportedEncodingException;
 import java.util.Calendar;
 
 import org.apache.log4j.Logger;
-import org.esco.dynamicgroups.ldap.ESCODynamicGroupsParameters;
-import org.esco.dynamicgroups.ldap.syncrepl.ldapsync.protocol.SyncDoneControl;
-import org.esco.dynamicgroups.ldap.syncrepl.ldapsync.protocol.SyncInfoMessage;
-import org.esco.dynamicgroups.ldap.syncrepl.ldapsync.protocol.SyncRequestControl;
-import org.esco.dynamicgroups.ldap.syncrepl.ldapsync.protocol.SyncStateControl;
+import org.esco.dynamicgroups.dao.ldap.ESCODynamicGroupsParameters;
+import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncDoneControl;
+import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncInfoMessage;
+import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncRequestControl;
+import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncStateControl;
 /**
  * Test class for a Ldap SyncRepl client.
  * @author GIP RECIA - A. Deman

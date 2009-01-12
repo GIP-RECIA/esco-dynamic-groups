@@ -1,7 +1,7 @@
 /**
  * Implementations of the ldap sync protocol.
  */
-package org.esco.dynamicgroups.ldap.syncrepl.ldapsync.protocol;
+package org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol;
 
 import com.novell.ldap.asn1.ASN1Boolean;
 import com.novell.ldap.asn1.ASN1Object;

@@ -1,10 +1,10 @@
 /**
  * 
  */
-package org.esco.dynamicgroups.ldap.syncrepl.client;
+package org.esco.dynamicgroups.dao.ldap.syncrepl.client;
 
 import org.apache.log4j.Logger;
-import org.esco.dynamicgroups.ldap.ESCODynamicGroupsParameters;
+import org.esco.dynamicgroups.dao.ldap.ESCODynamicGroupsParameters;
 
 /**
  * Reference implementation of SyncRepl Message handler.
