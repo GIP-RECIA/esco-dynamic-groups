@@ -97,7 +97,6 @@ public class DynamicGroupsMapping implements Serializable {
      * Loads the values from a properties INSTANCE.
      * @param params The properties that contains the values to load.
      */
-    @SuppressWarnings("unchecked")
     private void loadFromProperties(final Properties params) {
         
         // keys used to retrieve the values in the properties INSTANCE. 

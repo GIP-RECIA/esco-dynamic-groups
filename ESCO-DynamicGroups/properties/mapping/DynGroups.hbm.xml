@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="org.esco.dynamicgroups.domain.beans">
+    <class name="DynGroup" table="DYN_GROUPS">
+        <id name="groupId" column="GRP_ID"/>
+        <property name="groupName" column="GRP_NAME"/>
+        <property name="groupDefinition" column="GRP_DEF"/>
+        <property name="attributesNb" column="GRP_ATT_NB"/>
+    </class>
+</hibernate-mapping>

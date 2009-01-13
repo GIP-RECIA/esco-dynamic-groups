@@ -75,7 +75,7 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler {
     /**
      * Handles a given message.
      * @param message The message to handle.
-     * @see org.esco.dynamicgroups.ldap.syncrepl.client.ISyncReplMessagesHandler
+     * @see org.esco.dynamicgroups.dao.ldap.syncrepl.client.ISyncReplMessagesHandler
      * #processLDAPMessage(com.novell.ldap.LDAPMessage)
      */
     public void processLDAPMessage(final LDAPMessage message) {
