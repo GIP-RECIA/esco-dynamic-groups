@@ -22,6 +22,7 @@
 	<!-- Path Section -->
 	<path id="esco-dg.classpath">
 	   <pathelement path="${esco-dg.build.dir}"/>
+		<pathelement location="${esco-dg.prop.dir}"/>
 		<fileset dir="${esco-dg.lib.dir}" includes="**/*.jar" />
 	</path>
 	
@@ -99,5 +100,22 @@
 			</jar>
 	</target>
 	
+	<target name="schemaexport">
+		<taskdef name="schemaexport" 
+				 classname="org.hibernate.tool.hbm2ddl.SchemaExportTask"
+			classpathref="esco-dg.classpath"/>
+	 
+	 	<schemaexport
+	  		properties="properties/hibernate.cfg.xml"
+	  		quiet="no"
+	  		text="yes"
+	  		drop="yes"
+	  		delimiter=";"
+	  		output="schema-export.sql">
+	  		<fileset dir="properties/">
+	   			<include name="**/*.hbm.xml"/>
+	  		</fileset>
+	 	</schemaexport>
+	</target>
 	
 </project>

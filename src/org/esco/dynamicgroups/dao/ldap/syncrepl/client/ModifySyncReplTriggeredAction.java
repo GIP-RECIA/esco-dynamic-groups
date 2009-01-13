@@ -60,7 +60,7 @@ public class ModifySyncReplTriggeredAction implements ISyncReplTriggeredAction {
     /**
      * Triggers the action.
      * @param ldapEntry The LDAP informations about the entry.
-     * @see org.esco.dynamicgroups.ldap.syncrepl.client.ISyncReplTriggeredAction#trigger(com.novell.ldap.LDAPEntry)
+     * @see org.esco.dynamicgroups.dao.ldap.syncrepl.client.ISyncReplTriggeredAction#trigger(com.novell.ldap.LDAPEntry)
      */
     public void trigger(final LDAPEntry ldapEntry) {
         final LDAPAttribute id = ldapEntry.getAttribute(idAttribute);

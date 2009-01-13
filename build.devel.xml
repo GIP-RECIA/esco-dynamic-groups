@@ -2,7 +2,6 @@
 
 
 <project name="DEVEL - ESCO-DynammicGroups" default="esco-dg.weaving" basedir=".">
-    <description>PAGS Groups for Grouper</description>
     <import file="build.xml"/>
 	<property file="build.devel.properties" />
  

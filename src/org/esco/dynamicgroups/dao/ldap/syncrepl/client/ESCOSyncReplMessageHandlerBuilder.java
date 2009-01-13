@@ -51,7 +51,7 @@ public class ESCOSyncReplMessageHandlerBuilder implements ISyncReplMessagesHandl
     /**
      * Builds an handler.
      * @return The SyncRepl messages handler.
-    * @see org.esco.dynamicgroups.ldap.syncrepl.client.ISyncReplMessagesHandlerBuilder#buildHandler()
+    * @see org.esco.dynamicgroups.dao.ldap.syncrepl.client.ISyncReplMessagesHandlerBuilder#buildHandler()
     */
     public ISyncReplMessagesHandler buildHandler() {
         final AddSyncReplTriggeredAction addAction = new AddSyncReplTriggeredAction(idAttribute);
