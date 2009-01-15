@@ -6,8 +6,8 @@
 <hibernate-mapping package="org.esco.dynamicgroups.domain.beans">
     <class name="GroupAttributeValueAssoc" table="DYN_ATTRIBUTE_VALUES">
         <id name="attributeValueId" column="ATTVAL_ID"/>
-        <property name="attributeId" column="ATT_ID"/>
-        <property name="groupId" column="GRP_ID"/>
+        <many-to-one class="DynAttribute" name="attribute" column="ATT_ID"/>
+        <many-to-one class="DynGroup" name="group" column="GRP_ID"/>
        	<property name="attributeValue" column="ATTVAL_VALUE"/> 
     </class>
 </hibernate-mapping>

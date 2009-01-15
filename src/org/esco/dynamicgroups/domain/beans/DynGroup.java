@@ -33,7 +33,7 @@ public class DynGroup implements Serializable {
     public DynGroup() {
         super();
     }
-
+    
     /**
      * Getter for groupId.
      * @return groupId.
@@ -94,7 +94,7 @@ public class DynGroup implements Serializable {
      * Setter for groupName.
      * @param groupName the new value for groupName.
      */
-    public void setGroupName(String groupName) {
+    public void setGroupName(final String groupName) {
         this.groupName = groupName;
     }
 
@@ -115,7 +115,7 @@ public class DynGroup implements Serializable {
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if (this == obj) {
             return true;
         }
@@ -135,7 +135,7 @@ public class DynGroup implements Serializable {
      */
     @Override
     public String toString() {
-        return "DynGroup#{"+groupId + ", " + groupName + ", " 
+        return "DynGroup#{" + groupId + ", " + groupName + ", " 
             + groupDefinition + ", " + attributesNb + "}";
     }
 }

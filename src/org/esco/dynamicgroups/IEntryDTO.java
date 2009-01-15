@@ -22,11 +22,11 @@ public interface IEntryDTO extends Serializable {
     String getId();
     
     /**
-     * Gets the value of an attribute.
+     * Gets the values of an attribute.
      * @param key The key of the attribute to retrieve.
      * @return The value of the attribute.
      */
-    String[] getAttributeValue(final String key);
+    String[] getAttributeValues(final String key);
     
     /**
      * Gives the list of the values of the attributes.

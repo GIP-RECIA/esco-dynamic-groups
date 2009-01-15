@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.esco.dynamicgroups.dao.ldap;
+package org.esco.dynamicgroups.util;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,8 +12,6 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.esco.dynamicgroups.dao.ldap.syncrepl.client.ISyncReplMessagesHandlerBuilder;
-import org.esco.dynamicgroups.util.PropertyParser;
 
 
 
@@ -74,10 +72,17 @@ public class ESCODynamicGroupsParameters implements Serializable {
 
     /** Idle duration for the SyncRepl client. */
     private int syncreplClientIdle;
-
-    /** Builder class for the SyncRepl messages Handler. */
-    private Class<ISyncReplMessagesHandlerBuilder> syncReplMessageHandlerBuilderClass;
-
+    
+    /** The types in grouper associated to the dynamic groups. */
+    private String[] grouperTypes;
+    
+    /** The Grouper user used to open the Grouper sessions. */
+    private String grouperUser;
+    
+    /** Flag used to detemine if a deleted user should be removed from
+     * all the groups or only from the dynamic ones.*/
+    private boolean removeFromAllGroups;
+   
     /**
      * Constructor for ESCODynamicGroupsParameters.
      */
@@ -123,7 +128,6 @@ public class ESCODynamicGroupsParameters implements Serializable {
      * Loads the values from a properties instance.
      * @param params The properties that contains the values to load.
      */
-    @SuppressWarnings("unchecked")
     private void loadFromProperties(final Properties params) {
         // keys used to retrieve the values in the properties instance. 
         final String ldapHostKey = PROPERTIES_PREFIX + "ldap.host";
@@ -136,7 +140,9 @@ public class ESCODynamicGroupsParameters implements Serializable {
         final String ldapSearchAttributesKey = PROPERTIES_PREFIX + "ldap.search.attributes";
         final String ldapIdAttributeKey = PROPERTIES_PREFIX + "ldap.id.attribute";
         final String synreplClientIDLEKey = PROPERTIES_PREFIX + "syncrepl.client.idle";
-        final String synreplHandlerBuilderKey = PROPERTIES_PREFIX + "syncrepl.handler.builder.class";
+        final String grouperTypesKey = PROPERTIES_PREFIX + "grouper.types";
+        final String grouperUserKey = PROPERTIES_PREFIX + "grouper.user";
+        final String removeFromAllGroupsKey = PROPERTIES_PREFIX + "grouper.remove.from.all.groups";
 
         // Retrieves the values.
         setLdapHost(parseStringFromProperty(params, ldapHostKey));
@@ -149,25 +155,25 @@ public class ESCODynamicGroupsParameters implements Serializable {
         setLdapSearchAttributesFromArray(parseStringArrayFromProperty(params, ldapSearchAttributesKey));
         setLdapIdAttribute(parseStringFromProperty(params, ldapIdAttributeKey));
         setSyncreplClientIdle(parseIntegerFromProperty(params, synreplClientIDLEKey) * MILLIS_TO_SECONDS_FACTOR);
-
-        // Retrieves the class for the builder of SyncRepl Messages.
-        final String builderClass = parseStringFromProperty(params, synreplHandlerBuilderKey);
-        if (builderClass != null) {
-            try {
-                syncReplMessageHandlerBuilderClass = 
-                    (Class<ISyncReplMessagesHandlerBuilder>) getClass().getClassLoader().loadClass(builderClass);
-
-            } catch (ClassNotFoundException e) {
-                LOGGER.fatal(e, e);
-            }
-        }
-
+        setGrouperTypes(parseStringArrayFromProperty(params, grouperTypesKey));
+        setGrouperUser(parseStringFromProperty(params, grouperUserKey));
+        setRemoveFromAllGroups(parseBooleanFromProperty(params, removeFromAllGroupsKey)); 
+        
         // Adds the LDAP id attributes in the search attributes.
         ldapSearchAttributes.add(ldapIdAttribute);
 
 
     }
 
+    /**
+     * Retrieves the Boolean value from a properties instance for a given key.
+     * @param properties The properties instance.
+     * @param key The considered key.
+     * @return The Boolean value if available in the properties, null otherwise.
+     */
+    private Boolean parseBooleanFromProperty(final Properties properties, final String key) {
+        return PropertyParser.instance().parseBooleanFromProperty(LOGGER, ESCO_DG_PARAMETERS_FILE, properties, key);
+    }
     /**
      * Retrieves the integer value from a properties instance for a given key.
      * @param properties The properties instance.
@@ -236,9 +242,15 @@ public class ESCODynamicGroupsParameters implements Serializable {
         sb.append("; SyncRepl Client idle: ");
         sb.append(getSyncreplClientIdle());
 
-        sb.append("; SyncRepl Messages Handler builder: ");
-        sb.append(getSyncReplMessageHandlerBuilderClass());
-
+        sb.append("; Grouper Types: ");
+        sb.append(getGrouperTypes());
+        
+        sb.append("; Grouper user: ");
+        sb.append(getGrouperUser());
+        
+        sb.append("; remove from all groups: ");
+        sb.append(getRemoveFromAllGroups());
+        
         sb.append("}");
         return sb.toString();
     }
@@ -438,20 +450,51 @@ public class ESCODynamicGroupsParameters implements Serializable {
         this.parametersProperties = parametersProperties;
     }
 
-    /**
-     * Getter for syncReplMessageHandlerBuilderClass.
-     * @return the syncReplMessageHandlerBuilderClass
+       /**
+     * Getter for grouperTypes.
+     * @return grouperTypes.
      */
-    public Class<ISyncReplMessagesHandlerBuilder> getSyncReplMessageHandlerBuilderClass() {
-        return syncReplMessageHandlerBuilderClass;
+    public String[] getGrouperTypes() {
+        return grouperTypes;
     }
 
     /**
-     * Setter for syncReplMessageHandlerBuilderClass.
-     * @param syncReplMessageHandlerBuilderClass the syncReplMessageHandlerBuilderClass to set
+     * Setter for grouperTypes.
+     * @param grouperTypes the new value for grouperTypes.
      */
-    public void setSyncReplMessageHandlerBuilderClass(
-            final Class<ISyncReplMessagesHandlerBuilder> syncReplMessageHandlerBuilderClass) {
-        this.syncReplMessageHandlerBuilderClass = syncReplMessageHandlerBuilderClass;
+    public void setGrouperTypes(final String[] grouperTypes) {
+        this.grouperTypes = grouperTypes;
+    }
+
+    /**
+     * Getter for grouperUser.
+     * @return grouperUser.
+     */
+    public String getGrouperUser() {
+        return grouperUser;
+    }
+
+    /**
+     * Setter for grouperUser.
+     * @param grouperUser the new value for grouperUser.
+     */
+    public void setGrouperUser(final String grouperUser) {
+        this.grouperUser = grouperUser;
+    }
+
+    /**
+     * Getter for removeFromAllGroups.
+     * @return removeFromAllGroups.
+     */
+    public boolean getRemoveFromAllGroups() {
+        return removeFromAllGroups;
+    }
+
+    /**
+     * Setter for removeFromAllGroups.
+     * @param removeFromAllGroups the new value for removeFromAllGroups.
+     */
+    public void setRemoveFromAllGroups(final boolean removeFromAllGroups) {
+        this.removeFromAllGroups = removeFromAllGroups;
     }
 }

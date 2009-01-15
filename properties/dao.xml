@@ -3,9 +3,27 @@
     "http://www.springframework.org/dtd/spring-beans.dtd">
 
 <beans>
-
-
-    <!-- Hibernate SessionFactory -->
+	<!--  Groups service -->
+	<bean id="groupsService" class="org.esco.dynamicgroups.dao.grouper.GrouperDAOServiceImpl"/>
+	
+	<!-- LDAP SyncRepl client -->
+	<bean id="addAction" class=" org.esco.dynamicgroups.dao.ldap.syncrepl.client.AddSyncReplTriggeredAction" />
+	<bean id="deleteAction" class=" org.esco.dynamicgroups.dao.ldap.syncrepl.client.DeleteSyncReplTriggeredAction" />
+	<bean id="modifyAction" class=" org.esco.dynamicgroups.dao.ldap.syncrepl.client.ModifySyncReplTriggeredAction" />
+	<bean id="presentAction" class=" org.esco.dynamicgroups.dao.ldap.syncrepl.client.PresentSyncReplTriggeredAction" />
+	
+	<bean id="syncReplMessagesHandler" class="org.esco.dynamicgroups.dao.ldap.syncrepl.client.ESCOSyncReplMessagesHandler">
+		<property name="addAction" ref="addAction"/>
+		<property name="deleteAction" ref="deleteAction"/>
+		<property name="modifyAction" ref="modifyAction"/>
+		<property name="presentAction" ref="presentAction"/>
+	</bean>
+	
+	<bean id="synReplClient" class="org.esco.dynamicgroups.dao.ldap.syncrepl.client.ESCOSyncReplClient">
+		<property name="messagesHandler" ref="syncReplMessagesHandler"/>
+	</bean>
+	
+	<!-- Hibernate SessionFactory -->
     <bean id="sessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
         <property name="configLocation"
 			value="classpath:properties/hibernate.cfg.xml" />
@@ -23,7 +41,7 @@
         <property name="sessionFactory" ref="sessionFactory"/>
     </bean>
 
-    <bean id="dataBaseManager" class="org.esco.dynamicgroups.dao.db.HibernateDAOService">
+    <bean id="daoService" class="org.esco.dynamicgroups.dao.db.HibernateDAOService">
         <property name="sessionFactory" ref="sessionFactory"/>
     </bean>
 </beans>
