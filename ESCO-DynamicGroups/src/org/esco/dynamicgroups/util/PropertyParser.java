@@ -18,9 +18,12 @@ public class PropertyParser implements Serializable {
     
     /** Serial version UID. */
     private static final long serialVersionUID = 7763505305410596203L;
+    
+    /** The constant for yes. */
+    private static final String YES = "yes";
 
-    /** Separator for the attributes. */
-    private static final String ATTRIBUTES_SEP = " ";
+    /** Separator for the list of values. */
+    private static final String SEP = ";";
 
     /** Separator in the property keys. */
     private static final String PROP_KEY_SEP = ".";
@@ -66,6 +69,28 @@ public class PropertyParser implements Serializable {
         return strValue.trim();
     }
     
+    
+    /**
+     * Retrieves the Boolean value from a properties instance for a given key.
+     * @param logger The logger to use.
+     * @param propertiesSourceName The name of the source used to load the properties.
+     * @param properties The properties instance.
+     * @param key The considered key.
+     * @return The Boolean value if available in the properties, null otherwise.
+     */
+    public Boolean parseBooleanFromProperty(final Logger logger,
+            final String propertiesSourceName,
+            final Properties properties, 
+            final String key) {
+        String strValue = properties.getProperty(key);
+        if (strValue == null) {
+            logger.error("Unable to find a value for " + key + IN_FILE + propertiesSourceName);
+            return null;
+        }
+        return strValue.equalsIgnoreCase(YES) || Boolean.parseBoolean(strValue);
+    }
+    
+    
     /**
      * Retrieves the string value from a properties instance for a given key.
      * @param properties The properties instance.
@@ -99,7 +124,7 @@ public class PropertyParser implements Serializable {
             logger.error("Unable to find a value for " + key + IN_FILE + propertiesSourceName);
             return null;
         }
-        final String[] arrayValue = strValue.split(ATTRIBUTES_SEP);
+        final String[] arrayValue = strValue.split(SEP);
         for (int i = 0; i < arrayValue.length; i++) {
             arrayValue[i] = arrayValue[i].trim();
         }

@@ -8,7 +8,6 @@ package org.esco.dynamicgroups.dao.ldap.syncrepl.client;
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPEntry;
 import org.apache.log4j.Logger;
-import org.esco.dynamicgroups.ESCOEntryDTOFactory;
 import org.esco.dynamicgroups.IEntryDTO;
 
 /**
@@ -17,7 +16,7 @@ import org.esco.dynamicgroups.IEntryDTO;
  * 17 avr. 08
  *
  */
-public class PresentSyncReplTriggeredAction implements ISyncReplTriggeredAction {
+public class PresentSyncReplTriggeredAction extends AbstractSyncReplsTriggeredAction {
 
     /** Serial version UID. */
     private static final long serialVersionUID = -8354685420509950293L;
@@ -25,22 +24,14 @@ public class PresentSyncReplTriggeredAction implements ISyncReplTriggeredAction 
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(AddSyncReplTriggeredAction.class);
 
-    /** The LDAP attribute for the id. */
-    private String idAttribute;
-    
     /** The String representation of the action. */
     private String stringRepresentation;
 
-    /** EntryDTO factory. */
-    private ESCOEntryDTOFactory entryDTOFactory;
-    
     /**
      * Constructor for PresentSyncReplTriggeredAction.
-     * @param idAttribute The LDAP attribute for the id.
      */
-    public PresentSyncReplTriggeredAction(final String idAttribute) {
-        this.idAttribute = idAttribute;
-        entryDTOFactory = new ESCOEntryDTOFactory(idAttribute);
+    public PresentSyncReplTriggeredAction() {
+       super();
         LOGGER.debug("Creation of an instance of " + getClass().getSimpleName() + ".");
     }
     
@@ -53,7 +44,7 @@ public class PresentSyncReplTriggeredAction implements ISyncReplTriggeredAction 
     public String toString() {
         if (stringRepresentation == null) {
             stringRepresentation = getClass().getSimpleName() + "#{"
-                + "LDAP id attribute: " + idAttribute + "}";
+                + "LDAP id attribute: " + getIdAttribute() + "}";
         }
         return stringRepresentation;
     }
@@ -64,12 +55,12 @@ public class PresentSyncReplTriggeredAction implements ISyncReplTriggeredAction 
      * @see org.esco.dynamicgroups.dao.ldap.syncrepl.client.ISyncReplTriggeredAction#trigger(com.novell.ldap.LDAPEntry)
      */
     public void trigger(final LDAPEntry ldapEntry) {
-        final LDAPAttribute id = ldapEntry.getAttribute(idAttribute);
+        final LDAPAttribute id = ldapEntry.getAttribute(getIdAttribute());
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Present action - id of the entry:" + id);
         }
         if (id != null) {
-            final IEntryDTO entryDTO = entryDTOFactory.createEntryDTO(ldapEntry);
+            final IEntryDTO entryDTO = getEntryDTOFactory().createEntryDTO(ldapEntry);
             LOGGER.debug(entryDTO);
         }
 

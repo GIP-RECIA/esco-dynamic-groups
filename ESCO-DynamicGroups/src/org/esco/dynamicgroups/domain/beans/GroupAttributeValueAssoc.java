@@ -18,15 +18,16 @@ public class GroupAttributeValueAssoc implements Serializable {
     /** Id of the association. */
     private long attributeValueId;
     
-    /** Attribute involved in the association. */
-    private long attributeId;
-    
+       
     /** Value of the attribute. */
     private String attributeValue;
     
-    /** Group involved in the association. */
-    private long groupId;
-
+    /** The attribute in the association. */ 
+    private DynAttribute attribute;
+    
+    /** The group in the association. */
+    private DynGroup group;
+    
     /**
      * Builds an instance of GroupAttributeValueAssoc.
      */
@@ -46,7 +47,7 @@ public class GroupAttributeValueAssoc implements Serializable {
      * Setter for attributeValueId.
      * @param attributeValueId the new value for attributeValueId.
      */
-    public void setAttributeValueId(long attributeValueId) {
+    public void setAttributeValueId(final long attributeValueId) {
         this.attributeValueId = attributeValueId;
     }
 
@@ -62,39 +63,41 @@ public class GroupAttributeValueAssoc implements Serializable {
      * Setter for attributeValue.
      * @param attributeValue the new value for attributeValue.
      */
-    public void setAttributeValue(String attributeValue) {
+    public void setAttributeValue(final String attributeValue) {
         this.attributeValue = attributeValue;
     }
 
     /**
-     * Getter for attributeId.
-     * @return attributeId.
+     * Getter for attribute.
+     * @return attribute.
      */
-    public long getAttributeId() {
-        return attributeId;
+    public DynAttribute getAttribute() {
+        return attribute;
     }
 
     /**
-     * Setter for attributeId.
-     * @param attributeId the new value for attributeId.
+     * Setter for attribute.
+     * @param attribute the new value for attribute.
      */
-    public void setAttributeId(long attributeId) {
-        this.attributeId = attributeId;
+    public void setAttribute(final DynAttribute attribute) {
+        this.attribute = attribute;
     }
 
     /**
-     * Getter for groupId.
-     * @return groupId.
+     * Getter for group.
+     * @return group.
      */
-    public long getGroupId() {
-        return groupId;
+    public DynGroup getGroup() {
+        return group;
     }
 
     /**
-     * Setter for groupId.
-     * @param groupId the new value for groupId.
+     * Setter for group.
+     * @param group the new value for group.
      */
-    public void setGroupId(long groupId) {
-        this.groupId = groupId;
+    public void setGroup(final DynGroup group) {
+        this.group = group;
     }
+
+    
 }

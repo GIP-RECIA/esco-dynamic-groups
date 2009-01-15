@@ -1,8 +1,12 @@
 package org.esco.dynamicgroups;
 
+import edu.internet2.middleware.grouper.GroupModifyException;
+import edu.internet2.middleware.grouper.InsufficientPrivilegeException;
+
 import java.util.Set;
 
-import org.esco.dynamicgroups.dao.db.DAOService;
+import org.esco.dynamicgroups.dao.db.IDBDAOService;
+import org.esco.dynamicgroups.domain.beans.AttributeValue;
 import org.esco.dynamicgroups.domain.beans.DynAttribute;
 import org.esco.dynamicgroups.domain.beans.DynGroup;
 import org.esco.dynamicgroups.domain.beans.GroupAttributeValueAssoc;
@@ -19,14 +23,22 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
 public class TestBatch {
     
     /**
+     * Builds an instance of TestBatch.
+     */
+    private TestBatch() {
+        super();
+    }
+    /**
      * 
      * @param args
+     * @throws InsufficientPrivilegeException 
+     * @throws GroupModifyException 
      */
-    public static void main(final String[] args) {
+    public static void main(final String[] args) throws GroupModifyException, InsufficientPrivilegeException {
         ThreadLocal<ApplicationContext> appCtx = new ThreadLocal<ApplicationContext>();
         appCtx.set(new FileSystemXmlApplicationContext("classpath:applicationContext.xml"));
         BeanFactory beanFactory = appCtx.get();
-        DAOService hib3Support = (DAOService) beanFactory.getBean("dataBaseManager");
+        IDBDAOService hib3Support = (IDBDAOService) beanFactory.getBean("daoService");
 //        Session session = hib3Support.getSessionFactory().openSession();
 //        session.beginTransaction();
         DynAttribute dynAtt = new DynAttribute();
@@ -36,48 +48,54 @@ public class TestBatch {
         DynAttribute dynAtt2 = hib3Support.getDynAttributeByName("a name");
         System.out.println("==>" + dynAtt2);
         
-        for (int i = 0; i < 10; i++){
+        DynAttribute dynAtt3 = new DynAttribute();
+        dynAtt3.setAttributeName("a name3");
+        hib3Support.storeDynAttribute(dynAtt3);
+        
+        DynAttribute dynAtt4 = hib3Support.getDynAttributeByName("a name3");
+        System.out.println("==>" + dynAtt4);
+        
+        
+        
+        final int nbIns = 10;
+        final int nbAtt = 5;
+        for (int i = 0; i < nbIns; i++) {
 
             DynGroup dynGroup = new DynGroup();
             dynGroup.setGroupName("Un nom de groupe dynamique" + i);
             dynGroup.setGroupDefinition("Une definition de groupe" + i);
-            dynGroup.setAttributesNb(10);
+            dynGroup.setAttributesNb(nbAtt);
             hib3Support.storeDynGroup(dynGroup);
             DynGroup dynGroup2 = hib3Support.getDynGroupByName("Un nom de groupe dynamique" + i);
             System.out.println("==>" + dynGroup2);
        
             GroupAttributeValueAssoc grpAttAssoc = new GroupAttributeValueAssoc();
-            grpAttAssoc.setAttributeId(dynAtt2.getAttributeId());
-            grpAttAssoc.setGroupId(dynGroup2.getGroupId());
-            grpAttAssoc.setAttributeValue("Value"+(i%2));
+            grpAttAssoc.setAttribute(dynAtt2);
+            grpAttAssoc.setGroup(dynGroup2);
+            grpAttAssoc.setAttributeValue("Value" + (i % 2));
+            hib3Support.storeGroupAttributeValueAssoc(grpAttAssoc);
+            grpAttAssoc.setAttribute(dynAtt4);
             hib3Support.storeGroupAttributeValueAssoc(grpAttAssoc);
         }
         
-        Set<DynGroup> groups = hib3Support.getGroupsByAttributeValue("a name", "Value0");
+        Set<DynGroup> groups = hib3Support.getGroupsForAttributeValue("a name", "Value0");
         System.out.println("V0=>" + groups);
-        groups = hib3Support.getGroupsByAttributeValue("a name", "Value1");
+        groups = hib3Support.getGroupsForAttributeValue("a name", "Value1");
         System.out.println("V1=>" + groups);
-//        hib3Support.closeSessionForThread();
-        //session.save(dynAtt);
         
-//        DynGroup dynGroup = new DynGroup();
-//        dynGroup.setGroupName("Un nom de groupe dynamique");
-//        dynGroup.setGroupDefinition("Une definition de groupe");
-//        dynGroup.setAttributesNb(10);
-//        session.save(dynGroup);
-        //session.getTransaction().commit();
+        Set<AttributeValue> attributes = hib3Support.getAttributeValuesForGroup("Un nom de groupe dynamique0");
+        System.out.println("Attributes=>" + attributes);
         
-        //session = hib3Support.getSessionFactory().openSession();
-        //session.beginTransaction();
-//        GroupAttributeValueAssoc grpAttValuAssoc = new GroupAttributeValueAssoc();
+        Set<String> attributesV = hib3Support.getAttributeValuesForGroup("a name", "Un nom de groupe dynamique0");
+        System.out.println("Attributes=>" + attributesV);
+
+//        Set<String> grouperGroups = new HashSet<String>();
+//        grouperGroups.add("Un nom de groupe dynamique0");
+//        grouperGroups.add("Un nom de groupe dynamique1");
+//        grouperGroups.add("Un nom de groupe dynamique2");
 //        
-//        grpAttValuAssoc.setAttributeId(dynAtt.getAttributeId());
-//        grpAttValuAssoc.setGroupId(dynGroup.getGroupId());
-//        grpAttValuAssoc.setAttributeValue("attributeValue");
-//        session.save(grpAttValuAssoc);
-        
-//        session.getTransaction().commit();
-        
+//        Set<String> attributesV2 = hib3Support.getValuesForAttribute("a name", grouperGroups);
+//        System.out.println("AttributesV2=>" + attributesV2);
     }
 
 }

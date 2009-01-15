@@ -29,6 +29,16 @@ public class DynAttribute implements Serializable {
     public DynAttribute() {
         super();
     }
+    
+    /**
+     * Builds an instance of DynAttribute.
+     * @param attributeId The id of the attribute
+     * @param attributeName The name of the attribute.
+     */
+    public DynAttribute(final long attributeId, final String attributeName) {
+        this.attributeId = attributeId;
+        this.attributeName = attributeName;
+    }
 
     /**
      * Getter for attributeId.
@@ -42,7 +52,7 @@ public class DynAttribute implements Serializable {
      * Setter for attributeId.
      * @param attributeId the new value for attributeId.
      */
-    public void setAttributeId(long attributeId) {
+    public void setAttributeId(final long attributeId) {
         this.attributeId = attributeId;
     }
 
@@ -58,7 +68,7 @@ public class DynAttribute implements Serializable {
      * Setter for attributeName.
      * @param attributeName the new value for attributeName.
      */
-    public void setAttributeName(String attributeName) {
+    public void setAttributeName(final String attributeName) {
         this.attributeName = attributeName;
     }
 
@@ -73,7 +83,7 @@ public class DynAttribute implements Serializable {
     }
 
     /**
-     * Tests if two object are equal.
+     * Tests if two objects are equal.
      * @param obj The object to compare this instance with.
      * @return True if this instance is equal to the object.
      * @see java.lang.Object#equals(java.lang.Object)
@@ -99,7 +109,7 @@ public class DynAttribute implements Serializable {
      */
     @Override
     public String toString() {
-        return "DynAttribute#{"+attributeId +", " + attributeName + "}";
+        return "DynAttribute#{" + attributeId + ", " + attributeName + "}";
     }
     
 }

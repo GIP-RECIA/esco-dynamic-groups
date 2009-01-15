@@ -12,18 +12,21 @@ import java.io.UnsupportedEncodingException;
 import java.util.Calendar;
 
 import org.apache.log4j.Logger;
-import org.esco.dynamicgroups.dao.ldap.ESCODynamicGroupsParameters;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncDoneControl;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncInfoMessage;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncRequestControl;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncStateControl;
+import org.esco.dynamicgroups.util.ESCODynamicGroupsParameters;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.util.Assert;
+
 /**
  * Test class for a Ldap SyncRepl client.
  * @author GIP RECIA - A. Deman
  * 17 avr. 08
  *
  */
-public class ESCOSyncReplClient {
+public class ESCOSyncReplClient implements InitializingBean {
 
     /** Number of idle loops between two marks. */
     private static final int MARK_INTERVAL = 2;
@@ -39,18 +42,30 @@ public class ESCOSyncReplClient {
 
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(ESCOSyncReplClient.class);
-
-    /** Message handler. */
-    private ISyncReplMessagesHandler messageHandler;
+    
+    /** Messages handler. */
+    private ISyncReplMessagesHandler messagesHandler;
 
     /** Counter for the idle loops. */
     private int idleCount;
 
     /**
-     * Constructor for ESCOSyncReplClient.
+     * Builds an instance of ESCOSyncReplClient.
      */
-    private ESCOSyncReplClient() {
-        /* private */
+    public ESCOSyncReplClient() {
+        super();
+    }
+    
+
+    /**
+     * Checks the properties after the beans injection.
+     * @throws Exception
+     * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
+     */
+    public void afterPropertiesSet() throws Exception {
+        Assert.notNull(this.messagesHandler, 
+                "The property messagesHandler in the class " + this.getClass().getName() 
+                + " can't be null.");
     }
 
     /**
@@ -79,16 +94,7 @@ public class ESCOSyncReplClient {
         final String searchBase = parameters.getLdapSearchBase();
         final String[] attributes = parameters.getLdapSearchAttributesAsArray();
         final int idle = parameters.getSyncreplClientIdle();
-        try {
-            final ISyncReplMessagesHandlerBuilder messageHandlerBuilder = 
-                parameters.getSyncReplMessageHandlerBuilderClass().newInstance();
-            messageHandler = messageHandlerBuilder.buildHandler();
-        } catch (InstantiationException e1) {
-            LOGGER.fatal(e1, e1);
-            e1.printStackTrace();
-        } catch (IllegalAccessException e1) {
-            LOGGER.fatal(e1, e1);
-        }
+        
 
         LDAPConnection lc = new LDAPConnection();
         final LDAPSearchConstraints constraints = new LDAPSearchConstraints();
@@ -139,15 +145,11 @@ public class ESCOSyncReplClient {
                         try {
                             contextualIdle = idle;
                             idleCount = 0;
-                            messageHandler.processLDAPMessage(queue.getResponse());
+                            messagesHandler.processLDAPMessage(queue.getResponse());
                         } catch (LDAPException e) {
                             e.printStackTrace();
                         }
                     }
-//                  if (!checkForAChange(queue)) {
-//                  break;
-//                  }
-//                  Thread.sleep(IDLE_LOOP);
                 }
             }
         } catch (InterruptedException e) {
@@ -167,77 +169,6 @@ public class ESCOSyncReplClient {
     }
 
     /**
-     * 
-     * @param queue
-     * @return true if there is a change.
-     */
-//  private static boolean checkForAChange(final LDAPSearchQueue queue) {
-
-//  LDAPMessage message;
-//  boolean result = true;
-
-//  try {
-//  message = queue.getResponse();
-//  System.out.println("MESSAGE =>>> " + message + "<=== " + queue.isResponseReceived());
-
-//  if (queue.isResponseReceived()) {
-
-//  //message = queue.getResponse();
-//  if (message == null) {
-//  System.out.println("MESSAGE NUL.");
-//  } else {
-//  System.out.println("MESSAGE: " + message.getClass().getSimpleName() + " => " + message);
-
-//  // is the response a search result reference?
-
-//  if (message instanceof SyncInfoMessage) {
-//  System.out.println("INSTANCE of intermediate message");
-//  } else if (message instanceof LDAPSearchResultReference) {
-
-//  String[] urls = ((LDAPSearchResultReference) message).getReferrals();
-//  System.out.println("\nSearch result references:");
-//  for (int i = 0; i < urls.length; i++) {
-//  System.out.println(urls[i]);
-//  }
-//  } else if (message instanceof LDAPSearchResult) {
-//  System.out.println("--LDAPSEARCHRESULT--");
-//  LDAPControl[] controls = message.getControls();
-
-//  for (int i = 0; i < controls.length; i++) {
-//  System.out.println("CONTROL " + controls[i].getClass().getSimpleName() 
-//  + "==>" + controls[i]);
-//  if (controls[i] instanceof LDAPEntryChangeControl) {
-//  LDAPEntryChangeControl ecCtrl = (LDAPEntryChangeControl) controls[i];
-
-//  int changeType = ecCtrl.getChangeType();
-//  System.out.println("\n\nchange type: " + getChangeTypeString(changeType));
-//  if (changeType == LDAPPersistSearchControl.MODDN) {
-//  System.out.println("Prev. DN: " + ecCtrl.getPreviousDN());
-//  }
-
-//  if (ecCtrl.getHasChangeNumber()) {
-//  System.out.println("Change Number: " + ecCtrl.getChangeNumber());
-//  }
-
-//  LDAPEntry entry = ((LDAPSearchResult) message).getEntry();
-//  System.out.println("entry: " + entry.getDN());
-//  }
-
-//  }
-//  }
-//  }
-
-//  } else {
-//  System.out.println("No message");
-//  }
-//  } catch (LDAPException e) {
-//  e.printStackTrace();
-//  result = false;
-//  }
-//  return result;
-//  }
-
-    /**
      * Writes a mark in the log if needed.
      */
     private void mark() {
@@ -247,33 +178,26 @@ public class ESCOSyncReplClient {
         }
     }
 
-    /**
-     * Return a string indicating the type of change represented by the
-     * changeType parameter.
-     * @param changeType The change type.
-     * @return The string indicating the type of change.
-     */
-//  private static String getChangeTypeString(final int changeType) {
 
-//  String changeTypeString;
-//  switch (changeType) {
-//  case LDAPPersistSearchControl.ADD:
-//  changeTypeString = "ADD";
-//  break;
-//  case LDAPPersistSearchControl.MODIFY:
-//  changeTypeString = "MODIFY";
-//  break;
-//  case LDAPPersistSearchControl.MODDN:
-//  changeTypeString = "MODDN";
-//  break;
-//  case LDAPPersistSearchControl.DELETE:
-//  changeTypeString = "DELETE";
-//  break;
-//  default:
-//  changeTypeString = "Unknown change type: " + String.valueOf(changeType);
-//  break;
-//  }
-//  return changeTypeString;
-//  }
+    /**
+     * Getter for messagesHandler.
+     * @return messagesHandler.
+     */
+    public ISyncReplMessagesHandler getMessagesHandler() {
+        return messagesHandler;
+    }
+
+
+    /**
+     * Setter for messagesHandler.
+     * @param messagesHandler the new value for messagesHandler.
+     */
+    public void setMessagesHandler(final ISyncReplMessagesHandler messagesHandler) {
+        this.messagesHandler = messagesHandler;
+    }
+
+    
+
+
 }
 

@@ -125,7 +125,7 @@ public class AbstractHibernateDAOSupport  extends HibernateDaoSupport {
      * @param attributeValue The value of the attribute.
      * @return The instance if found, null otherwise.
      */
-    protected Object retrieveUniqueInstanceByAttributeInternal(Session session, 
+    protected Object retrieveUniqueInstanceByAttributeInternal(final Session session, 
                 final Class< ? extends Serializable > instanceClass, 
                 final String attributeName, 
                 final String attributeValue) {

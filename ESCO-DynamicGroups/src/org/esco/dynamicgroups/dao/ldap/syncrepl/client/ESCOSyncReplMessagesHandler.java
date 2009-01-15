@@ -8,6 +8,8 @@ import com.novell.ldap.LDAPSearchResult;
 
 import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncStateControl;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.util.Assert;
 
 /**
  * Reference implementation for the LDAP Messages handler.
@@ -15,7 +17,7 @@ import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncStateContr
  * 17 avr. 08
  *
  */
-public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler {
+public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, InitializingBean {
 
     /** Serial version UID.*/
     private static final long serialVersionUID = -6625007312797809743L;
@@ -40,20 +42,33 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler {
     
     /**
      * Constructor for ESCOSyncReplMessagesHandler.
-     * @param addAction Action associated to a Add tagged SyncStateControl.
-     * @param modifyAction Action associated to a Modify tagged SyncStateControl.
-     * @param deleteAction Action associated to a Delete tagged SyncStateControl.
-     * @param presentAction Action associated to a Present tagged SyncStateControl.
      */
-    public ESCOSyncReplMessagesHandler(final ISyncReplTriggeredAction addAction,
-            final ISyncReplTriggeredAction modifyAction,
-            final ISyncReplTriggeredAction deleteAction,
-            final ISyncReplTriggeredAction presentAction) {
-       this.addAction = addAction;
-       this.modifyAction = modifyAction;
-       this.deleteAction = deleteAction;
-       this.presentAction = presentAction;
-       LOGGER.info("SyncRepl message handler used: " + this);
+    public ESCOSyncReplMessagesHandler() {
+      super();
+    }
+    
+    /**
+     * Checks the properties after the Spring injection.
+     * @throws Exception
+     * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
+     */
+    public void afterPropertiesSet() throws Exception {
+        
+        Assert.notNull(this.addAction, 
+                "The property addAction in the class " + this.getClass().getName() 
+                + " can't be null.");
+        
+        Assert.notNull(this.modifyAction, 
+                "The property modifyAction in the class " + this.getClass().getName() 
+                + " can't be null.");
+
+        Assert.notNull(this.deleteAction, 
+                "The property deleteAction in the class " + this.getClass().getName() 
+                + " can't be null.");
+
+        Assert.notNull(this.presentAction, 
+                "The property presentAction in the class " + this.getClass().getName() 
+                + " can't be null.");
     }
     
     /**
@@ -158,4 +173,54 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler {
     public ISyncReplTriggeredAction getPresentAction() {
         return presentAction;
     }
+
+    /**
+     * Getter for stringRepresentation.
+     * @return stringRepresentation.
+     */
+    public String getStringRepresentation() {
+        return stringRepresentation;
+    }
+
+    /**
+     * Setter for stringRepresentation.
+     * @param stringRepresentation the new value for stringRepresentation.
+     */
+    public void setStringRepresentation(final String stringRepresentation) {
+        this.stringRepresentation = stringRepresentation;
+    }
+
+    /**
+     * Setter for addAction.
+     * @param addAction the new value for addAction.
+     */
+    public void setAddAction(final ISyncReplTriggeredAction addAction) {
+        this.addAction = addAction;
+    }
+
+    /**
+     * Setter for modifyAction.
+     * @param modifyAction the new value for modifyAction.
+     */
+    public void setModifyAction(final ISyncReplTriggeredAction modifyAction) {
+        this.modifyAction = modifyAction;
+    }
+
+    /**
+     * Setter for deleteAction.
+     * @param deleteAction the new value for deleteAction.
+     */
+    public void setDeleteAction(final ISyncReplTriggeredAction deleteAction) {
+        this.deleteAction = deleteAction;
+    }
+
+    /**
+     * Setter for presentAction.
+     * @param presentAction the new value for presentAction.
+     */
+    public void setPresentAction(final ISyncReplTriggeredAction presentAction) {
+        this.presentAction = presentAction;
+    }
+
+    
 }

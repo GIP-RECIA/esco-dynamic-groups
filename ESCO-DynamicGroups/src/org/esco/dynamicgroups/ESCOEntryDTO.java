@@ -9,6 +9,7 @@ import java.util.Set;
 
 
 /**
+ * Esco implementation of the Data Transfert Objects.
  * @author GIP RECIA - A. Deman
  * 18 avr. 08
  *
@@ -138,12 +139,12 @@ public class ESCOEntryDTO implements IEntryDTO {
     }
 
     /**
-     * Gets the value of an attribute.
+     * Gets the values of an attribute.
      * @param name The key of the attribute to retrieve.
      * @return The value of the attribute.
-     * @see org.esco.dynamicgroups.IEntryDTO#getAttributeValue(java.lang.String)
+     * @see org.esco.dynamicgroups.IEntryDTO#getAttributeValues(java.lang.String)
      */
-    public String[] getAttributeValue(final String name) {
+    public String[] getAttributeValues(final String name) {
         return attributes.get(name);
     }
 
@@ -197,7 +198,7 @@ public class ESCOEntryDTO implements IEntryDTO {
             names = getAttributeNames().toArray(new String[countAttributes()]);
             values = new String[countAttributes()][];
             for (int i = 0; i < countAttributes(); i++) {
-                values[i] = getAttributeValue(names[i]);  
+                values[i] = getAttributeValues(names[i]);  
             }
         }
     }
