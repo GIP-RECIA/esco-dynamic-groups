@@ -124,6 +124,19 @@ public class Conjunction implements IProposition {
         components.addAll(second.getDisjunctivePropositions());
         return components;
     }
+    
+    /**
+     * Gives the atomic porpositions.
+     * @return The atomic propositions.
+     * @see org.esco.dynamicgroups.domain.definition.IProposition#getAtomicPropositions()
+     */
+    public List<IProposition> getAtomicPropositions() {
+        List<IProposition> atomic = new ArrayList<IProposition>();
+        atomic.addAll(first.getAtomicPropositions());
+        atomic.addAll(second.getAtomicPropositions());
+        return atomic;
+    }
+    
     /**
      * Gives the negative form of the definition.
      * @return The negative form of the definition.

@@ -2,6 +2,8 @@ package org.esco.dynamicgroups.domain.definition;
 
 import java.util.List;
 
+import org.esco.dynamicgroups.domain.LDAPDynamicGroupInitializer;
+
 /**
  * @author GIP RECIA - A. Deman
  * 19 janv. 2009
@@ -45,7 +47,14 @@ public class TestBatch {
         for (int i = 0; i < conjProps.size(); i++) {
             System.out.println(i + "==>" + conjProps.get(i));
         }
+
         
+        
+        IProposition ldapProp = new Conjunction(new AtomicProposition("objectClass", "ENTAuxEnseignant", false), 
+                new AtomicProposition("ENTPersonSexe", "M", false));
+        
+        LDAPDynamicGroupInitializer initializer = new LDAPDynamicGroupInitializer();
+        initializer.initialize(new DynamicGroupDefinition("A dynamic group", ldapProp));
         
         
     }

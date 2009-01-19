@@ -65,8 +65,8 @@ public class PropositionCodec {
      * coded string is valid, the empty String otherwise.
      */
     private String extractContent(final String source) {
-        final int start = source.indexOf(PropositionCodec.OPEN_BRACKET);
-        final int stop = source.lastIndexOf(PropositionCodec.CLOSE_BRACKET);
+        final int start = source.indexOf(OPEN_BRACKET);
+        final int stop = source.lastIndexOf(CLOSE_BRACKET);
         String content = "";
         if (start >= 0 &&  stop > 0 && start < stop) {
             content = source.substring(start + 1, stop).trim();
@@ -83,13 +83,13 @@ public class PropositionCodec {
         int openedBracket = 0;
         int index = 0;
         while (index < source.length()) {
-            if (source.charAt(index) == PropositionCodec.COMMA) {
+            if (source.charAt(index) == COMMA) {
                 if (openedBracket == 0) {
                     return index;
                 }
-            } else if (source.charAt(index) == PropositionCodec.OPEN_BRACKET) {
+            } else if (source.charAt(index) == OPEN_BRACKET) {
                 openedBracket++;
-            } else if (source.charAt(index) == PropositionCodec.CLOSE_BRACKET) {
+            } else if (source.charAt(index) == CLOSE_BRACKET) {
                 openedBracket--;
             }
             index++;
@@ -173,16 +173,16 @@ public class PropositionCodec {
      */
     private IProposition decodeBaseProposition(final String coded) {
         
-        int pos = coded.indexOf(PropositionCodec.NOT_EQUAL);
-        int sepLength = PropositionCodec.NOT_EQUAL.length();
+        int pos = coded.indexOf(NOT_EQUAL);
+        int sepLength = NOT_EQUAL.length();
         boolean negative = true;
         if (pos < 1  || pos == coded.length() - 2) {
-           pos = coded.indexOf(PropositionCodec.EQUAL);
+           pos = coded.indexOf(EQUAL);
            if (pos < 1  || pos == coded.length() - 2) {
                return null;
            }
            negative = false;
-           sepLength = PropositionCodec.EQUAL.length();
+           sepLength = EQUAL.length();
         }
         final String attribute = coded.substring(0, pos).trim();
         final String value = coded.substring(pos + sepLength).trim();
@@ -198,15 +198,15 @@ public class PropositionCodec {
     public IProposition decode(final String coded) {
         final String trimed = coded.trim();
         
-        if (trimed.startsWith(PropositionCodec.OR)) {
+        if (trimed.startsWith(OR)) {
             return decodeDisjunction(trimed);
         }
         
-        if (trimed.startsWith(PropositionCodec.AND)) {
+        if (trimed.startsWith(AND)) {
             return decodeConjunction(trimed);
         }
         
-        if (trimed.startsWith(PropositionCodec.NOT)) {
+        if (trimed.startsWith(NOT)) {
             return decodeNegation(trimed);
         }
         
@@ -221,49 +221,44 @@ public class PropositionCodec {
     public String encode(final IProposition proposition) {
         if (proposition instanceof AtomicProposition) {
             final AtomicProposition prop = (AtomicProposition) proposition;
-//            if (prop.isNegative()) {
-//                return prop.getAttribute() + PropositionCodec.NOT_EQUAL + prop.getValue();
-//            }
-//            return prop.getAttribute() + PropositionCodec.EQUAL + prop.getValue();
             if (prop.isNegative()) {
-                return "!" + prop.getAttribute();
+                return prop.getAttribute() + NOT_EQUAL + prop.getValue();
             }
-            return prop.getAttribute();
-            
+            return prop.getAttribute() + EQUAL + prop.getValue();
         }
         if (proposition instanceof Disjunction) {
             final Disjunction prop = (Disjunction) proposition;
             final String first = encode(prop.getFirst());
             final String second = encode(prop.getSecond());
-            final StringBuilder sb = new StringBuilder(PropositionCodec.OR);
-            sb.append(PropositionCodec.OPEN_BRACKET);
+            final StringBuilder sb = new StringBuilder(OR);
+            sb.append(OPEN_BRACKET);
             sb.append(first);
-            sb.append(PropositionCodec.COMMA);
-            sb.append(PropositionCodec.SPACE);
+            sb.append(COMMA);
+            sb.append(SPACE);
             sb.append(second);
-            sb.append(PropositionCodec.CLOSE_BRACKET);
+            sb.append(CLOSE_BRACKET);
             return sb.toString();
         }
         if (proposition instanceof Conjunction) {
             final Conjunction prop = (Conjunction) proposition;
             final String first = encode(prop.getFirst());
             final String second = encode(prop.getSecond());
-            final StringBuilder sb = new StringBuilder(PropositionCodec.AND);
-            sb.append(PropositionCodec.OPEN_BRACKET);
+            final StringBuilder sb = new StringBuilder(AND);
+            sb.append(OPEN_BRACKET);
             sb.append(first);
-            sb.append(PropositionCodec.COMMA);
-            sb.append(PropositionCodec.SPACE);
+            sb.append(COMMA);
+            sb.append(SPACE);
             sb.append(second);
-            sb.append(PropositionCodec.CLOSE_BRACKET);
+            sb.append(CLOSE_BRACKET);
             return sb.toString();
         }
         if (proposition instanceof Negation) {
             final Negation prop = (Negation) proposition;
             final String negprop = encode(prop.getProposition());
-            final StringBuilder sb = new StringBuilder(PropositionCodec.NOT);
-            sb.append(PropositionCodec.OPEN_BRACKET);
+            final StringBuilder sb = new StringBuilder(NOT);
+            sb.append(OPEN_BRACKET);
             sb.append(negprop);
-            sb.append(PropositionCodec.CLOSE_BRACKET);
+            sb.append(CLOSE_BRACKET);
             return sb.toString();
         }
         return "";

@@ -52,7 +52,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, Serializable {
 
     /** Logger. */
     private Logger logger = Logger.getLogger(GrouperDAOServiceImpl.class);
-    
+
     /** Flag used to determine if a deleted user should be removed from all groups 
      * or only from the dynamic ones.
      */
@@ -65,7 +65,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, Serializable {
         sessionUtil = new GrouperSessionUtil(ESCODynamicGroupsParameters.instance().getGrouperUser());
         grouperDynamicTypes = ESCODynamicGroupsParameters.instance().getGrouperTypes();
         removeFromAllGroups = ESCODynamicGroupsParameters.instance().getRemoveFromAllGroups();
-        
+
         if (logger.isDebugEnabled()) {
             logger.debug("Creates an instance of GrouperDAOServiceImpl - Grouper user: "  
                     + ESCODynamicGroupsParameters.instance().getGrouperUser() 
@@ -73,7 +73,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, Serializable {
                     + " - deleted users are removed from all groups: " + removeFromAllGroups + ".");
         }
     }
-    
+
     /**
      * Tests if a group has a dynamic type.
      * @param group The group to test.
@@ -108,7 +108,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, Serializable {
         }
         return group;
     }
-    
+
     /**
      * Retrieves the dynamic groups for an user.
      * @param session The Grouper session to use.
@@ -141,25 +141,26 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, Serializable {
      * Removes a user from its groups.
      * All the groups or only the dynamic ones may be considered, depending on the configuration.
      * @param userId The id of the user.
+     * @see org.esco.dynamicgroups.dao.grouper.IGroupsDAOService#removeFromGroups(java.lang.String)
      */
     public void removeFromGroups(final String userId) {
-        
+
         if (logger.isDebugEnabled()) {
             String msg = "Removing the user from ";
             if (removeFromAllGroups) {
-                 msg += " all its groups.";
+                msg += " all its groups.";
             } else {
                 msg += " its dynamic groups.";
             }
             logger.debug(msg);
         }
-        
-        
+
+
         final GrouperSession session = sessionUtil.createSession();
-        
+
         try {
             final Subject subject = SubjectFinder.findById(userId);
-            
+
             // Retrieves the groups the subject belongs to.
             final Set<Group> groups = new HashSet<Group>();
             final Member member = MemberFinder.findBySubject(session, subject);
@@ -181,9 +182,9 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, Serializable {
                     logger.trace(" Removing user: " + userId + " from the group: " + group.getName());
                 }
             }
-            
+
             sessionUtil.stopSession(session);
-            
+
         } catch (SubjectNotFoundException e) {
             sessionUtil.stopSession(session);
             logger.error(e, e);
@@ -210,7 +211,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, Serializable {
             throw new DynamicGroupsException(e);
         }
     }
-    
+
     /**
      * Updates the memberships of an user.
      * @param userId The id of the user.
@@ -218,11 +219,11 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, Serializable {
      * @see org.esco.dynamicgroups.dao.grouper.IGroupsDAOService#updateMemberships(java.lang.String, java.util.Map)
      */
     public void updateMemberships(final String userId, final Map<String, DynGroup> newGroups) {
-        
+
         if (logger.isDebugEnabled()) {
             logger.debug("Updating the memberships for the user: " + userId);
         }
-        
+
         final GrouperSession session = sessionUtil.createSession();
         try {
             final Subject subject = SubjectFinder.findById(userId);
@@ -233,7 +234,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, Serializable {
 
                 if (!newGroups.containsKey(previousGroup)) {
                     previousGroups.get(previousGroup).deleteMember(subject);
-                    
+
                     if (logger.isDebugEnabled()) {
                         logger.debug("Update memberships user: " + userId 
                                 + " removed from the group: " + previousGroup);
@@ -243,25 +244,25 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, Serializable {
 
             // Adds the new memberships.
             for (String  newGroup : newGroups.keySet()) {
-                if (previousGroups.containsKey(newGroup)) {
+                if (!previousGroups.containsKey(newGroup)) {
                     final Group group = retrieveGroup(session, newGroup);
                     if (group != null) {
-                        
+
                         if (logger.isDebugEnabled()) {
                             logger.debug("Update memberships user: " + userId 
                                     + " added to the group: " + newGroup);
                         }
-                        
+
                         group.addMember(subject);
                     }
                 }
             }
             sessionUtil.stopSession(session);
-            
+
             if (logger.isDebugEnabled()) {
                 logger.debug("Memberships for the user: " + userId + " updated.");
             }
-            
+
         } catch (SubjectNotFoundException e) {
             sessionUtil.stopSession(session);
             logger.error(e, e);
@@ -291,5 +292,59 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, Serializable {
             logger.error(e, e);
             throw new DynamicGroupsException(e);
         }
+    }
+
+    /**
+     * Creates the memberships for a given user.
+     * @param userId The id of the user.
+     * @param groups The groups to which the user should become a member.
+     * @see org.esco.dynamicgroups.dao.grouper.IGroupsDAOService#createMemeberShips(String, Map)
+     */
+    public void createMemeberShips(final String userId, final Map<String, DynGroup> groups) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Creates the memberships for the user: " + userId);
+        }
+        final GrouperSession session = sessionUtil.createSession();
+
+
+        try {
+            final Subject subject = SubjectFinder.findById(userId);
+            // Adds the new memberships.
+            for (String  newGroup : groups.keySet()) {
+                final Group group = retrieveGroup(session, newGroup);
+                if (group != null) {
+
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Create memberships user: " + userId 
+                                + " added to the group: " + newGroup);
+                    }
+
+                    group.addMember(subject);
+                }
+            }
+            sessionUtil.stopSession(session);
+
+            if (logger.isDebugEnabled()) {
+                logger.debug("Memberships for the user: " + userId + " created.");
+            }
+
+        } catch (SubjectNotFoundException e) {
+            sessionUtil.stopSession(session);
+            logger.error(e, e);
+            throw new DynamicGroupsException(e);
+        } catch (SubjectNotUniqueException e) {
+            sessionUtil.stopSession(session);
+            logger.error(e, e);
+            throw new DynamicGroupsException(e);
+        } catch (InsufficientPrivilegeException e) {
+            sessionUtil.stopSession(session);
+            logger.error(e, e);
+            throw new DynamicGroupsException(e);
+        } catch (MemberAddException e) {
+            sessionUtil.stopSession(session);
+            logger.error(e, e);
+            throw new DynamicGroupsException(e);
+        }
+
     }
 }

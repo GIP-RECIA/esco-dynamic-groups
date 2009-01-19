@@ -120,6 +120,17 @@ public class AtomicProposition implements IProposition {
     }
     
     /**
+     * Gives the atomic porpositions.
+     * @return The atomic propositions.
+     * @see org.esco.dynamicgroups.domain.definition.IProposition#getAtomicPropositions()
+     */
+    public List<IProposition> getAtomicPropositions() {
+        List<IProposition> atomic = new ArrayList<IProposition>();
+        atomic.add(this);
+        return atomic;
+    }
+    
+    /**
      * Gives the negative form of the definition.
      * @return The negative form of the definition.
      * @see org.esco.dynamicgroups.domain.definition.IProposition#toNegativeForm()

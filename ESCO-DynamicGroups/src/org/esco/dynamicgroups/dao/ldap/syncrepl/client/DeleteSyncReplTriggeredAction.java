@@ -60,8 +60,9 @@ public class DeleteSyncReplTriggeredAction extends AbstractSyncReplsTriggeredAct
             LOGGER.trace("Delete action - id of the entry:" + id);
         }
         if (id != null) {
-            final IEntryDTO entryDTO = getEntryDTOFactory().createEntryDTO(ldapEntry);
-            LOGGER.debug(entryDTO);
+            final IEntryDTO entry = getEntryDTOFactory().createEntryDTO(ldapEntry);
+            LOGGER.debug(entry);
+            getDomainService().removeDeletedUserFromGroups(entry);
         }
 
     }
