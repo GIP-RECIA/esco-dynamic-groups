@@ -7,10 +7,14 @@
 	<bean id="groupsService" class="org.esco.dynamicgroups.dao.grouper.GrouperDAOServiceImpl"/>
 	
 	<!-- LDAP SyncRepl client -->
-	<bean id="addAction" class=" org.esco.dynamicgroups.dao.ldap.syncrepl.client.AddSyncReplTriggeredAction" />
-	<bean id="deleteAction" class=" org.esco.dynamicgroups.dao.ldap.syncrepl.client.DeleteSyncReplTriggeredAction" />
-	<bean id="modifyAction" class=" org.esco.dynamicgroups.dao.ldap.syncrepl.client.ModifySyncReplTriggeredAction" />
-	<bean id="presentAction" class=" org.esco.dynamicgroups.dao.ldap.syncrepl.client.PresentSyncReplTriggeredAction" />
+	<bean id="abstractAction" class="org.esco.dynamicgroups.dao.ldap.syncrepl.client.AbstractSyncReplsTriggeredAction" abstract="true" >
+		<property name="domainService" ref="domainService"/>
+	</bean>
+	
+	<bean id="addAction" parent="abstractAction" class="org.esco.dynamicgroups.dao.ldap.syncrepl.client.AddSyncReplTriggeredAction"/>
+	<bean id="deleteAction" parent="abstractAction" class="org.esco.dynamicgroups.dao.ldap.syncrepl.client.DeleteSyncReplTriggeredAction" />
+	<bean id="modifyAction" parent="abstractAction" class="org.esco.dynamicgroups.dao.ldap.syncrepl.client.ModifySyncReplTriggeredAction" />
+	<bean id="presentAction" parent="abstractAction" class="org.esco.dynamicgroups.dao.ldap.syncrepl.client.PresentSyncReplTriggeredAction" />
 	
 	<bean id="syncReplMessagesHandler" class="org.esco.dynamicgroups.dao.ldap.syncrepl.client.ESCOSyncReplMessagesHandler">
 		<property name="addAction" ref="addAction"/>
@@ -41,7 +45,7 @@
         <property name="sessionFactory" ref="sessionFactory"/>
     </bean>
 
-    <bean id="daoService" class="org.esco.dynamicgroups.dao.db.HibernateDAOService">
+    <bean id="daoService" class="org.esco.dynamicgroups.dao.db.HibernateDAOServiceImpl">
         <property name="sessionFactory" ref="sessionFactory"/>
     </bean>
 </beans>

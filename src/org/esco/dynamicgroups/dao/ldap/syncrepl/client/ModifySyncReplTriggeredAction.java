@@ -60,8 +60,9 @@ public class ModifySyncReplTriggeredAction extends AbstractSyncReplsTriggeredAct
             LOGGER.trace("Modify action - id of the entry:" + id);
         }
         if (id != null) {
-            final IEntryDTO entryDTO = getEntryDTOFactory().createEntryDTO(ldapEntry);
-            LOGGER.debug(entryDTO);
+            final IEntryDTO entry = getEntryDTOFactory().createEntryDTO(ldapEntry);
+            LOGGER.debug(entry);
+            getDomainService().updateDynamicGroups(entry);
         }
     }
 }

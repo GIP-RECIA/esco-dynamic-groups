@@ -10,8 +10,13 @@ import org.esco.dynamicgroups.IEntryDTO;
  */
 public interface IDomainService {
 
-    
-   // void createGroup();
+    /**
+     * Removes a deleted user user from its groups. 
+     * The whole groups or only the dynmic groups may be considered, depending
+     * on the configuration.
+     * @param entry The entry associated to the user.
+     */
+    void removeDeletedUserFromGroups(final IEntryDTO entry);
     
     /**
      * Updates the dynamic groups for a given user entry.
@@ -19,7 +24,11 @@ public interface IDomainService {
      */
     void updateDynamicGroups(final IEntryDTO entry);
     
-    //void removeFromGroups(final String userId);
+    /**
+     * Adds a user to the dynamic groups.
+     * @param entry The entry associated to the user.
+     */
+    void addToDynamicGroups(final IEntryDTO entry); 
     
     
 }

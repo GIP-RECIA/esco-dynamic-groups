@@ -27,7 +27,7 @@ public interface IProposition extends Serializable {
     
     /**
      * Gives the Conjunctive components of a proposition.
-     * @return The Conjunctive components of the proposition.
+     * @return The Conjunctive components of the proposition. 
      */
     List<IProposition> getConjunctivePropositions();
     
@@ -36,6 +36,11 @@ public interface IProposition extends Serializable {
      * @return The disjunctive components of the proposition.
      */
     List<IProposition> getDisjunctivePropositions();
-    
+
+    /**
+     * Gives the atomic porpositions.
+     * @return The atomic propositions.
+     */
+    List<IProposition> getAtomicPropositions();
 
 }

@@ -71,6 +71,17 @@ public class Negation implements IProposition {
     }
     
     /**
+     * Gives the atomic porpositions.
+     * @return The atomic propositions.
+     * @see org.esco.dynamicgroups.domain.definition.IProposition#getAtomicPropositions()
+     */
+    public List<IProposition> getAtomicPropositions() {
+        List<IProposition> atomic = new ArrayList<IProposition>();
+        atomic.add(this);
+        return atomic;
+    }
+    
+    /**
      * Gives the negative form of the proposition.
      * @return The negative form of the proposition.
      */
@@ -85,5 +96,4 @@ public class Negation implements IProposition {
     public IProposition getProposition() {
         return proposition;
     }
-
 }

@@ -11,7 +11,6 @@ import java.io.Serializable;
 import org.apache.log4j.Logger;
 import org.codehaus.aspectwerkz.joinpoint.CodeRtti;
 import org.codehaus.aspectwerkz.joinpoint.JoinPoint;
-import org.esco.dynamicgroups.DynamicGroupsMapping;
 
 
 
@@ -51,9 +50,9 @@ public class DynamicGroupTypesHandlerAspect implements Serializable {
         final Group group = (Group) joinPoint.getCaller();
         final GroupType type = (GroupType) ((CodeRtti) joinPoint.getRtti()).getParameterValues()[0];
         final String typeName = type.getName();
-        LOGGER.debug("Adding custom type " + typeName 
-                + "for group: " + group.getName() 
-                + " dynamic? " + DynamicGroupsMapping.instance().containsDefinitionForGroupType(typeName));
+//        LOGGER.debug("Adding custom type " + typeName 
+//                + "for group: " + group.getName() 
+//                + " dynamic? " + DynamicGroupsMapping.instance().containsDefinitionForGroupType(typeName));
         return result;
     }
 

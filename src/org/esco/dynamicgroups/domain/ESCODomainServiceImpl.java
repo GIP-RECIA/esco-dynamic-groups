@@ -65,6 +65,22 @@ public class ESCODomainServiceImpl implements IDomainService, InitializingBean {
                  "The property daoService in the class " + this.getClass().getName() 
                  + " can't be null.");
      }
+     
+     /**
+      * Adds a user to the dynamic groups.
+      * @param entry The entry associated to the user.
+      * @see org.esco.dynamicgroups.domain.IDomainService#addToDynamicGroups(org.esco.dynamicgroups.IEntryDTO)
+      */
+     public void addToDynamicGroups(final IEntryDTO entry) {
+         if (logger.isDebugEnabled()) {
+             logger.debug("Request to create the dynamic groups memberships for the user: " + entry.getId());
+         }
+        
+         final Map<String, DynGroup> retainedCandidatGroups = computeDynGroups(entry);
+         
+         // Updates the memberships effectively.
+         groupsService.createMemeberShips(entry.getId(), retainedCandidatGroups); 
+     }
    
     /**
      * Updates the dynamic groups for a given user entry.
@@ -75,6 +91,35 @@ public class ESCODomainServiceImpl implements IDomainService, InitializingBean {
         if (logger.isDebugEnabled()) {
             logger.debug("Request to Update the dynamic groups for the user: " + entry.getId());
         }
+       
+       
+        final Map<String, DynGroup> retainedCandidatGroups = computeDynGroups(entry);
+        
+        // Updates the memberships effectively.
+        groupsService.updateMemberships(entry.getId(), retainedCandidatGroups);
+    }
+  
+    /**
+     * Removes a deleted user user from its groups. 
+     * The whole groups or only the dynmic groups may be considered, depending
+     * on the configuration.
+     * @param entry The entry associated to the user.
+     * @see org.esco.dynamicgroups.domain.IDomainService#removeDeletedUserFromGroups(org.esco.dynamicgroups.IEntryDTO)
+     */
+    public void removeDeletedUserFromGroups(final IEntryDTO entry) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Request to remove from groups the deleted user: " + entry.getId());
+        }
+       
+        getGroupsService().removeFromGroups(entry.getId());
+    }
+    
+    /**
+     * Computes the dynamic groups for a given user.
+     * @param entry The entry associated to the user.
+     * @return The map groupName=>DynGroup for the dynamic groups of the user.
+     */
+    private Map<String, DynGroup> computeDynGroups(final IEntryDTO entry) {
        
         final Map<String, DynGroupOccurences> candidatGroups = new HashMap<String, DynGroupOccurences>();
 
@@ -117,7 +162,40 @@ public class ESCODomainServiceImpl implements IDomainService, InitializingBean {
             logger.trace("Retained candidat Groups:" + retainedCandidatGroups);
         }
         
-        // Updates the memberships effectively.
-        groupsService.updateMemberships(entry.getId(), retainedCandidatGroups);
+        return retainedCandidatGroups;
     }
+
+    /**
+     * Getter for groupsService.
+     * @return groupsService.
+     */
+    public IGroupsDAOService getGroupsService() {
+        return groupsService;
+    }
+
+    /**
+     * Setter for groupsService.
+     * @param groupsService the new value for groupsService.
+     */
+    public void setGroupsService(final IGroupsDAOService groupsService) {
+        this.groupsService = groupsService;
+    }
+
+    /**
+     * Getter for daoService.
+     * @return daoService.
+     */
+    public IDBDAOService getDaoService() {
+        return daoService;
+    }
+
+    /**
+     * Setter for daoService.
+     * @param daoService the new value for daoService.
+     */
+    public void setDaoService(final IDBDAOService daoService) {
+        this.daoService = daoService;
+    }
+
+   
 }

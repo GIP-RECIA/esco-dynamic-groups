@@ -9,6 +9,7 @@ import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPEntry;
 import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.IEntryDTO;
+import org.esco.dynamicgroups.domain.IDomainService;
 
 /**
  * Add action triggered by an LDAP Synchronization Replication notification.
@@ -28,7 +29,6 @@ public class AddSyncReplTriggeredAction extends AbstractSyncReplsTriggeredAction
     /** The String representation of the action. */
     private String stringRepresentation;
  
-    
     /**
      * Constructor for AddSyncReplTriggeredAction.
      */
@@ -62,10 +62,15 @@ public class AddSyncReplTriggeredAction extends AbstractSyncReplsTriggeredAction
             LOGGER.trace("Add action - id of the entry:" + id);
         }
         if (id != null) {
-            final IEntryDTO entryDTO = getEntryDTOFactory().createEntryDTO(ldapEntry);
-            LOGGER.debug(entryDTO);
+            final IEntryDTO entry = getEntryDTOFactory().createEntryDTO(ldapEntry);
+            LOGGER.debug(entry);
+            getDomainService().addToDynamicGroups(entry);
         }
     }
+
+   
+
+   
 
 
 }
