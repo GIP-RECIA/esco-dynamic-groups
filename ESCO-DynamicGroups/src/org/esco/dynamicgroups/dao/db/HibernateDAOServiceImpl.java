@@ -10,12 +10,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.domain.beans.AttributeValue;
 import org.esco.dynamicgroups.domain.beans.DynAttribute;
 import org.esco.dynamicgroups.domain.beans.DynGroup;
 import org.esco.dynamicgroups.domain.beans.GroupAttributeValueAssoc;
+import org.esco.dynamicgroups.domain.definition.AtomicProposition;
+import org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition;
+import org.esco.dynamicgroups.domain.definition.IProposition;
+import org.esco.dynamicgroups.domain.definition.PropositionCodec;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
+import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
@@ -28,20 +34,25 @@ import org.hibernate.criterion.Restrictions;
  */
 public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport implements IDBDAOService {
 
+    /** Logger. */
+    private static final Logger LOGGER = Logger.getLogger(HibernateDAOServiceImpl.class);
+    
     /** Constant for the group. */
     private static final String GROUP = "group";
-    
+
     /** Constant for the group name. */
     private static final String GROUP_NAME = "groupName";
-    
+
     /** Constant for the attribute value. */
     private static final String ATTRIBUTE_VALUE = "attributeValue";
-    
-        /** Constant for the attribute. */
+
+    /** Constant for the attribute. */
     private static final String ATTRIBUTE = "attribute";
-    
+
     /** Constant for the attribute name. */
     private static final String ATTRIBUTE_NAME = "attributeName";
+
+
 
     /**
      * Builds an instance of HibernateDAOServiceImpl.
@@ -49,7 +60,7 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
     public HibernateDAOServiceImpl() {
         super();
     }  
-    
+
     /**
      * Retrieves the attribute associated to a given name.
      * @param name The name of the attribute.
@@ -61,6 +72,27 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
     }
     
     /**
+     * Retrieves the attribute associated to a given name. The attribute is inserted first in the table if it
+     * does not exist.
+     * @param session The hibernate session to use.
+     * @param name The name of the attribute.
+     * @return The attribute.
+     * @see org.esco.dynamicgroups.dao.db.IDBDAOService#getDynAttributeByName(java.lang.String)
+     */
+    protected DynAttribute retrieveOrCreateDynAttribut(final Session session, final String name) {
+        DynAttribute result = (DynAttribute) retrieveUniqueInstanceByAttributeInternal(session, 
+                DynAttribute.class, 
+                ATTRIBUTE_NAME, 
+                name);
+        if (result == null) {
+            result = new DynAttribute(name);
+            storeInternal(session, result);
+        }
+
+        return result;
+    }
+    
+    /**
      * Retrieves the attribute associated to a given name.
      * @param name The name of the attribute.
      * @return The attribute if found, null otherwise.
@@ -69,7 +101,7 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
     public DynGroup getDynGroupByName(final String name) {
         return (DynGroup) retrieveUniqueInstanceByAttribute(DynGroup.class, GROUP_NAME, name);
     }
-    
+
     /**
      * Stores a DynAttribute instance.
      * @param dynAttribute The instance to store.
@@ -78,14 +110,29 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
     public void storeDynAttribute(final DynAttribute dynAttribute) {
         store(dynAttribute);
     }
-    
+
     /**
      * Stores a GroupAttributeValueAssoc instance.
      * @param grpAttAssoc The instance to store.
      * @see org.esco.dynamicgroups.dao.db.IDBDAOService#storeGroupAttributeValueAssoc(GroupAttributeValueAssoc)
      */
     public void storeGroupAttributeValueAssoc(final GroupAttributeValueAssoc grpAttAssoc) {
-        store(grpAttAssoc);
+        startTransaction();
+        final Session session = openOrRetrieveSessionForThread();
+        storeGroupAttributeValueAssocInternal(session, grpAttAssoc);
+        commit();
+        closeSessionForThread();
+    }
+    
+    /**
+     * Stores a GroupAttributeValueAssoc instance.
+     * @param session The hibernate session.
+     * @param grpAttAssoc The instance to store.
+     * @see org.esco.dynamicgroups.dao.db.IDBDAOService#storeGroupAttributeValueAssoc(GroupAttributeValueAssoc)
+     */
+    protected void storeGroupAttributeValueAssocInternal(final Session session,
+            final GroupAttributeValueAssoc grpAttAssoc) {
+        storeInternal(session, grpAttAssoc);
     }
     
     /**
@@ -94,9 +141,164 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
      * @see org.esco.dynamicgroups.dao.db.IDBDAOService#storeDynGroup(org.esco.dynamicgroups.domain.beans.DynGroup)
      */
     public void storeDynGroup(final DynGroup dynGroup) {
-        store(dynGroup);
+        startTransaction();
+        final Session session = openOrRetrieveSessionForThread();
+        storeDynGroupInternal(session, dynGroup);
+        commit();
+        closeSessionForThread();
+    }
+
+    /**
+     * Stores a DynGroup instance.
+     * @param session The session to use.
+     * @param dynGroup The instance to store.
+     */
+    protected void storeDynGroupInternal(final Session session, final DynGroup dynGroup) {
+        storeInternal(session, dynGroup);
+        
+        // Stores all the cunjunction in the defintion as groups.
+        final Set<DynGroup> conjGroups = dynGroup.getConjunctiveComponents();
+        for (DynGroup conjGroup : conjGroups) {
+            storeDynGroupInternal(session, conjGroup);
+        }
+        
+        // Stores the attribute/value contribution for this group if it is not
+        // composed of several conjunctions.
+        if (conjGroups.size() == 0) {
+            final IProposition prop = 
+                PropositionCodec.instance().decodeToDisjunctiveNormalForm(dynGroup.getGroupDefinition());
+            if (prop == null) {
+               LOGGER.error("Unable to decode (to a normal disjunctive form) the logical proposition in the group: " 
+                       + dynGroup + ".");
+            } else {
+                final List<AtomicProposition> atoms = prop.getAtomicPropositions();
+                for (AtomicProposition atom : atoms) {
+                    final DynAttribute dynAtt = retrieveOrCreateDynAttribut(session, atom.getAttribute());
+                    final GroupAttributeValueAssoc grpAttAssoc = 
+                        new GroupAttributeValueAssoc(dynAtt, atom.getValue(), dynGroup);
+                    storeGroupAttributeValueAssocInternal(session, grpAttAssoc);
+                }
+            }
+        }
     }
     
+    /**
+     * Retrieves the groups corresponding to the cunjunctive components o a group.
+     * @param session The session.
+     * @param dynGroup The group from which the conjunctive components have to be retrieved.
+     * @return The list of the groups for the conjunctive components.
+     */
+    protected List<DynGroup> retrieveConjunctiveComponents(final Session session, 
+            final DynGroup dynGroup) {
+        
+        final StringBuilder queryString = new StringBuilder("from ");
+        queryString.append(DynGroup.class.getName());
+        queryString.append(" where ");
+        queryString.append(GROUP_NAME);
+        queryString.append(" like '");
+        queryString.append(DynGroup.CONJ_COMP_INDIRECTION);
+        queryString.append(ESCAPE);
+        queryString.append(DynGroup.OPEN_CURLY_BRACKET);
+        queryString.append(PERCENT);
+        queryString.append(ESCAPE);
+        queryString.append(DynGroup.CLOSE_CURLY_BRACKET);
+        queryString.append(dynGroup.getGroupName());
+        queryString.append("'");
+        Query query = session.createQuery(queryString.toString());
+        query.setReadOnly(true);
+        query.setCacheable(true);
+        @SuppressWarnings("unchecked")
+        List<DynGroup> result =  query.list();
+        return result;
+    }
+
+    /**
+     * Deletes a DynGroup instance.
+     * @param dynGroup The instance to delete.
+     * @see org.esco.dynamicgroups.dao.db.IDBDAOService#deleteDynGroup(DynGroup)
+     */
+    public void deleteDynGroup(final DynGroup dynGroup) {
+        startTransaction();
+        final Session session = openOrRetrieveSessionForThread();
+        deleteDynGroupInternal(session, dynGroup);
+        commit();
+        closeSessionForThread();
+    }
+
+    /**
+     * Deletes a DynGroup instance.
+     * @param session The session to use.
+     * @param dynGroup The instance to delete.
+     */
+    protected void deleteDynGroupInternal(final Session session, final DynGroup dynGroup) {
+        deleteInternal(session, dynGroup);
+        final List<DynGroup> conjGroups = retrieveConjunctiveComponents(session, dynGroup);
+        for (DynGroup conjGroup : conjGroups) {
+            deleteInternal(session, conjGroup);
+        }
+    }
+
+    /**
+     * Modify a DynGroup instance.
+     * @param dynGroup The instance to modify.
+     * @see org.esco.dynamicgroups.dao.db.IDBDAOService#modifyDynGroup(org.esco.dynamicgroups.domain.beans.DynGroup)
+     */
+    public void modifyDynGroup(final DynGroup dynGroup) {
+        startTransaction();
+        final Session session = openOrRetrieveSessionForThread();
+        modifyDynGroupInternal(session, dynGroup);
+        commit();
+        closeSessionForThread();
+    }
+    
+    /**
+     * Modify a DynGroup instance.
+     * @param session The session to use.
+     * @param dynGroup The instance to modify.
+     */
+    public void modifyDynGroupInternal(final Session session, final DynGroup dynGroup) {
+       
+        modifyInternal(session, dynGroup);
+        
+        // Deletes all the previuos groups associated to the cunjunctive components 
+        // of the modified group.
+        final List<DynGroup> oldConjGroups = retrieveConjunctiveComponents(session, dynGroup);
+        for (DynGroup oldConjGroup : oldConjGroups) {
+            deleteInternal(session, oldConjGroup);
+        }
+        commit();
+       
+        // Stores the new conjunctive components.
+        // Stores all the cunjunction in the defintion as groups.
+        final Set<DynGroup> newConjGroups = dynGroup.getConjunctiveComponents();
+        for (DynGroup newConjGroup : newConjGroups) {
+            storeDynGroupInternal(session, newConjGroup);
+        }
+        
+    }
+
+    /**
+     * Stores a dynanic group if not present in the DB 
+     * or modify the entry if the group is already stored.
+     * @param definition The dynamic group to store of modify.
+     * @see org.esco.dynamicgroups.dao.db.IDBDAOService#storeOrModifyDynGroup(DynamicGroupDefinition)
+     */
+    public void storeOrModifyDynGroup(final DynamicGroupDefinition definition) {
+        startTransaction();
+        final Session session = openOrRetrieveSessionForThread();
+        DynGroup group = (DynGroup) retrieveUniqueInstanceByAttributeInternal(session, 
+                DynGroup.class, GROUP_NAME, definition.getGroupName());
+
+        if (group == null) {
+            storeInternal(session, new DynGroup(definition));
+        } else {
+            modifyInternal(session, group);
+        }
+
+        commit();
+        closeSessionForThread();
+    }
+
     /**
      * Retrieves the groups associated to a given attribute.
      * @param attributeName The considered attribute.
@@ -104,9 +306,9 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
      * @see org.esco.dynamicgroups.dao.db.IDBDAOService#getGroupsForAttribute(String)
      */
     public Set<DynGroup> getGroupsForAttribute(final String attributeName) {
-        
+
         final Set<DynGroup> result = new HashSet<DynGroup>();
-        
+
         startTransaction();
         final Session session = openOrRetrieveSessionForThread();
 
@@ -116,21 +318,22 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
         criteria.createCriteria(ATTRIBUTE, ATTRIBUTE).add(Restrictions.eq(ATTRIBUTE_NAME, attributeName));
         criteria.setCacheable(true);
         
+
         // Retieves the associations.
         @SuppressWarnings("unchecked")
         List<GroupAttributeValueAssoc> associations =  criteria.list();
 
         closeSessionForThread();
- 
+
         // Retrieves the groups.
         for (GroupAttributeValueAssoc association : associations) {
-                result.add(association.getGroup());
-           
+            result.add(association.getGroup());
+
         }
-        
+
         return result;
     }
-    
+
     /**
      * Retrieves the groups associated to a given value of a specified attribute.
      * @param attributeName The considered attribute.
@@ -139,10 +342,10 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
      * @see org.esco.dynamicgroups.dao.db.IDBDAOService#getGroupsForAttributeValue(java.lang.String, java.lang.String)
      */
     public Set<DynGroup> getGroupsForAttributeValue(final String attributeName, 
-                        final String attributeValue) {
-        
+            final String attributeValue) {
+
         final Set<DynGroup> result = new HashSet<DynGroup>();
-        
+
         startTransaction();
         final Session session = openOrRetrieveSessionForThread();
 
@@ -152,22 +355,22 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
         criteria.add(Restrictions.eq(ATTRIBUTE_VALUE, attributeValue));
         criteria.createCriteria(ATTRIBUTE, ATTRIBUTE).add(Restrictions.eq(ATTRIBUTE_NAME, attributeName));
         criteria.setCacheable(true);
-        
+
         // Retieves the associations.
         @SuppressWarnings("unchecked")
         List<GroupAttributeValueAssoc> associations =  criteria.list();
 
         closeSessionForThread();
- 
+
         // Retrieves the groups.
         for (GroupAttributeValueAssoc association : associations) {
-                result.add(association.getGroup());
-           
+            result.add(association.getGroup());
+
         }
-        
+
         return result;
     }
-    
+
     /**
      * Retrieves the list of attributes values involved in a group definition.
      * @param groupName The of the considered group.
@@ -175,18 +378,18 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
      * @see org.esco.dynamicgroups.dao.db.IDBDAOService#getAttributeValuesForGroup(String)
      */
     public Set<AttributeValue> getAttributeValuesForGroup(final String groupName) {
-        
+
         final Set<AttributeValue> result = new HashSet<AttributeValue>();
-        
+
         startTransaction();
-        
+
         final Session session = openOrRetrieveSessionForThread();
         final Criteria criteria = session.createCriteria(GroupAttributeValueAssoc.class);
         criteria.setFetchMode(GROUP, FetchMode.JOIN);
         criteria.setFetchMode(ATTRIBUTE, FetchMode.JOIN);
         criteria.createCriteria(GROUP, GROUP).add(Restrictions.eq(GROUP_NAME, groupName));
         criteria.setCacheable(true);
-        
+
         @SuppressWarnings("unchecked")
         final List<GroupAttributeValueAssoc> associations =  criteria.list();
         closeSessionForThread();
@@ -196,10 +399,10 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
             result.add(new AttributeValue(association.getAttribute().getAttributeName(), 
                     association.getAttributeValue()));
         }
-        
+
         return result;
     }
-    
+
     /**
      * Gives the values, for a given attribute, associated to a set of groups.
      * @param attributeName The name of the attribute.
@@ -208,19 +411,19 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
      * @see org.esco.dynamicgroups.dao.db.IDBDAOService#getAttributeValuesForGroups(java.lang.String, java.util.Set)
      */
     public Set<String> getAttributeValuesForGroups(final String attributeName, final Set<Group> groups) {
-        
+
         final Set<String> result = new HashSet<String>();
-        
+
         startTransaction();
         final Session session = openOrRetrieveSessionForThread();
-        
+
         // Retrieves the (attribute, value)/group associations.
         final Criteria criteria = session.createCriteria(GroupAttributeValueAssoc.class);
         criteria.setFetchMode(GROUP, FetchMode.JOIN);
         criteria.setFetchMode(ATTRIBUTE, FetchMode.JOIN);
-        
+
         Criterion groupConj = null;
-        
+
         for (Group group : groups) { 
             if (groupConj == null) {
                 groupConj = Restrictions.eq(GROUP_NAME, group.getName());
@@ -228,22 +431,22 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
                 groupConj = Restrictions.or(groupConj, Restrictions.eq(GROUP_NAME, group.getName()));
             }
         }
-        
+
         criteria.createCriteria(GROUP, GROUP).add(groupConj);
         criteria.createCriteria(ATTRIBUTE, ATTRIBUTE).add(Restrictions.eq(ATTRIBUTE_NAME, attributeName));
         criteria.setCacheable(true);
-        
-        
+
+
         @SuppressWarnings("unchecked")
         final List<GroupAttributeValueAssoc> associations =  criteria.list();
-        
+
         // Retrieves the attributes.
         for (GroupAttributeValueAssoc association : associations) {
             result.add(association.getAttributeValue());
         }
         return result;
     }
-    
+
     /**
      * Retrieves the values of a given attribute for a group.
      * @param attributeName The name of the attribute.
@@ -256,17 +459,17 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
         startTransaction();
         final Session session = openOrRetrieveSessionForThread();
         final Set<String> result = new HashSet<String>();
-           
+
         final Criteria criteria = session.createCriteria(GroupAttributeValueAssoc.class);
         criteria.setFetchMode(GROUP, FetchMode.JOIN);
         criteria.setFetchMode(ATTRIBUTE, FetchMode.JOIN);
         criteria.createCriteria(GROUP, GROUP).add(Restrictions.eq(GROUP_NAME, groupName));
         criteria.createCriteria(ATTRIBUTE, ATTRIBUTE).add(Restrictions.eq(ATTRIBUTE_NAME, attributeName));
         criteria.setCacheable(true);
-        
+
         @SuppressWarnings("unchecked")
         final List<GroupAttributeValueAssoc> associations =  criteria.list();
-        
+
         // Retrieves the attributes.
         for (GroupAttributeValueAssoc association : associations) {
             result.add(association.getAttributeValue());

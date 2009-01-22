@@ -41,6 +41,8 @@ public interface IProposition extends Serializable {
      * Gives the atomic porpositions.
      * @return The atomic propositions.
      */
-    List<IProposition> getAtomicPropositions();
-
+    List<AtomicProposition> getAtomicPropositions();
+    
+    
+    
 }

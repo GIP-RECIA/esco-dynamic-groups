@@ -17,6 +17,12 @@ import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
  *
  */
 public class AbstractHibernateDAOSupport  extends HibernateDaoSupport {
+    /** Constant for %.*/
+    protected static final String PERCENT = "%";
+    
+    /** Escape sequence. */
+    protected static final String ESCAPE = "\\";
+    
     /** Session for the current thread. */
     private static final ThreadLocal<Session> THREADED_SESSION = new ThreadLocal<Session>();
     
@@ -129,7 +135,7 @@ public class AbstractHibernateDAOSupport  extends HibernateDaoSupport {
                 final Class< ? extends Serializable > instanceClass, 
                 final String attributeName, 
                 final String attributeValue) {
-        StringBuilder queryString = new StringBuilder("from ");
+        final StringBuilder queryString = new StringBuilder("from ");
         queryString.append(instanceClass.getSimpleName());
         queryString.append(" where ");
         queryString.append(attributeName);
@@ -161,5 +167,45 @@ public class AbstractHibernateDAOSupport  extends HibernateDaoSupport {
      */
     protected void storeInternal(final Session session, final Serializable instance) {
         session.save(instance);  
+    }
+
+    /**
+     * Stores an instance.
+     * @param instance The instance to store.
+     */
+    protected void modify(final Serializable instance) {
+        startTransaction();
+        modifyInternal(openOrRetrieveSessionForThread(), instance);
+        commit();
+        closeSessionForThread();
+    }
+    
+    /**
+     * Stores an instance.
+     * @param session The session to use.
+     * @param instance The instance to modify.
+     */
+    protected void modifyInternal(final Session session, final Serializable instance) {
+        session.update(instance);  
+    }
+    
+    /**
+     * Deletes an instance.
+     * @param instance The instance to delete.
+     */
+    protected void delete(final Serializable instance) {
+        startTransaction();
+        deleteInternal(openOrRetrieveSessionForThread(), instance);
+        commit();
+        closeSessionForThread();
+    }
+    
+    /**
+     * Deletes an instance.
+     * @param session The session to use.
+     * @param instance The instance to delete.
+     */
+    protected void deleteInternal(final Session session, final Serializable instance) {
+        session.delete(instance);  
     }
 }

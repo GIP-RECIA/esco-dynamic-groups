@@ -68,13 +68,16 @@ public class ESCODynamicGroupsParameters implements Serializable {
     private Set<String> ldapSearchAttributes;
 
     /** LDAP id attribute. */
-    private String ldapIdAttribute;
+    private String ldapUidAttribute;
 
     /** Idle duration for the SyncRepl client. */
     private int syncreplClientIdle;
     
-    /** The types in grouper associated to the dynamic groups. */
-    private String[] grouperTypes;
+    /** The type in grouper associated to the dynamic groups. */
+    private String grouperType;
+    
+    /** The field used in grouper to define the members. */
+    private String grouperDefinitionField;
     
     /** The Grouper user used to open the Grouper sessions. */
     private String grouperUser;
@@ -138,9 +141,10 @@ public class ESCODynamicGroupsParameters implements Serializable {
         final String ldapSearchBaseKey = PROPERTIES_PREFIX + "ldap.search.base";
         final String ldapSearchFilterKey = PROPERTIES_PREFIX + "ldap.search.filter";
         final String ldapSearchAttributesKey = PROPERTIES_PREFIX + "ldap.search.attributes";
-        final String ldapIdAttributeKey = PROPERTIES_PREFIX + "ldap.id.attribute";
+        final String ldapUidAttributeKey = PROPERTIES_PREFIX + "ldap.uid.attribute";
         final String synreplClientIDLEKey = PROPERTIES_PREFIX + "syncrepl.client.idle";
-        final String grouperTypesKey = PROPERTIES_PREFIX + "grouper.types";
+        final String grouperTypeKey = PROPERTIES_PREFIX + "grouper.type";
+        final String grouperDefKey = PROPERTIES_PREFIX + "grouper.definiton.field";
         final String grouperUserKey = PROPERTIES_PREFIX + "grouper.user";
         final String removeFromAllGroupsKey = PROPERTIES_PREFIX + "grouper.remove.from.all.groups";
 
@@ -153,16 +157,15 @@ public class ESCODynamicGroupsParameters implements Serializable {
         setLdapSearchBase(parseStringFromProperty(params, ldapSearchBaseKey));
         setLdapSearchFilter(parseStringFromProperty(params, ldapSearchFilterKey));
         setLdapSearchAttributesFromArray(parseStringArrayFromProperty(params, ldapSearchAttributesKey));
-        setLdapIdAttribute(parseStringFromProperty(params, ldapIdAttributeKey));
+        setLdapUidAttribute(parseStringFromProperty(params, ldapUidAttributeKey));
         setSyncreplClientIdle(parseIntegerFromProperty(params, synreplClientIDLEKey) * MILLIS_TO_SECONDS_FACTOR);
-        setGrouperTypes(parseStringArrayFromProperty(params, grouperTypesKey));
+        setGrouperType(parseStringFromProperty(params, grouperTypeKey));
+        setGrouperDefinitionField(parseStringFromProperty(params, grouperDefKey));
         setGrouperUser(parseStringFromProperty(params, grouperUserKey));
         setRemoveFromAllGroups(parseBooleanFromProperty(params, removeFromAllGroupsKey)); 
         
         // Adds the LDAP id attributes in the search attributes.
-        ldapSearchAttributes.add(ldapIdAttribute);
-
-
+        ldapSearchAttributes.add(ldapUidAttribute);
     }
 
     /**
@@ -174,6 +177,7 @@ public class ESCODynamicGroupsParameters implements Serializable {
     private Boolean parseBooleanFromProperty(final Properties properties, final String key) {
         return PropertyParser.instance().parseBooleanFromProperty(LOGGER, ESCO_DG_PARAMETERS_FILE, properties, key);
     }
+    
     /**
      * Retrieves the integer value from a properties instance for a given key.
      * @param properties The properties instance.
@@ -242,8 +246,11 @@ public class ESCODynamicGroupsParameters implements Serializable {
         sb.append("; SyncRepl Client idle: ");
         sb.append(getSyncreplClientIdle());
 
-        sb.append("; Grouper Types: ");
-        sb.append(getGrouperTypes());
+        sb.append("; Grouper Type: ");
+        sb.append(getGrouperType());
+
+        sb.append("; Grouper definition field: ");
+        sb.append(getGrouperDefinitionField());
         
         sb.append("; Grouper user: ");
         sb.append(getGrouperUser());
@@ -419,19 +426,19 @@ public class ESCODynamicGroupsParameters implements Serializable {
     }
 
     /**
-     * Getter for ldapIdAttribute.
-     * @return the ldapIdAttribute
+     * Getter for ldapUidAttribute.
+     * @return the ldapUidAttribute
      */
-    public String getLdapIdAttribute() {
-        return ldapIdAttribute;
+    public String getLdapUidAttribute() {
+        return ldapUidAttribute;
     }
 
     /**
-     * Setter for ldapIdAttribute.
-     * @param ldapIdAttribute the ldapIdAttribute to set
+     * Setter for ldapUidAttribute.
+     * @param ldapUidAttribute the ldapUidAttribute to set
      */
-    public void setLdapIdAttribute(final String ldapIdAttribute) {
-        this.ldapIdAttribute = ldapIdAttribute;
+    public void setLdapUidAttribute(final String ldapUidAttribute) {
+        this.ldapUidAttribute = ldapUidAttribute;
     }
 
     /**
@@ -451,19 +458,19 @@ public class ESCODynamicGroupsParameters implements Serializable {
     }
 
        /**
-     * Getter for grouperTypes.
-     * @return grouperTypes.
+     * Getter for grouperType.
+     * @return grouperType.
      */
-    public String[] getGrouperTypes() {
-        return grouperTypes;
+    public String getGrouperType() {
+        return grouperType;
     }
 
     /**
-     * Setter for grouperTypes.
-     * @param grouperTypes the new value for grouperTypes.
+     * Setter for grouperType.
+     * @param grouperType the new value for grouperType.
      */
-    public void setGrouperTypes(final String[] grouperTypes) {
-        this.grouperTypes = grouperTypes;
+    public void setGrouperType(final String grouperType) {
+        this.grouperType = grouperType;
     }
 
     /**
@@ -496,5 +503,21 @@ public class ESCODynamicGroupsParameters implements Serializable {
      */
     public void setRemoveFromAllGroups(final boolean removeFromAllGroups) {
         this.removeFromAllGroups = removeFromAllGroups;
+    }
+
+    /**
+     * Getter for grouperDefinitionField.
+     * @return grouperDefinitionField.
+     */
+    public String getGrouperDefinitionField() {
+        return grouperDefinitionField;
+    }
+
+    /**
+     * Setter for grouperDefinitionField.
+     * @param grouperDefinitionField the new value for grouperDefinitionField.
+     */
+    public void setGrouperDefinitionField(final String grouperDefinitionField) {
+        this.grouperDefinitionField = grouperDefinitionField;
     }
 }

@@ -74,7 +74,7 @@ public class Disjunction implements IProposition {
      */
     @Override
     public String toString() {
-        return PropositionCodec.instance().encode(this);
+        return PropositionCodec.instance().code(this);
     }
     
     /**
@@ -115,8 +115,8 @@ public class Disjunction implements IProposition {
      * @return The atomic propositions.
      * @see org.esco.dynamicgroups.domain.definition.IProposition#getAtomicPropositions()
      */
-    public List<IProposition> getAtomicPropositions() {
-        List<IProposition> atomic = new ArrayList<IProposition>();
+    public List<AtomicProposition> getAtomicPropositions() {
+        List<AtomicProposition> atomic = new ArrayList<AtomicProposition>();
         atomic.addAll(first.getAtomicPropositions());
         atomic.addAll(second.getAtomicPropositions());
         return atomic;

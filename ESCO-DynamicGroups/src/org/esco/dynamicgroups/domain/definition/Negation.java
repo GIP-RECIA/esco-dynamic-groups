@@ -36,7 +36,7 @@ public class Negation implements IProposition {
      */
     @Override
     public String toString() {
-        return PropositionCodec.instance().encode(this);       
+        return PropositionCodec.instance().code(this);       
     }
 
     /**
@@ -75,9 +75,9 @@ public class Negation implements IProposition {
      * @return The atomic propositions.
      * @see org.esco.dynamicgroups.domain.definition.IProposition#getAtomicPropositions()
      */
-    public List<IProposition> getAtomicPropositions() {
-        List<IProposition> atomic = new ArrayList<IProposition>();
-        atomic.add(this);
+    public List<AtomicProposition> getAtomicPropositions() {
+        List<AtomicProposition> atomic = new ArrayList<AtomicProposition>();
+        atomic.addAll(toNegativeForm().getAtomicPropositions());
         return atomic;
     }
     

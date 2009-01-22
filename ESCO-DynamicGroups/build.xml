@@ -17,7 +17,8 @@
 	<property name="esco-dg.aspectwerkz.aop.def" value="META-INF/esco-dynamic-groups.aop.xml"/>
 	<property name="esco-dg.version" value="0.1.0-alpha0"/>
 	<property name="esco-dg.grouper-dg.lib" value="grouper-esco-dg-${esco-dg.version}.jar"/>
-	<property name="esco-dg.mapping" value="${esco-dg.prop.dir}esco-dynamicGroupsMapping.xml"/>
+	<property name="esco-dg.grouper-dg.3rdPart.lib" value="grouper-esco-dg-3rdPart.jar"/>
+		
 	
 	<!-- Path Section -->
 	<path id="esco-dg.classpath">
@@ -40,9 +41,9 @@
 			esco-dg.classpath                  = ${esco-dg.classpath.value}
 			esco-dg.grouper.lib                = ${grouper.lib}
 			esco-dg.aspectwerkz.aop.def        = ${esco-dg.aspectwerkz.aop.def}
-			esco-dg.mapping                    = ${esco-dg.mapping}
 			esco-db.version                    = ${esco-dg.version}
 			esco-dg.grouper-dg.lib             = ${esco-dg.grouper-dg.lib}
+			esco-dg.grouper-dg.3rdPart.lib     = ${esco-dg.grouper-dg.3rdPart.lib}
 		</echo>
 	</target>
 	
@@ -85,10 +86,22 @@
 		 </javac>
 	</target>
 	
+	<target name="esco-dg.grouper-dg.3rd.part.jar" 
+			depends="esco-dg.create.tmp.dir"
+			description="Groups all the third part library into a single jar (mainly for test purpose)">
+		 <unzip dest="${esco-dg.tmp.dir}">
+		      <fileset dir="${esco-dg.lib.dir}">
+		        <include name="*.jar"/>
+		      	<exclude name="grouper*.jar"/>
+		      </fileset>
+	     </unzip>
+		 <jar  jarfile="${esco-dg.dist.dir}${esco-dg.grouper-dg.3rdPart.lib}" 
+		          basedir="${esco-dg.tmp.dir}"/>
+	</target>
+	
 	<target name="esco-dg.grouper-dg.jar" 
 		description="Creates the jar for grouper with dynamic groups support." 
 		depends="esco-dg.weaving, esco-dg.create.dist.dir" >
-		<copy file="${esco-dg.mapping}" todir="${esco-dg.build.dir}"/>
 	 	<jar destfile="${esco-dg.dist.dir}${esco-dg.grouper-dg.lib}" basedir="${esco-dg.build.dir}">
 	  	   		<manifest>
 	  	   			<attribute name="Built-By"                value="A. Deman - GIP RECIA"/>

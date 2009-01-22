@@ -15,6 +15,7 @@ import org.esco.dynamicgroups.dao.db.IDBDAOService;
 import org.esco.dynamicgroups.dao.grouper.IGroupsDAOService;
 import org.esco.dynamicgroups.domain.beans.DynGroup;
 import org.esco.dynamicgroups.domain.beans.DynGroupOccurences;
+import org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition;
 import org.esco.dynamicgroups.util.ESCODynamicGroupsParameters;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
@@ -35,6 +36,9 @@ public class ESCODomainServiceImpl implements IDomainService, InitializingBean {
 
     /** The Database DAO Service to use. */
     private IDBDAOService daoService;
+    
+    /** The initializer to use for the created/modified groups. */
+    private IDynamicGroupInitializer groupInitializer;
 
     /** Logger. */
     private Logger logger = Logger.getLogger(ESCODomainServiceImpl.class);
@@ -64,6 +68,10 @@ public class ESCODomainServiceImpl implements IDomainService, InitializingBean {
          Assert.notNull(this.daoService, 
                  "The property daoService in the class " + this.getClass().getName() 
                  + " can't be null.");
+         
+         Assert.notNull(this.groupInitializer, 
+                 "The property groupInitializer in the class " + this.getClass().getName() 
+                 + " can't be null.");
      }
      
      /**
@@ -91,7 +99,6 @@ public class ESCODomainServiceImpl implements IDomainService, InitializingBean {
         if (logger.isDebugEnabled()) {
             logger.debug("Request to Update the dynamic groups for the user: " + entry.getId());
         }
-       
        
         final Map<String, DynGroup> retainedCandidatGroups = computeDynGroups(entry);
         
@@ -195,6 +202,34 @@ public class ESCODomainServiceImpl implements IDomainService, InitializingBean {
      */
     public void setDaoService(final IDBDAOService daoService) {
         this.daoService = daoService;
+    }
+
+    /**
+     * Getter for groupInitializer.
+     * @return groupInitializer.
+     */
+    public IDynamicGroupInitializer getGroupInitializer() {
+        return groupInitializer;
+    }
+
+    /**
+     * Setter for groupInitializer.
+     * @param groupInitializer the new value for groupInitializer.
+     */
+    public void setGroupInitializer(final IDynamicGroupInitializer groupInitializer) {
+        this.groupInitializer = groupInitializer;
+    }
+
+    /**
+     * Handles a new or modified group.
+     * If the deinition is not valid the entry in the DB is deleted if exist else
+     * the entry is creted or modified.
+     * @param definition The dynamic group definition.
+     * @see org.esco.dynamicgroups.domain.IDomainService#handleNewOrModifiedDynamicGroup(DynamicGroupDefinition)
+     */
+    public void handleNewOrModifiedDynamicGroup(final DynamicGroupDefinition definition) {
+        groupsService.resetGroupMembers(definition.getGroupName());
+        groupInitializer.initialize(definition);
     }
 
    

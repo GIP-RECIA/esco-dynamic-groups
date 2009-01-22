@@ -1,6 +1,7 @@
 package org.esco.dynamicgroups.domain;
 
 import org.esco.dynamicgroups.IEntryDTO;
+import org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition;
 
 /**
  * Interface for the domain service.
@@ -29,6 +30,14 @@ public interface IDomainService {
      * @param entry The entry associated to the user.
      */
     void addToDynamicGroups(final IEntryDTO entry); 
+    
+    /**
+     * Handles a new or modified group.
+     * If the deinition is not valid the entry in the DB is deleted if exist else
+     * the entry is creted or modified.
+     * @param definition The dynamic group definition.
+     */
+    void handleNewOrModifiedDynamicGroup(final DynamicGroupDefinition definition);
     
     
 }
