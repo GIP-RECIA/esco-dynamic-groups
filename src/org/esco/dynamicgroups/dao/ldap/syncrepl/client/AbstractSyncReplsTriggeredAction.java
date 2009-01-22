@@ -35,7 +35,7 @@ public abstract class AbstractSyncReplsTriggeredAction
      * Builds an instance of AbstractSyncReplsTriggeredAction.
      */
     public AbstractSyncReplsTriggeredAction() {
-      idAttribute = ESCODynamicGroupsParameters.instance().getLdapIdAttribute();
+      idAttribute = ESCODynamicGroupsParameters.instance().getLdapUidAttribute();
       entryDTOFactory = new ESCOEntryDTOFactory(idAttribute);
     }
         

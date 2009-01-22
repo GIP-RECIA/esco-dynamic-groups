@@ -36,6 +36,20 @@ public class GroupAttributeValueAssoc implements Serializable {
     }
     
     /**
+     * Builds an instance of GroupAttributeValueAssoc.
+     * @param attribute The dynamic attribute.
+     * @param attributeValue The value of the attribute.
+     * @param group The group.
+     */
+    public GroupAttributeValueAssoc(final DynAttribute attribute,
+            final String attributeValue,
+            final DynGroup group) {
+        this.attribute = attribute;
+        this.group = group;
+        this.attributeValue = attributeValue;
+    }
+    
+    /**
      * Getter for attributeValueId.
      * @return attributeValueId.
      */

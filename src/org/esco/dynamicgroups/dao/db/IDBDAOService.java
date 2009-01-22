@@ -9,6 +9,7 @@ import org.esco.dynamicgroups.domain.beans.AttributeValue;
 import org.esco.dynamicgroups.domain.beans.DynAttribute;
 import org.esco.dynamicgroups.domain.beans.DynGroup;
 import org.esco.dynamicgroups.domain.beans.GroupAttributeValueAssoc;
+import org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition;
 
 
 /**
@@ -50,6 +51,27 @@ public interface IDBDAOService {
      * @param dynGroup The instance to store.
      */
     void storeDynGroup(final DynGroup dynGroup);
+    
+    /**
+     * Deletes a DynGroup instance.
+     * @param dynGroup The instance to delete.
+     */
+    void deleteDynGroup(final DynGroup dynGroup);
+    
+    /**
+     * Modify a DynGroup instance.
+     * @param dynGroup The instance to modify.
+     */
+    void modifyDynGroup(final DynGroup dynGroup);
+    
+    /**
+     * Stores a dynanic group if not present in the DB 
+     * or modify the entry if the group is already stored.
+     * @param definition The dynamic group to store of modify.
+     */
+    void storeOrModifyDynGroup(final DynamicGroupDefinition definition);
+    
+    //void deleteDynGroupIfExists()
     
     /**
      * Retrieves the groups associated to a given attribute.

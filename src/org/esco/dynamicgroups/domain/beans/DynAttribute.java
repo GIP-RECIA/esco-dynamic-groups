@@ -32,6 +32,14 @@ public class DynAttribute implements Serializable {
     
     /**
      * Builds an instance of DynAttribute.
+     * @param attributeName The name of the attribute.
+     */
+    public DynAttribute(final String attributeName) {
+        this.attributeName = attributeName;
+    }
+    
+    /**
+     * Builds an instance of DynAttribute.
      * @param attributeId The id of the attribute
      * @param attributeName The name of the attribute.
      */

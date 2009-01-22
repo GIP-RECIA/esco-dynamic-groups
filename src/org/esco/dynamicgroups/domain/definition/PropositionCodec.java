@@ -67,11 +67,26 @@ public class PropositionCodec {
     private String extractContent(final String source) {
         final int start = source.indexOf(OPEN_BRACKET);
         final int stop = source.lastIndexOf(CLOSE_BRACKET);
-        String content = "";
         if (start >= 0 &&  stop > 0 && start < stop) {
-            content = source.substring(start + 1, stop).trim();
-        }
-        return content;
+            return source.substring(start + 1, stop).trim();
+        } 
+        return "";
+    }
+    
+    
+    /**
+     * Extracts the content of a coded string (i.e. between ( and  ))
+     * @param source The source string.
+     * @return The string that can be decoded in a Ipropositionn if the
+     * coded string is valid, the source String otherwise.
+     */
+    private String extractContentSafe(final String source) {
+        final int start = source.indexOf(OPEN_BRACKET);
+        final int stop = source.lastIndexOf(CLOSE_BRACKET);
+        if (start >= 0 &&  stop > 0 && start < stop) {
+            return source.substring(start + 1, stop).trim();
+        } 
+        return source;
     }
     
     /**
@@ -167,25 +182,26 @@ public class PropositionCodec {
     }
     
     /**
-     * Decodes a base proposition.
+     * Decodes an atomic proposition.
      * @param coded The string to decode.
      * @return The proposition if the coded string is valid, null otherwise.
      */
-    private IProposition decodeBaseProposition(final String coded) {
+    private IProposition decodeAtomicProposition(final String coded) {
+        final String content = extractContentSafe(coded);
         
-        int pos = coded.indexOf(NOT_EQUAL);
+        int pos = content.indexOf(NOT_EQUAL);
         int sepLength = NOT_EQUAL.length();
         boolean negative = true;
-        if (pos < 1  || pos == coded.length() - 2) {
-           pos = coded.indexOf(EQUAL);
-           if (pos < 1  || pos == coded.length() - 2) {
+        if (pos < 1  || pos == content.length() - 2) {
+           pos = content.indexOf(EQUAL);
+           if (pos < 1  || pos == content.length() - 1) {
                return null;
            }
            negative = false;
            sepLength = EQUAL.length();
         }
-        final String attribute = coded.substring(0, pos).trim();
-        final String value = coded.substring(pos + sepLength).trim();
+        final String attribute = content.substring(0, pos).trim();
+        final String value = content.substring(pos + sepLength).trim();
         return new AtomicProposition(attribute, value, negative);
     }
     
@@ -195,8 +211,30 @@ public class PropositionCodec {
      * @return The proposition if the coded string is valid,
      * null otherwise.
      */
+    public IProposition decodeToDisjunctiveNormalForm(final String coded) {
+        final IProposition prop = decode(coded);
+        if (prop == null) {
+            return prop;
+        }
+        return prop.toDisjunctiveNormalForm();
+    }
+    
+    /**
+     * Decodes a String that represents a proposition.
+     * @param coded The coded string.
+     * @return The proposition if the coded string is valid,
+     * null otherwise.
+     */
     public IProposition decode(final String coded) {
+        if (coded == null) {
+            return null;
+        }
+        
         final String trimed = coded.trim();
+        
+        if ("".equals(trimed)) {
+            return null;
+        }
         
         if (trimed.startsWith(OR)) {
             return decodeDisjunction(trimed);
@@ -210,15 +248,29 @@ public class PropositionCodec {
             return decodeNegation(trimed);
         }
         
-        return decodeBaseProposition(trimed);
+        return decodeAtomicProposition(trimed);
+    }
+    
+
+    
+    /**
+     * Codes the disjunctive normal form of a proposition into a String.
+     * @param proposition The proposition to code.
+     * @return The String that represents the proposition.
+     */
+    public String codeDisjunctiveNormalForm(final IProposition proposition) {
+        if (proposition != null) {
+            return code(proposition.toDisjunctiveNormalForm());
+        }
+        return code(proposition);
     }
     
     /**
-     * Encodes a proposition into a String.
-     * @param proposition The proposition to encode.
+     * Codes a proposition into a String.
+     * @param proposition The proposition to code.
      * @return The String that represents the proposition.
      */
-    public String encode(final IProposition proposition) {
+    public String code(final IProposition proposition) {
         if (proposition instanceof AtomicProposition) {
             final AtomicProposition prop = (AtomicProposition) proposition;
             if (prop.isNegative()) {
@@ -228,8 +280,8 @@ public class PropositionCodec {
         }
         if (proposition instanceof Disjunction) {
             final Disjunction prop = (Disjunction) proposition;
-            final String first = encode(prop.getFirst());
-            final String second = encode(prop.getSecond());
+            final String first = code(prop.getFirst());
+            final String second = code(prop.getSecond());
             final StringBuilder sb = new StringBuilder(OR);
             sb.append(OPEN_BRACKET);
             sb.append(first);
@@ -241,8 +293,8 @@ public class PropositionCodec {
         }
         if (proposition instanceof Conjunction) {
             final Conjunction prop = (Conjunction) proposition;
-            final String first = encode(prop.getFirst());
-            final String second = encode(prop.getSecond());
+            final String first = code(prop.getFirst());
+            final String second = code(prop.getSecond());
             final StringBuilder sb = new StringBuilder(AND);
             sb.append(OPEN_BRACKET);
             sb.append(first);
@@ -254,7 +306,7 @@ public class PropositionCodec {
         }
         if (proposition instanceof Negation) {
             final Negation prop = (Negation) proposition;
-            final String negprop = encode(prop.getProposition());
+            final String negprop = code(prop.getProposition());
             final StringBuilder sb = new StringBuilder(NOT);
             sb.append(OPEN_BRACKET);
             sb.append(negprop);

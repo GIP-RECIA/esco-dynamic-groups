@@ -36,7 +36,7 @@ public class DynamicGroupDefinition implements Serializable {
      * @param proposition The String to decode that represents the proposition
      * associated to the definition.
      */
-    DynamicGroupDefinition(final String groupName, final String proposition) {
+    public DynamicGroupDefinition(final String groupName, final String proposition) {
        this(groupName, PropositionCodec.instance().decode(proposition));
     }
     
@@ -45,20 +45,24 @@ public class DynamicGroupDefinition implements Serializable {
      * @param groupName The name of the group.
      * @param proposition The proposition associated to the group definition.
      */
-    DynamicGroupDefinition(final String groupName, final IProposition proposition) {
+    public DynamicGroupDefinition(final String groupName, final IProposition proposition) {
         this.groupName = groupName;
         this.proposition = proposition;
         if (this.proposition != null) {
             this.proposition = proposition.toDisjunctiveNormalForm();
         }
         
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Creates a dynamic group definition: " + this);
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Creates a dynamic group definition: " + this);
         }
-        
-        if (proposition == null) {
-            LOGGER.warn("Error: the logic proposition is null for the group " + groupName);
-        }
+    }
+    
+    /**
+     * Tests if the definition is valid.
+     * @return True the underlying logic proposition is valid.
+     */
+    public boolean isValid() {
+       return proposition != null;
     }
 
     /**

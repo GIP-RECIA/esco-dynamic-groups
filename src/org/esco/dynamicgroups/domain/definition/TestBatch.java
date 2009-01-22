@@ -1,8 +1,10 @@
 package org.esco.dynamicgroups.domain.definition;
 
 import java.util.List;
+import java.util.Set;
 
 import org.esco.dynamicgroups.domain.LDAPDynamicGroupInitializer;
+import org.esco.dynamicgroups.domain.beans.DynGroup;
 
 /**
  * @author GIP RECIA - A. Deman
@@ -48,13 +50,22 @@ public class TestBatch {
             System.out.println(i + "==>" + conjProps.get(i));
         }
 
+        final DynGroup group = new DynGroup("a name", fTerm.toString());
+        System.out.println("group: " + group);
+        Set<DynGroup> conjGroups = group.getConjunctiveComponents();
+        for (DynGroup conjGroup : conjGroups) {
+            System.out.println(" == >" + conjGroup);
+        }
+        
         
         
         IProposition ldapProp = new Conjunction(new AtomicProposition("objectClass", "ENTAuxEnseignant", false), 
                 new AtomicProposition("ENTPersonSexe", "M", false));
-        
-        LDAPDynamicGroupInitializer initializer = new LDAPDynamicGroupInitializer();
-        initializer.initialize(new DynamicGroupDefinition("A dynamic group", ldapProp));
+        System.out.println("=>" + ldapProp); // And(objectClass=ENTAuxEnseignant, ENTPersonSexe=M)
+
+        IProposition prop = PropositionCodec.instance().decode("And (Or(objectClass =ENTAuxEnseignant, ENTPersonSexe=M), (ENTPersonSexe=F))");
+        System.out.println("=>" + prop);
+        System.out.println("==>" + prop.toDisjunctiveNormalForm());
         
         
     }

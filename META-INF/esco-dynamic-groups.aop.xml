@@ -9,14 +9,20 @@
     <system id="ESCO-Dynamic-Groups.AOP">
     
     	<package name="org.esco.dynamicgroups.aop">
-			<aspect class="DynamicGroupTypesHandlerAspect">
+			 <aspect class="DynamicGroupTypesHandlerAspect">
 					<pointcut name="addCustomType" expression="execution(void edu.internet2.middleware.grouper.Group.addType(edu.internet2.middleware.grouper.GroupType))"/>
-					<advice name="handleCustomType" type="around" bind-to="addCustomType"/>
-    		</aspect>
-<!--     		
-    		<aspect class="TestAspect">
-    			<pointcut name="allGroupMethods" expression="execution(void edu.internet2.middleware.grouper.Group.testIt())"/>
-            	<advice name="display" type="around" bind-to="allGroupMethods"/>
+					<advice name="handleCustomType" type="after" bind-to="addCustomType"/>
+
+					<pointcut name="addAttribute" expression="execution(void edu.internet2.middleware.grouper.Group.setAttribute(java.lang.String, java.lang.String))"/>
+					<advice name="handleCustomTypeAttribute" type="after" bind-to="addAttribute"/>
+					              
+					<pointcut name="domainServiceCreation" expression="execution(org.esco.dynamicgroups.domain.*DomainService*.new())"/>
+					<advice name="retrieveDomainService" type="after" bind-to="domainServiceCreation"/>
+    		</aspect> 
+
+    	<!-- 	<aspect class="TestAspect">
+    			<pointcut name="allGroupMethods" expression="execution(void edu.internet2.middleware.grouper.Group.addType(edu.internet2.middleware.grouper.GroupType))"/>
+            	<advice name="testAfter" type="after" bind-to="allGroupMethods"/>
             </aspect>
 -->
         </package>
