@@ -113,5 +113,15 @@ public interface IDBDAOService {
      * @return The set of attribute values.
      */
     Set<AttributeValue> getAttributeValuesForGroup(final String groupName);
+    
+    /**
+     * Resolves the indirections, i.e. : the groups that correspond to a conjunctive component
+     * are replaced by the original group.<br/>
+     * For instance, let G = A or B. The group G will be decoposed in G1=A and G2=B and the groups G1 and G2 
+     * will be resolved with G. 
+     * @param dynGroups The candidat groups to resolve.
+     * @return The list of groups where the indirection are resolved.
+     */
+    Set<DynGroup> resolvConjunctiveComponentIndirections(final Set<DynGroup> dynGroups);
 
 }

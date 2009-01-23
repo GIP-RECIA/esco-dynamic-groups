@@ -9,7 +9,6 @@ import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPEntry;
 import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.IEntryDTO;
-import org.esco.dynamicgroups.domain.IDomainService;
 
 /**
  * Add action triggered by an LDAP Synchronization Replication notification.

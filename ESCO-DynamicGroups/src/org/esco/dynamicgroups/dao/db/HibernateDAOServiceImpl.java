@@ -36,7 +36,7 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
 
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(HibernateDAOServiceImpl.class);
-    
+
     /** Constant for the group. */
     private static final String GROUP = "group";
 
@@ -70,7 +70,7 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
     public DynAttribute getDynAttributeByName(final String name) {
         return (DynAttribute) retrieveUniqueInstanceByAttribute(DynAttribute.class, ATTRIBUTE_NAME, name);
     }
-    
+
     /**
      * Retrieves the attribute associated to a given name. The attribute is inserted first in the table if it
      * does not exist.
@@ -87,11 +87,13 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
         if (result == null) {
             result = new DynAttribute(name);
             storeInternal(session, result);
+            session.flush();
         }
+
 
         return result;
     }
-    
+
     /**
      * Retrieves the attribute associated to a given name.
      * @param name The name of the attribute.
@@ -123,7 +125,7 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
         commit();
         closeSessionForThread();
     }
-    
+
     /**
      * Stores a GroupAttributeValueAssoc instance.
      * @param session The hibernate session.
@@ -134,7 +136,7 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
             final GroupAttributeValueAssoc grpAttAssoc) {
         storeInternal(session, grpAttAssoc);
     }
-    
+
     /**
      * Stores a DynGroup instance.
      * @param dynGroup The instance to store.
@@ -155,21 +157,21 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
      */
     protected void storeDynGroupInternal(final Session session, final DynGroup dynGroup) {
         storeInternal(session, dynGroup);
-        
+
         // Stores all the cunjunction in the defintion as groups.
         final Set<DynGroup> conjGroups = dynGroup.getConjunctiveComponents();
         for (DynGroup conjGroup : conjGroups) {
             storeDynGroupInternal(session, conjGroup);
         }
-        
+
         // Stores the attribute/value contribution for this group if it is not
         // composed of several conjunctions.
         if (conjGroups.size() == 0) {
             final IProposition prop = 
                 PropositionCodec.instance().decodeToDisjunctiveNormalForm(dynGroup.getGroupDefinition());
             if (prop == null) {
-               LOGGER.error("Unable to decode (to a normal disjunctive form) the logical proposition in the group: " 
-                       + dynGroup + ".");
+                LOGGER.error("Unable to decode (to a normal disjunctive form) the logical proposition in the group: " 
+                        + dynGroup + ".");
             } else {
                 final List<AtomicProposition> atoms = prop.getAtomicPropositions();
                 for (AtomicProposition atom : atoms) {
@@ -181,7 +183,7 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
             }
         }
     }
-    
+
     /**
      * Retrieves the groups corresponding to the cunjunctive components o a group.
      * @param session The session.
@@ -190,7 +192,7 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
      */
     protected List<DynGroup> retrieveConjunctiveComponents(final Session session, 
             final DynGroup dynGroup) {
-        
+
         final StringBuilder queryString = new StringBuilder("from ");
         queryString.append(DynGroup.class.getName());
         queryString.append(" where ");
@@ -224,16 +226,76 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
         commit();
         closeSessionForThread();
     }
+    
+    /**
+     * Resolves the indirections, i.e. : the groups that correspond to a conjunctive component
+     * are replaced by the original group.<br/>
+     * For instance, let G = A or B. The group G will be decoposed in G1=A and G2=B and the groups G1 and G2 
+     * will be resolved with G. 
+     * @param dynGroups The candidat groups to resolve.
+     * @return The list of groups where the indirection are resolved.
+     * @see org.esco.dynamicgroups.dao.db.IDBDAOService#resolvConjunctiveComponentIndirections(java.util.Set)
+     */
+    public Set<DynGroup> resolvConjunctiveComponentIndirections(final Set<DynGroup> dynGroups) {
+        final Set<DynGroup> result = new HashSet<DynGroup>();
 
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Start to retrieve the group associated to the cunjunctive components: "
+                    + dynGroups);
+        }
+        
+        startTransaction();
+        final Session session = openOrRetrieveSessionForThread();
+        for (DynGroup dynGroup : dynGroups) {
+            if (dynGroup.isConjunctiveComponentIndirection()) {
+                final DynGroup resolvedGroup = (DynGroup) retrieveUniqueInstanceByAttributeInternal(session, 
+                        DynGroup.class, GROUP_NAME, dynGroup.getIndirectedGroupName());
+                if (resolvedGroup != null) {
+                    result.add(resolvedGroup);
+                } else {
+                    LOGGER.error("Unable to retrieve the group associated to the conjunction component: " + dynGroup);
+                }
+            } else {
+                result.add(dynGroup);
+            }
+        }
+        
+        commit();
+        closeSessionForThread();
+        
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Resolution of the cunjunctive components: "
+                    + result);
+        }
+
+        return result;
+    }
+
+    /**
+     * Deletes all the (attribute,value) associated to the group.
+     * @param session The session to use.
+     * @param dynGroup The group for wich the associations should be deleted.
+     */
+    protected void deleteGroupAssociationsInternal(final Session session, final DynGroup dynGroup) {
+        final Set<GroupAttributeValueAssoc> associations = getAttributeValuesAssociationForGroup(session, dynGroup);
+        for (GroupAttributeValueAssoc association : associations) {
+            deleteInternal(session, association);
+        }
+    }
+    
     /**
      * Deletes a DynGroup instance.
      * @param session The session to use.
      * @param dynGroup The instance to delete.
      */
     protected void deleteDynGroupInternal(final Session session, final DynGroup dynGroup) {
+        deleteGroupAssociationsInternal(session, dynGroup);
         deleteInternal(session, dynGroup);
         final List<DynGroup> conjGroups = retrieveConjunctiveComponents(session, dynGroup);
+
         for (DynGroup conjGroup : conjGroups) {
+            deleteGroupAssociationsInternal(session, conjGroup);
             deleteInternal(session, conjGroup);
         }
     }
@@ -250,31 +312,16 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
         commit();
         closeSessionForThread();
     }
-    
+
     /**
      * Modify a DynGroup instance.
      * @param session The session to use.
      * @param dynGroup The instance to modify.
      */
     public void modifyDynGroupInternal(final Session session, final DynGroup dynGroup) {
-       
-        modifyInternal(session, dynGroup);
-        
-        // Deletes all the previuos groups associated to the cunjunctive components 
-        // of the modified group.
-        final List<DynGroup> oldConjGroups = retrieveConjunctiveComponents(session, dynGroup);
-        for (DynGroup oldConjGroup : oldConjGroups) {
-            deleteInternal(session, oldConjGroup);
-        }
-        commit();
-       
-        // Stores the new conjunctive components.
-        // Stores all the cunjunction in the defintion as groups.
-        final Set<DynGroup> newConjGroups = dynGroup.getConjunctiveComponents();
-        for (DynGroup newConjGroup : newConjGroups) {
-            storeDynGroupInternal(session, newConjGroup);
-        }
-        
+        deleteDynGroupInternal(session, dynGroup);
+        session.flush();
+        storeDynGroupInternal(session, dynGroup);
     }
 
     /**
@@ -286,13 +333,22 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
     public void storeOrModifyDynGroup(final DynamicGroupDefinition definition) {
         startTransaction();
         final Session session = openOrRetrieveSessionForThread();
+
+
         DynGroup group = (DynGroup) retrieveUniqueInstanceByAttributeInternal(session, 
                 DynGroup.class, GROUP_NAME, definition.getGroupName());
 
         if (group == null) {
-            storeInternal(session, new DynGroup(definition));
+            if (definition.isValid()) {
+                storeDynGroupInternal(session, new DynGroup(definition));
+            }
         } else {
-            modifyInternal(session, group);
+            if (definition.isValid()) {
+                group.setGroupDefinition(definition.getProposition().toString());
+                modifyDynGroupInternal(session, group);
+            } else {
+                deleteDynGroupInternal(session, group);
+            }
         }
 
         commit();
@@ -317,7 +373,7 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
         criteria.setFetchMode(ATTRIBUTE, FetchMode.JOIN);
         criteria.createCriteria(ATTRIBUTE, ATTRIBUTE).add(Restrictions.eq(ATTRIBUTE_NAME, attributeName));
         criteria.setCacheable(true);
-        
+
 
         // Retieves the associations.
         @SuppressWarnings("unchecked")
@@ -447,6 +503,7 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
         return result;
     }
 
+
     /**
      * Retrieves the values of a given attribute for a group.
      * @param attributeName The name of the attribute.
@@ -474,6 +531,28 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
         for (GroupAttributeValueAssoc association : associations) {
             result.add(association.getAttributeValue());
         }
+        return result;
+    }
+
+    /**
+     * Retrieves the (attribute, values) association for a given group.
+     * @param session The session to use.
+     * @param dynGroup The dynamic group.
+     * @return The set of association instances involving the group.
+     */
+    protected Set<GroupAttributeValueAssoc> getAttributeValuesAssociationForGroup(final Session session, 
+            final DynGroup dynGroup) {
+        final Set<GroupAttributeValueAssoc> result = new HashSet<GroupAttributeValueAssoc>();
+
+        final Criteria criteria = session.createCriteria(GroupAttributeValueAssoc.class);
+        criteria.setFetchMode(GROUP, FetchMode.JOIN);
+        criteria.createCriteria(GROUP, GROUP).add(Restrictions.eq(GROUP_NAME, dynGroup.getGroupName()));
+        criteria.setCacheable(true);
+
+        @SuppressWarnings("unchecked")
+        final List<GroupAttributeValueAssoc> associations =  criteria.list();
+        result.addAll(associations);
+     
         return result;
     }
 }

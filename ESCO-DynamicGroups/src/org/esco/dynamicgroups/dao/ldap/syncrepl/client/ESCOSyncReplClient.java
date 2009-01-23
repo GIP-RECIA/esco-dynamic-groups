@@ -29,8 +29,8 @@ import org.springframework.util.Assert;
 public class ESCOSyncReplClient implements InitializingBean {
 
     /** Number of idle loops between two marks. */
-    private static final int MARK_INTERVAL = 2;
-    
+    private static final int MARK_INTERVAL = 10;
+
     /** Idle duration for the initialization step. */
     private static final int REFRESH_STAGE_IDLE = 1000;
 
@@ -42,12 +42,20 @@ public class ESCOSyncReplClient implements InitializingBean {
 
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(ESCOSyncReplClient.class);
-    
+
     /** Messages handler. */
     private ISyncReplMessagesHandler messagesHandler;
 
     /** Counter for the idle loops. */
     private int idleCount;
+
+    /** initialization flag. */
+    private boolean initialized;
+    
+    /** Flag used to stop the lestener. */
+    private boolean stopped;
+
+
 
     /**
      * Builds an instance of ESCOSyncReplClient.
@@ -55,7 +63,7 @@ public class ESCOSyncReplClient implements InitializingBean {
     public ESCOSyncReplClient() {
         super();
     }
-    
+
 
     /**
      * Checks the properties after the beans injection.
@@ -66,7 +74,11 @@ public class ESCOSyncReplClient implements InitializingBean {
         Assert.notNull(this.messagesHandler, 
                 "The property messagesHandler in the class " + this.getClass().getName() 
                 + " can't be null.");
+        setInitialized(true);
+
     }
+
+
 
     /**
      * @param args Not used.
@@ -78,11 +90,28 @@ public class ESCOSyncReplClient implements InitializingBean {
     }
 
     /**
+     * Sleep method without interruption notifiction.
+     * @param millis The sleep duration time.
+     */
+    private void sleepSafe(final long millis) {
+        try {
+            Thread.sleep(REFRESH_STAGE_IDLE);
+        } catch (InterruptedException e) {
+            /* Nothing to do. */
+        }
+    }
+
+    /**
      * Launches the client.
      * @throws IOException 
      */
     public void launch() throws IOException {
-
+        while (!isInitialized()) {
+            sleepSafe(REFRESH_STAGE_IDLE);
+        }
+        LOGGER.info("Starting the SyncRepl Client.");
+        setStopped(false);
+        
         final ESCODynamicGroupsParameters parameters = ESCODynamicGroupsParameters.instance();
 
         final int ldapPort = parameters.getLdapPort(); 
@@ -94,7 +123,7 @@ public class ESCOSyncReplClient implements InitializingBean {
         final String searchBase = parameters.getLdapSearchBase();
         final String[] attributes = parameters.getLdapSearchAttributesAsArray();
         final int idle = parameters.getSyncreplClientIdle();
-        
+
 
         LDAPConnection lc = new LDAPConnection();
         final LDAPSearchConstraints constraints = new LDAPSearchConstraints();
@@ -120,8 +149,11 @@ public class ESCOSyncReplClient implements InitializingBean {
                     null, 
                     constraints);
 
+            LOGGER.info("SyncRepl Client connected.");
+
         } catch (LDAPException e) {
-            System.out.println("Error: " + e.toString());
+            LOGGER.error(e, e);
+
             try { 
                 lc.disconnect(); 
             } catch (LDAPException e2) {  
@@ -132,38 +164,33 @@ public class ESCOSyncReplClient implements InitializingBean {
             e.printStackTrace();
         }
 
-        try {   
-            if (queue != null) {
-                int contextualIdle = REFRESH_STAGE_IDLE;
-                while (true) {
-                    if (!queue.isResponseReceived()) {
-                        Thread.sleep(contextualIdle);
-                        idleCount++;
-                        mark();
+        if (queue != null) {
+            int contextualIdle = REFRESH_STAGE_IDLE;
+            while (!isStopped()) {
+                if (!queue.isResponseReceived()) {
+                    sleepSafe(contextualIdle);
+                    idleCount++;
+                    mark();
 
-                    } else {
-                        try {
-                            contextualIdle = idle;
-                            idleCount = 0;
-                            messagesHandler.processLDAPMessage(queue.getResponse());
-                        } catch (LDAPException e) {
-                            e.printStackTrace();
-                        }
+                } else {
+                    try {
+                        contextualIdle = idle;
+                        idleCount = 0;
+                        messagesHandler.processLDAPMessage(queue.getResponse());
+                    } catch (LDAPException e) {
+                        e.printStackTrace();
                     }
                 }
             }
-        } catch (InterruptedException e) {
-            /* Noting to do */
         }
 
         //disconnect from the server before exiting
         try {
-            System.out.println("Abandon the search");
+            LOGGER.info("SyncRepl Client stopped.");
             lc.abandon(queue);
             lc.disconnect();
         }  catch (LDAPException e) {
-            System.out.println();
-            System.out.println("Error: " + e.toString());
+           LOGGER.error(e, e);
         }
         System.exit(0);
     }
@@ -196,7 +223,44 @@ public class ESCOSyncReplClient implements InitializingBean {
         this.messagesHandler = messagesHandler;
     }
 
-    
+
+    /**
+     * Getter for initialized.
+     * @return initialized.
+     */
+    public synchronized boolean isInitialized() {
+        return initialized
+            && messagesHandler.isInitialized();
+    }
+
+
+    /**
+     * Setter for initialized.
+     * @param initialized the new value for initialized.
+     */
+    public synchronized void setInitialized(final boolean initialized) {
+        this.initialized = initialized;
+    }
+
+
+    /**
+     * Getter for stopped.
+     * @return stopped.
+     */
+    public synchronized boolean isStopped() {
+        return stopped;
+    }
+
+
+    /**
+     * Setter for stopped.
+     * @param stopped the new value for stopped.
+     */
+    public synchronized void setStopped(final boolean stopped) {
+        this.stopped = stopped;
+    }
+
+
 
 
 }

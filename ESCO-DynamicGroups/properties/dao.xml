@@ -4,7 +4,12 @@
 
 <beans>
 	<!--  Groups service -->
-	<bean id="groupsService" class="org.esco.dynamicgroups.dao.grouper.GrouperDAOServiceImpl"/>
+	<bean id="dynamicGroupInitializer" class="org.esco.dynamicgroups.domain.LDAPDynamicGroupInitializer">
+		<property name="groupsService" ref="groupsService" />
+	</bean>
+	<bean id="groupsService" class="org.esco.dynamicgroups.dao.grouper.GrouperDAOServiceImpl">
+		<property name="initializer" ref="dynamicGroupInitializer"/>
+	</bean>
 	
 	<!-- LDAP SyncRepl client -->
 	<bean id="abstractAction" class="org.esco.dynamicgroups.dao.ldap.syncrepl.client.AbstractSyncReplsTriggeredAction" abstract="true" >
