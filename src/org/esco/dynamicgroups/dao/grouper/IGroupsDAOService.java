@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.esco.dynamicgroups.domain.beans.DynGroup;
+import org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition;
 
 /**
  * @author GIP RECIA - A. Deman
@@ -23,10 +24,11 @@ public interface IGroupsDAOService {
     void removeFromGroups(final String userId);
     
     /** 
-     * Create a group if it does not exist, removes all its members otherwise.
-     * @param groupName The name of the group.
+     * Creates a group if it does not exist, removes all its members otherwise and ther initializes
+     * the members.
+     * @param definition The definition of the group.
      */
-    void resetGroupMembers(final String groupName);
+    void resetGroupMembers(final DynamicGroupDefinition definition);
     
     /**
      * Tests if a groupName denotes a dynamic group.

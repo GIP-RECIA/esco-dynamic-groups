@@ -19,4 +19,10 @@ public interface ISyncReplMessagesHandler extends Serializable {
      */
     void processLDAPMessage(final LDAPMessage message);
     
+    /**
+     * Tests if the handler is initialized.
+     * @return True if the handler is initialized
+     */
+    boolean isInitialized();
+    
 }

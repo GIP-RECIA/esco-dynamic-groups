@@ -19,13 +19,13 @@ import edu.internet2.middleware.grouper.MemberNotFoundException;
 import edu.internet2.middleware.grouper.Membership;
 import edu.internet2.middleware.grouper.Privilege;
 import edu.internet2.middleware.grouper.SchemaException;
+import edu.internet2.middleware.grouper.StemFinder;
 import edu.internet2.middleware.grouper.SubjectFinder;
 import edu.internet2.middleware.subject.Subject;
 import edu.internet2.middleware.subject.SubjectNotFoundException;
 import edu.internet2.middleware.subject.SubjectNotUniqueException;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -33,10 +33,14 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.esco.dynamicgroups.domain.IDynamicGroupInitializer;
 import org.esco.dynamicgroups.domain.beans.DynGroup;
+import org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition;
 import org.esco.dynamicgroups.exceptions.DynamicGroupsException;
 import org.esco.dynamicgroups.util.ESCODynamicGroupsParameters;
 import org.esco.dynamicgroups.util.GrouperSessionUtil;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.util.Assert;
 
 
 /**
@@ -45,7 +49,7 @@ import org.esco.dynamicgroups.util.GrouperSessionUtil;
  * 15 janv. 2009
  *
  */
-public class GrouperDAOServiceImpl implements IGroupsDAOService, Serializable {
+public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBean, Serializable {
 
     /** Serial version UID.*/
     private static final long serialVersionUID = 2185838538636654415L;
@@ -55,6 +59,9 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, Serializable {
 
     /** The Grouper session util instance. */
     private GrouperSessionUtil sessionUtil;
+    
+    /** The groups initializer. */
+    private IDynamicGroupInitializer initializer;
 
     /** The dynamic type in grouper. */
     private String grouperDynamicType;
@@ -63,6 +70,8 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, Serializable {
      * or only from the dynamic ones.
      */
     private boolean removeFromAllGroups;
+    
+    
 
     /**
      * Builds an instance of GrouperDAOServiceImpl.
@@ -80,12 +89,20 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, Serializable {
         }
 
         checkDynamicType();
+    }
+    
 
-        //        //
-        //        final GrouperSession session = sessionUtil.createSession();
-        //        Group g = retrieveGroup(session, "esco:Inter-etablissements:T");
-        //        Map<String, String> map = g.getAttributes();
-        //        System.out.println("=>" + map.get(ESCODynamicGroupsParameters.instance().getGrouperDefinitionField()));
+    /**
+     * @throws Exception
+     * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
+     */
+    public void afterPropertiesSet() throws Exception {
+
+        Assert.notNull(this.initializer, 
+                "The property initializer in the class " + this.getClass().getName() 
+                + " can't be null.");
+
+        
     }
 
     /**
@@ -146,21 +163,22 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, Serializable {
     }
 
     /** 
-     * Resets all the members of a group.
-     * @param groupName The name of the group.
-     * @see org.esco.dynamicgroups.dao.grouper.IGroupsDAOService#resetGroupMembers(String)
+     * Creates a group if it does not exist, removes all its members otherwise and ther initializes
+     * the members.
+     * @param definition The definition of the group.
+     * @see org.esco.dynamicgroups.dao.grouper.IGroupsDAOService#resetGroupMembers(org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition)
      */
-    public void resetGroupMembers(final String groupName) {
+    public void resetGroupMembers(final DynamicGroupDefinition definition) {
         final GrouperSession session  = sessionUtil.createSession();
 
-        final Group group = retrieveGroup(session, groupName);
+        final Group group = retrieveGroup(session, definition.getGroupName());
 
         if (group == null) {
-            LOGGER.error("Error the group " + groupName + " can't be found.");
+            LOGGER.error("Error the group " + definition.getGroupName() + " can't be found.");
 
         } else {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Resetting group: " + groupName);
+                LOGGER.debug("Resetting group: " + definition.getGroupName());
             }
             @SuppressWarnings("unchecked") 
             final Set<Member> members = group.getImmediateMembers();
@@ -185,27 +203,10 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, Serializable {
 
         }
         sessionUtil.stopSession(session);
+        initializer.initialize(definition);
     }
 
-    //    void deleteTypes() {
-    //        GrouperSession session = sessionUtil.createSession();
-    //        for (String dynamicType : grouperDynamicTypes) {
-    //            GroupType type = retrieveType(dynamicType);
-    //            if (type != null) {
-    //                try {
-    //                    type.delete(session);
-    //                } catch (InsufficientPrivilegeException e) {
-    //                    // TODO Auto-generated catch block
-    //                    e.printStackTrace();
-    //                } catch (SchemaException e) {
-    //                    // TODO Auto-generated catch block
-    //                    e.printStackTrace();
-    //                }
-    //            }
-    //        }
-    //        sessionUtil.stopSession(session);
-    //    }
-
+  
     /**
      * Try to retrieve a Grouper Type.
      * @param typeName The name of the type to retrieve.
@@ -221,14 +222,24 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, Serializable {
 
         return type;
     }
+    
+//    public Set<Group> getAllDynamicGroups() {
+//        final GroupType type = retrieveType(grouperDynamicType);
+//        if (type == null) {
+//            return new HashSet<Group>();
+//        }
+//        final GrouperSession session = sessionUtil.createSession();
+//        GroupFinder.findByType(session, type)
+//        StemFinder.findRootStem() 
+//        return null;
+//    }
 
     /**
      * Checks the dynamic types.
      */
     private void checkDynamicType() {
 
-        // deleteTypes();
-
+        final boolean create = ESCODynamicGroupsParameters.instance().getCreateGrouperType();
         LOGGER.info("Checking the dynamic types.");
         final String definitionField = ESCODynamicGroupsParameters.instance().getGrouperDefinitionField();
         // Checks the group types.
@@ -237,10 +248,16 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, Serializable {
             GroupType type = retrieveType(grouperDynamicType);
 
             if (type == null) {
-                type = GroupType.createType(session, grouperDynamicType);
-                type.addAttribute(session, definitionField, Privilege.getInstance("admin"), 
-                        Privilege.getInstance("admin"), true);
-                LOGGER.info("Group type " + grouperDynamicType + " created.");
+                if (create) {
+                    type = GroupType.createType(session, grouperDynamicType);
+                    type.addAttribute(session, definitionField, Privilege.getInstance("admin"), 
+                            Privilege.getInstance("admin"), true);
+                    LOGGER.info("Group type " + grouperDynamicType + " created.");
+                } else {
+                    LOGGER.error("The group type: " + grouperDynamicType 
+                            + " can't be found and the configuration "
+                            + " doesn't not allow to create it. Change the configuration or create it manually.");
+                }
             } else {
                 boolean defFieldFound = false;
                 @SuppressWarnings("unchecked")
@@ -560,4 +577,5 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, Serializable {
         sessionUtil.stopSession(session);
         return dynamic;
     }
+
 }
