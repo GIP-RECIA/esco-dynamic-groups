@@ -3,6 +3,7 @@
  */
 package org.esco.dynamicgroups.dao.grouper;
 
+import edu.internet2.middleware.grouper.AttributeNotFoundException;
 import edu.internet2.middleware.grouper.Field;
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
@@ -19,6 +20,7 @@ import edu.internet2.middleware.grouper.MemberNotFoundException;
 import edu.internet2.middleware.grouper.Membership;
 import edu.internet2.middleware.grouper.Privilege;
 import edu.internet2.middleware.grouper.SchemaException;
+import edu.internet2.middleware.grouper.Stem;
 import edu.internet2.middleware.grouper.StemFinder;
 import edu.internet2.middleware.grouper.SubjectFinder;
 import edu.internet2.middleware.subject.Subject;
@@ -40,6 +42,9 @@ import org.esco.dynamicgroups.exceptions.DynamicGroupsException;
 import org.esco.dynamicgroups.util.ESCODynamicGroupsParameters;
 import org.esco.dynamicgroups.util.GrouperSessionUtil;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.util.Assert;
 
 
@@ -49,7 +54,7 @@ import org.springframework.util.Assert;
  * 15 janv. 2009
  *
  */
-public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBean, Serializable {
+public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBean, ApplicationListener, Serializable {
 
     /** Serial version UID.*/
     private static final long serialVersionUID = 2185838538636654415L;
@@ -59,7 +64,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
 
     /** The Grouper session util instance. */
     private GrouperSessionUtil sessionUtil;
-    
+
     /** The groups initializer. */
     private IDynamicGroupInitializer initializer;
 
@@ -71,7 +76,13 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
      */
     private boolean removeFromAllGroups;
     
+    /** Flag to determine if the dynamic groups shoudl be reseted. */
+    private boolean resetOnStartup;
     
+    /** Initialization flag. */
+    private boolean initialized;
+
+
 
     /**
      * Builds an instance of GrouperDAOServiceImpl.
@@ -80,17 +91,19 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
         sessionUtil = new GrouperSessionUtil(ESCODynamicGroupsParameters.instance().getGrouperUser());
         grouperDynamicType = ESCODynamicGroupsParameters.instance().getGrouperType();
         removeFromAllGroups = ESCODynamicGroupsParameters.instance().getRemoveFromAllGroups();
-
+        resetOnStartup = ESCODynamicGroupsParameters.instance().getResetOnStartup();
+        
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Creates an instance of GrouperDAOServiceImpl - Grouper user: "  
                     + ESCODynamicGroupsParameters.instance().getGrouperUser() 
                     + " - Grouper dynamic type " + grouperDynamicType 
-                    + " - deleted users are removed from all groups: " + removeFromAllGroups + ".");
+                    + " - deleted users are removed from all groups: " + removeFromAllGroups 
+                    + " - reset on startup: " + resetOnStartup + ".");
         }
 
-        checkDynamicType();
+
     }
-    
+
 
     /**
      * @throws Exception
@@ -101,10 +114,24 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
         Assert.notNull(this.initializer, 
                 "The property initializer in the class " + this.getClass().getName() 
                 + " can't be null.");
-
-        
     }
 
+    /**
+     * Listen for an application event.
+     * @param event The event.
+     * @see org.springframework.context.ApplicationListener#
+     * onApplicationEvent(org.springframework.context.ApplicationEvent)
+     */
+    public void onApplicationEvent(final ApplicationEvent event) {
+        if (event instanceof ContextRefreshedEvent) {
+            if (!initialized) {
+                checkDynamicType();
+                resetAllDynamicGroups();
+                initialized = true;
+            }
+        }
+    }
+    
     /**
      * Adds a user to a group.
      * @param groupName The name of the group.
@@ -166,7 +193,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
      * Creates a group if it does not exist, removes all its members otherwise and ther initializes
      * the members.
      * @param definition The definition of the group.
-     * @see org.esco.dynamicgroups.dao.grouper.IGroupsDAOService#resetGroupMembers(org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition)
+     * @see org.esco.dynamicgroups.dao.grouper.IGroupsDAOService#resetGroupMembers(DynamicGroupDefinition)
      */
     public void resetGroupMembers(final DynamicGroupDefinition definition) {
         final GrouperSession session  = sessionUtil.createSession();
@@ -206,7 +233,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
         initializer.initialize(definition);
     }
 
-  
+
     /**
      * Try to retrieve a Grouper Type.
      * @param typeName The name of the type to retrieve.
@@ -222,17 +249,54 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
 
         return type;
     }
-    
-//    public Set<Group> getAllDynamicGroups() {
-//        final GroupType type = retrieveType(grouperDynamicType);
-//        if (type == null) {
-//            return new HashSet<Group>();
-//        }
-//        final GrouperSession session = sessionUtil.createSession();
-//        GroupFinder.findByType(session, type)
-//        StemFinder.findRootStem() 
-//        return null;
-//    }
+
+    /**
+     * Resets all the dynamic groups.
+     */
+    private void resetAllDynamicGroups() {
+        if (ESCODynamicGroupsParameters.instance().getResetOnStartup()) {
+            LOGGER.info("Resetting all the dynamic goups.");
+            final GroupType type = retrieveType(grouperDynamicType);
+            if (type != null) {
+
+                final GrouperSession session = sessionUtil.createSession();
+                resetDynamicGroups(StemFinder.findRootStem(session));
+            }
+        }
+    }
+
+    /**
+     * Resets all the dynamic groups under a stem.
+     * @param stem The current stem.
+     */
+    private void resetDynamicGroups(final Stem stem) {
+        LOGGER.info("Resetting the dynamic goups under the stem " + stem + ".");
+        @SuppressWarnings("unchecked")
+        final Set<Group> groups = stem.getChildGroups();
+
+        // initializes all the dynamic groups under the stem.
+        for (Group group : groups) {
+            if (isDynamicGroup(group)) {
+                String membersDef = null;
+                try {
+                    membersDef = group.getAttribute(ESCODynamicGroupsParameters.instance().getGrouperDefinitionField());
+                } catch (AttributeNotFoundException e) {
+                    LOGGER.error("Unable to retrieve the attribute "  
+                            + ESCODynamicGroupsParameters.instance().getGrouperDefinitionField()
+                            + " for the group: " + group.getName() + ".");
+                }
+
+                final DynamicGroupDefinition groupDef = new DynamicGroupDefinition(group.getName(), membersDef);
+                resetGroupMembers(groupDef);
+            }
+        }
+        @SuppressWarnings("unchecked")
+        final Set<Stem> childStems = stem.getChildStems();
+
+        for (Stem childStem : childStems) {
+            resetDynamicGroups(childStem);
+        }
+    }
 
     /**
      * Checks the dynamic types.
@@ -531,8 +595,9 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
                         LOGGER.debug("Create memberships user: " + userId 
                                 + " added to the group: " + newGroup);
                     }
-
-                    group.addMember(subject);
+                    if (!group.hasImmediateMember(subject)) {
+                        group.addMember(subject);
+                    }
                 }
             }
             sessionUtil.stopSession(session);
@@ -578,4 +643,24 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
         return dynamic;
     }
 
+
+    /**
+     * Getter for initializer.
+     * @return initializer.
+     */
+    public IDynamicGroupInitializer getInitializer() {
+        return initializer;
+    }
+
+
+    /**
+     * Setter for initializer.
+     * @param initializer the new value for initializer.
+     */
+    public void setInitializer(final IDynamicGroupInitializer initializer) {
+        this.initializer = initializer;
+    }
+
+
+ 
 }

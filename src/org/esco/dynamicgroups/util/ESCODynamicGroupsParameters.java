@@ -152,7 +152,7 @@ public class ESCODynamicGroupsParameters implements Serializable {
         final String synreplClientIDLEKey = PROPERTIES_PREFIX + "syncrepl.client.idle";
         final String grouperTypeKey = PROPERTIES_PREFIX + "grouper.type";
         final String createGrouperTypeKey = PROPERTIES_PREFIX + "grouper.create.type";
-        final String resetOnStartupKey = PROPERTIES_PREFIX + "reset.on.startup";
+        final String resetOnStartupKey = PROPERTIES_PREFIX + "grouper.reset.on.startup";
         final String grouperDefKey = PROPERTIES_PREFIX + "grouper.definiton.field";
         final String grouperUserKey = PROPERTIES_PREFIX + "grouper.user";
         final String removeFromAllGroupsKey = PROPERTIES_PREFIX + "grouper.remove.from.all.groups";

@@ -22,11 +22,4 @@ public interface ISyncReplTriggeredAction extends Serializable {
      * @param entry The entry associated to the triggered action.
      */
     void trigger(final LDAPEntry entry);
-    
-    /**
-     * Tests if the action is initialized.
-     * @return True if the action is initialized
-     */
-    boolean isInitialized();
-    
 }

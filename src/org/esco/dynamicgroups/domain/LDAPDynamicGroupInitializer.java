@@ -79,7 +79,7 @@ public class LDAPDynamicGroupInitializer implements IDynamicGroupInitializer, In
 
     /** The name of the uid attribute. */
     private String uidAttribute;
-
+    
     /**
      * Builds an instance of LDAPDynamicGroupInitializer.
      */
@@ -248,5 +248,5 @@ public class LDAPDynamicGroupInitializer implements IDynamicGroupInitializer, In
         this.groupsService = groupsService;
     }
 
-
+  
 }

@@ -15,5 +15,16 @@ public interface IRepositoryListener {
      * Launches the listener.
      */
     void listen();
+    
+    /**
+     * Stop listening.
+     */
+    void stop();
+    
+    /**
+     * Checks that the listener is active.
+     * @return True if the listener is active.
+     */
+    boolean isListening();
 
 }

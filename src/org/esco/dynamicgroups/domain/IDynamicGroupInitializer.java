@@ -19,4 +19,5 @@ public interface IDynamicGroupInitializer {
      * @param definition The dfinition associated to the group to initialize.
      */
     void initialize(final DynamicGroupDefinition definition);
+ 
 }
