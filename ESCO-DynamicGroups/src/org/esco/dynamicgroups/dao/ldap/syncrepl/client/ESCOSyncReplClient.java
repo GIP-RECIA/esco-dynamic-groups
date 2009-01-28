@@ -41,19 +41,19 @@ public class ESCOSyncReplClient implements InitializingBean {
     private static final String MARK_SUFFIX = " ---";
 
     /** Logger. */
-    private static final Logger LOGGER = Logger.getLogger(ESCOSyncReplClient.class);
+    private  Logger logger = Logger.getLogger(ESCOSyncReplClient.class);
 
     /** Messages handler. */
     private ISyncReplMessagesHandler messagesHandler;
 
     /** Counter for the idle loops. */
     private int idleCount;
-
-    /** initialization flag. */
-    private boolean initialized;
     
-    /** Flag used to stop the lestener. */
-    private boolean stopped;
+    /** Running flag. */
+    private boolean running;
+    
+    /** Flag for a stop request. */
+    private boolean stopRequest;
 
 
 
@@ -74,8 +74,6 @@ public class ESCOSyncReplClient implements InitializingBean {
         Assert.notNull(this.messagesHandler, 
                 "The property messagesHandler in the class " + this.getClass().getName() 
                 + " can't be null.");
-        setInitialized(true);
-
     }
 
 
@@ -106,11 +104,10 @@ public class ESCOSyncReplClient implements InitializingBean {
      * @throws IOException 
      */
     public void launch() throws IOException {
-        while (!isInitialized()) {
-            sleepSafe(REFRESH_STAGE_IDLE);
-        }
-        LOGGER.info("Starting the SyncRepl Client.");
-        setStopped(false);
+       
+        logger.info("Starting the SyncRepl Client.");
+        setRunning(true);
+        setStopRequest(false);
         
         final ESCODynamicGroupsParameters parameters = ESCODynamicGroupsParameters.instance();
 
@@ -149,10 +146,10 @@ public class ESCOSyncReplClient implements InitializingBean {
                     null, 
                     constraints);
 
-            LOGGER.info("SyncRepl Client connected.");
+            logger.info("SyncRepl Client connected.");
 
         } catch (LDAPException e) {
-            LOGGER.error(e, e);
+            logger.error(e, e);
 
             try { 
                 lc.disconnect(); 
@@ -166,7 +163,7 @@ public class ESCOSyncReplClient implements InitializingBean {
 
         if (queue != null) {
             int contextualIdle = REFRESH_STAGE_IDLE;
-            while (!isStopped()) {
+            while (!isStopRequest()) {
                 if (!queue.isResponseReceived()) {
                     sleepSafe(contextualIdle);
                     idleCount++;
@@ -186,13 +183,15 @@ public class ESCOSyncReplClient implements InitializingBean {
 
         //disconnect from the server before exiting
         try {
-            LOGGER.info("SyncRepl Client stopped.");
+            
             lc.abandon(queue);
             lc.disconnect();
         }  catch (LDAPException e) {
-           LOGGER.error(e, e);
+           logger.error(e, e);
         }
-        System.exit(0);
+        logger.info("SyncRepl Client stopped.");
+        setRunning(false);
+        
     }
 
     /**
@@ -201,10 +200,9 @@ public class ESCOSyncReplClient implements InitializingBean {
     private void mark() {
         if (idleCount == MARK_INTERVAL) {
             idleCount = 0;
-            LOGGER.info(MARK_PREFIX + Calendar.getInstance().getTime() + MARK_SUFFIX);
+            logger.info(MARK_PREFIX + Calendar.getInstance().getTime() + MARK_SUFFIX);
         }
     }
-
 
     /**
      * Getter for messagesHandler.
@@ -223,41 +221,43 @@ public class ESCOSyncReplClient implements InitializingBean {
         this.messagesHandler = messagesHandler;
     }
 
-
     /**
-     * Getter for initialized.
-     * @return initialized.
+     * Getter for running.
+     * @return running.
      */
-    public synchronized boolean isInitialized() {
-        return initialized
-            && messagesHandler.isInitialized();
+    public synchronized boolean isRunning() {
+        return running;
     }
 
-
     /**
-     * Setter for initialized.
-     * @param initialized the new value for initialized.
+     * Request the client to stop.
      */
-    public synchronized void setInitialized(final boolean initialized) {
-        this.initialized = initialized;
+    public synchronized void requestToStop() {
+        stopRequest = true;
     }
-
-
+    
     /**
-     * Getter for stopped.
-     * @return stopped.
+     * Setter for stop request.
+     * @param stopRequest The new value for stop request.
      */
-    public synchronized boolean isStopped() {
-        return stopped;
+    protected void setStopRequest(final boolean stopRequest) {
+        this.stopRequest = stopRequest;
     }
-
-
+    
     /**
-     * Setter for stopped.
-     * @param stopped the new value for stopped.
+     * Getter for stopRequest.
+     * @return stopRequest.
      */
-    public synchronized void setStopped(final boolean stopped) {
-        this.stopped = stopped;
+    protected synchronized boolean isStopRequest() {
+        return stopRequest;
+    }
+    
+    /**
+     * Setter for running.
+     * @param running the new value for running.
+     */
+    protected synchronized void setRunning(final boolean running) {
+        this.running = running;
     }
 
 

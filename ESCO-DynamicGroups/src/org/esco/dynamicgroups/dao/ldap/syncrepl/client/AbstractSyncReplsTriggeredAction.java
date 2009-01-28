@@ -30,10 +30,7 @@ public abstract class AbstractSyncReplsTriggeredAction
     
     /** EntryDTO factory. */
     private ESCOEntryDTOFactory entryDTOFactory;
-    
-    /** Initialization flag. */
-    private boolean initialized;
-    
+        
     /**
      * Builds an instance of AbstractSyncReplsTriggeredAction.
      */
@@ -52,8 +49,6 @@ public abstract class AbstractSyncReplsTriggeredAction
         Assert.notNull(this.domainService, 
                 "The property domainService in the class " + this.getClass().getName() 
                 + " can't be null.");
-        
-        setInitialized(true);
     }
 
     /**
@@ -87,21 +82,4 @@ public abstract class AbstractSyncReplsTriggeredAction
     public void setDomainService(final IDomainService domainService) {
         this.domainService = domainService;
     }
-
-    /**
-     * Getter for initialized.
-     * @return initialized.
-     */
-    public synchronized boolean isInitialized() {
-        return initialized;
-    }
-
-    /**
-     * Setter for initialized.
-     * @param initialized the new value for initialized.
-     */
-    public synchronized void setInitialized(final boolean initialized) {
-        this.initialized = initialized;
-    }
-
 }

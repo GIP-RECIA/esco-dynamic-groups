@@ -19,7 +19,12 @@ import org.esco.dynamicgroups.domain.beans.DynGroupOccurences;
 import org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition;
 import org.esco.dynamicgroups.util.ESCODynamicGroupsParameters;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.util.Assert;
+
 
 /**
  * Implementation of the domain service for the ESCO context.
@@ -27,7 +32,7 @@ import org.springframework.util.Assert;
  * 13 janv. 2009
  *
  */
-public class ESCODomainServiceImpl implements IDomainService, InitializingBean {
+public class ESCODomainServiceImpl implements IDomainService, ApplicationListener, InitializingBean {
 
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(ESCODomainServiceImpl.class);
@@ -75,8 +80,25 @@ public class ESCODomainServiceImpl implements IDomainService, InitializingBean {
         Assert.notNull(this.repositoryListener, 
                 "The property repositoryListener in the class " + this.getClass().getName() 
                 + " can't be null.");
+    }
+    
 
-        repositoryListener.listen();
+    /**
+     * Listen for an application event.
+     * @param event The event.
+     * @see org.springframework.context.ApplicationListener#
+     * onApplicationEvent(org.springframework.context.ApplicationEvent)
+     */
+    public void onApplicationEvent(final ApplicationEvent event) {
+        if (event instanceof ContextRefreshedEvent) {
+            if (!repositoryListener.isListening()) {
+                repositoryListener.listen();
+            }
+        } else if (event instanceof ContextClosedEvent) {
+            if (repositoryListener.isListening()) {
+                repositoryListener.stop();
+            } 
+        }
     }
 
     /**
@@ -92,7 +114,7 @@ public class ESCODomainServiceImpl implements IDomainService, InitializingBean {
         final Map<String, DynGroup> retainedCandidatGroups = computeDynGroups(entry);
 
         // Updates the memberships effectively.
-        groupsService.createMemeberShips(entry.getId(), retainedCandidatGroups); 
+        groupsService.createMemeberShips(entry.getId(), retainedCandidatGroups);
     }
 
     /**
@@ -122,7 +144,6 @@ public class ESCODomainServiceImpl implements IDomainService, InitializingBean {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Request to remove from groups the deleted user: " + entry.getId());
         }
-
         getGroupsService().removeFromGroups(entry.getId());
     }
 

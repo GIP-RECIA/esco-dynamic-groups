@@ -21,6 +21,9 @@ public class SyncReplClientListenerImpl implements IRepositoryListener, Initiali
     /** The logger. */
     protected static final Logger LOGGER = Logger.getLogger(SyncReplClientListenerImpl.class);
 
+    /** Limit while waiting for the SyncRepl client to stop. */
+    private static final int NB_MAX_WAIT = 15;
+    
     /** Serial version UID.*/
     private static final long serialVersionUID = -5712448170582262878L;
 
@@ -51,6 +54,8 @@ public class SyncReplClientListenerImpl implements IRepositoryListener, Initiali
      */
     public void listen() {
 
+        LOGGER.debug("Starting the listener.");
+        
         final Thread thread = new Thread() {
 
             /**
@@ -64,13 +69,43 @@ public class SyncReplClientListenerImpl implements IRepositoryListener, Initiali
                 } catch (IOException e) {
                     LOGGER.error(e, e);
                 }
-
             }
-
         };
         thread.start();
+        
+        LOGGER.debug("Listener stopped.");
 
-
+    }
+    
+    /**
+     * Stop listening.
+     * @see org.esco.dynamicgroups.domain.IRepositoryListener#stop()
+     */
+    public void stop() {
+        LOGGER.debug("Stopping the listener.");
+        getSyncReplClient().requestToStop();
+        final int secondInMillis = 1000;
+        int count = 0;
+        
+        while (getSyncReplClient().isRunning() && count++ < NB_MAX_WAIT) {
+            LOGGER.debug(" Waitting for the listener to be stopped. ");
+            
+            try {
+                Thread.sleep(secondInMillis);
+            } catch (InterruptedException e) {
+                // Nothing to do.
+            }
+        }
+        LOGGER.debug("Listener stopped");
+    }
+    
+    /**
+     * Checks that the listener is active.
+     * @return True if the listener is active.
+     * @see org.esco.dynamicgroups.domain.IRepositoryListener#isListening()
+     */
+    public boolean isListening() {
+        return getSyncReplClient().isRunning();
     }
 
     /**

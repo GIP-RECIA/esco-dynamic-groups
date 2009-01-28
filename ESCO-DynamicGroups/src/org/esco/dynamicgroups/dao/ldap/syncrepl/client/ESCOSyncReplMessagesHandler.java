@@ -39,10 +39,7 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
     
     /** The string representation of the message handler. */
     private String stringRepresentation;
-    
-    /** Initialization flag. */
-    private boolean initialized;
-    
+  
     /**
      * Constructor for ESCOSyncReplMessagesHandler.
      */
@@ -73,7 +70,6 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
                 "The property presentAction in the class " + this.getClass().getName() 
                 + " can't be null.");
         
-        setInitialized(true);
     }
     
     /**
@@ -226,30 +222,4 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
     public void setPresentAction(final ISyncReplTriggeredAction presentAction) {
         this.presentAction = presentAction;
     }
-
-    
-    /**
-     * Tests if the handler is initialized.
-     * @return True if the handler is initialized.
-     * @see org.esco.dynamicgroups.dao.ldap.syncrepl.client.ISyncReplMessagesHandler#isInitialized()
-     */
-    public synchronized boolean isInitialized() {
-        if (!initialized) {
-            return false;
-        }
-        return addAction.isInitialized() 
-            && deleteAction.isInitialized() 
-            && modifyAction.isInitialized()
-            && presentAction.isInitialized();
-    }
-
-    /**
-     * Setter for initialized.
-     * @param initialized the new value for initialized.
-     */
-    public synchronized void setInitialized(final boolean initialized) {
-        this.initialized = initialized;
-    }
-
-    
 }
