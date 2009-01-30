@@ -5,7 +5,6 @@ package org.esco.dynamicgroups.dao.ldap.syncrepl.client;
 
 
 
-import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPEntry;
 import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.IEntryDTO;
@@ -55,12 +54,20 @@ public class DeleteSyncReplTriggeredAction extends AbstractSyncReplsTriggeredAct
      * @see org.esco.dynamicgroups.dao.ldap.syncrepl.client.ISyncReplTriggeredAction#trigger(com.novell.ldap.LDAPEntry)
      */
     public void trigger(final LDAPEntry ldapEntry) {
-        final LDAPAttribute id = ldapEntry.getAttribute(getIdAttribute());
+       
+        final IEntryDTO entry = getEntryDTOFactory().createEntryDTO(ldapEntry);
+        
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Delete action - id of the entry:" + id);
+            
+            if (entry == null) {
+                LOGGER.trace("Delete action - id of the entry cannot be retrieved.");    
+            } else {
+                LOGGER.trace("Delete action - id of the entry:" + entry.getId());
+            }
+            
         }
-        if (id != null) {
-            final IEntryDTO entry = getEntryDTOFactory().createEntryDTO(ldapEntry);
+        if (entry != null) {
+            
             LOGGER.debug(entry);
             getDomainService().removeDeletedUserFromGroups(entry);
         }

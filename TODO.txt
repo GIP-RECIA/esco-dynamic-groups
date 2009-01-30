@@ -1,0 +1,1 @@
+Supprimer l'uid de la liste des attributs dynamiques.

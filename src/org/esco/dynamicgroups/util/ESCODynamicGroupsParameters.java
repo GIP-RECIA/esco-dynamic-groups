@@ -72,34 +72,42 @@ public class ESCODynamicGroupsParameters implements Serializable {
 
     /** Idle duration for the SyncRepl client. */
     private int syncreplClientIdle;
-    
+
+    /** The id of the subject source. */
+    private String grouperSubjectsSourceId;
+
     /** The type in grouper associated to the dynamic groups. */
     private String grouperType;
-    
+
     /** Flag to determine if the dynamic grouper type should be created
      * if it does not exist. */
     private boolean createGrouperType;
-    
+
     /** Flag to determine if the dynamic groups should be reseted. */
     private boolean resetOnStartup;
-    
+
     /** The field used in grouper to define the members. */
     private String grouperDefinitionField;
-    
+
+
     /** The Grouper user used to open the Grouper sessions. */
     private String grouperUser;
-    
+
     /** Flag used to detemine if a deleted user should be removed from
      * all the groups or only from the dynamic ones.*/
     private boolean removeFromAllGroups;
-   
+
     /**
      * Constructor for ESCODynamicGroupsParameters.
      */
     private ESCODynamicGroupsParameters() {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Loading ESCODynamicGroupsParameters from file " + ESCO_DG_PARAMETERS_FILE);
-            initialize();
+        }
+        
+        initialize();
+        
+        if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Loaded values: " + this);
         }
     }
@@ -151,6 +159,7 @@ public class ESCODynamicGroupsParameters implements Serializable {
         final String ldapUidAttributeKey = PROPERTIES_PREFIX + "ldap.uid.attribute";
         final String synreplClientIDLEKey = PROPERTIES_PREFIX + "syncrepl.client.idle";
         final String grouperTypeKey = PROPERTIES_PREFIX + "grouper.type";
+        final String grouperSubjSourceKey = PROPERTIES_PREFIX + "grouper.subjects.source";
         final String createGrouperTypeKey = PROPERTIES_PREFIX + "grouper.create.type";
         final String resetOnStartupKey = PROPERTIES_PREFIX + "grouper.reset.on.startup";
         final String grouperDefKey = PROPERTIES_PREFIX + "grouper.definiton.field";
@@ -168,13 +177,14 @@ public class ESCODynamicGroupsParameters implements Serializable {
         setLdapSearchAttributesFromArray(parseStringArrayFromProperty(params, ldapSearchAttributesKey));
         setLdapUidAttribute(parseStringFromProperty(params, ldapUidAttributeKey));
         setSyncreplClientIdle(parseIntegerFromProperty(params, synreplClientIDLEKey) * MILLIS_TO_SECONDS_FACTOR);
+        setGrouperSubjectsSourceId(parseStringFromProperty(params, grouperSubjSourceKey));
         setGrouperType(parseStringFromProperty(params, grouperTypeKey));
         setCreateGrouperType(parseBooleanFromProperty(params, createGrouperTypeKey)); 
         setResetOnStartup(parseBooleanFromProperty(params, resetOnStartupKey)); 
         setGrouperDefinitionField(parseStringFromProperty(params, grouperDefKey));
         setGrouperUser(parseStringFromProperty(params, grouperUserKey));
         setRemoveFromAllGroups(parseBooleanFromProperty(params, removeFromAllGroupsKey)); 
-        
+
         // Adds the LDAP id attributes in the search attributes.
         ldapSearchAttributes.add(ldapUidAttribute);
     }
@@ -188,7 +198,7 @@ public class ESCODynamicGroupsParameters implements Serializable {
     private Boolean parseBooleanFromProperty(final Properties properties, final String key) {
         return PropertyParser.instance().parseBooleanFromProperty(LOGGER, ESCO_DG_PARAMETERS_FILE, properties, key);
     }
-    
+
     /**
      * Retrieves the integer value from a properties instance for a given key.
      * @param properties The properties instance.
@@ -257,24 +267,27 @@ public class ESCODynamicGroupsParameters implements Serializable {
         sb.append("; SyncRepl Client idle: ");
         sb.append(getSyncreplClientIdle());
 
+        sb.append("; Grouper Subjects source: ");
+        sb.append(getGrouperSubjectsSourceId());
+
         sb.append("; Grouper Type: ");
         sb.append(getGrouperType());
 
         sb.append("; Grouper definition field: ");
         sb.append(getGrouperDefinitionField());
-        
+
         sb.append("; Create grouper type (if not present): ");
         sb.append(getCreateGrouperType());
-        
+
         sb.append("; Reset dynamic groups on startup: ");
         sb.append(getResetOnStartup());
-        
+
         sb.append("; Grouper user: ");
         sb.append(getGrouperUser());
-        
+
         sb.append("; remove from all groups: ");
         sb.append(getRemoveFromAllGroups());
-        
+
         sb.append("}");
         return sb.toString();
     }
@@ -474,7 +487,7 @@ public class ESCODynamicGroupsParameters implements Serializable {
         this.parametersProperties = parametersProperties;
     }
 
-       /**
+    /**
      * Getter for grouperType.
      * @return grouperType.
      */
@@ -568,5 +581,21 @@ public class ESCODynamicGroupsParameters implements Serializable {
      */
     public void setResetOnStartup(final boolean resetOnStartup) {
         this.resetOnStartup = resetOnStartup;
+    }
+
+    /**
+     * Getter for grouperSubjectsSourceId.
+     * @return grouperSubjectsSourceId.
+     */
+    public String getGrouperSubjectsSourceId() {
+        return grouperSubjectsSourceId;
+    }
+
+    /**
+     * Setter for grouperSubjectsSourceId.
+     * @param grouperSubjectsSourceId the new value for grouperSubjectsSourceId.
+     */
+    public void setGrouperSubjectsSourceId(final String grouperSubjectsSourceId) {
+        this.grouperSubjectsSourceId = grouperSubjectsSourceId;
     }
 }

@@ -88,7 +88,7 @@ public class SyncReplClientListenerImpl implements IRepositoryListener, Initiali
         int count = 0;
         
         while (getSyncReplClient().isRunning() && count++ < NB_MAX_WAIT) {
-            LOGGER.debug(" Waitting for the listener to be stopped. ");
+            LOGGER.debug(" Waitting for the listener to be stopped " + count + "/" + NB_MAX_WAIT + ".");
             
             try {
                 Thread.sleep(secondInMillis);

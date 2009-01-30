@@ -3,7 +3,6 @@ package org.esco.dynamicgroups.domain.definition;
 import java.util.List;
 import java.util.Set;
 
-import org.esco.dynamicgroups.domain.LDAPDynamicGroupInitializer;
 import org.esco.dynamicgroups.domain.beans.DynGroup;
 
 /**
@@ -61,9 +60,11 @@ public class TestBatch {
         
         IProposition ldapProp = new Conjunction(new AtomicProposition("objectClass", "ENTAuxEnseignant", false), 
                 new AtomicProposition("ENTPersonSexe", "M", false));
-        System.out.println("=>" + ldapProp); // And(objectClass=ENTAuxEnseignant, ENTPersonSexe=M)
+        System.out.println("=>" + ldapProp); 
+        // And(objectClass=ENTAuxEnseignant, ENTPersonSexe=M)
 
-        IProposition prop = PropositionCodec.instance().decode("And (Or(objectClass =ENTAuxEnseignant, ENTPersonSexe=M), (ENTPersonSexe=F))");
+        IProposition prop = PropositionCodec.instance()
+            .decode("And (Or(objectClass =ENTAuxEnseignant, ENTPersonSexe=M), (ENTPersonSexe=F))");
         System.out.println("=>" + prop);
         System.out.println("==>" + prop.toDisjunctiveNormalForm());
         

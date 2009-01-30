@@ -3,13 +3,9 @@ package org.esco.dynamicgroups;
 import edu.internet2.middleware.grouper.GroupModifyException;
 import edu.internet2.middleware.grouper.InsufficientPrivilegeException;
 
-import java.util.Set;
 
 import org.esco.dynamicgroups.dao.db.IDBDAOService;
-import org.esco.dynamicgroups.domain.beans.AttributeValue;
-import org.esco.dynamicgroups.domain.beans.DynAttribute;
 import org.esco.dynamicgroups.domain.beans.DynGroup;
-import org.esco.dynamicgroups.domain.beans.GroupAttributeValueAssoc;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;

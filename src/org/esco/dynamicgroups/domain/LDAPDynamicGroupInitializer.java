@@ -183,6 +183,13 @@ public class LDAPDynamicGroupInitializer implements IDynamicGroupInitializer, In
                 sb.append(EQUAL);
                 sb.append(atom.getValue());
                 sb.append(CLOSE_BRACKET);
+                
+                if (atom.isNegative()) {
+                    sb.insert(0, NOT);
+                    sb.insert(0, OPEN_BRACKET);
+                    sb.append(CLOSE_BRACKET);
+                }
+                
             } else {
                 sb.append(OPEN_BRACKET);
                 sb.append(AND);

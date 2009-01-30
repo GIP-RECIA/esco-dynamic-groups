@@ -37,6 +37,8 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(ESCODomainServiceImpl.class);
 
+    private static final String[] UNDEF_VALUE = {"___UNDEF_VALUE_DYNGRP___"}; 
+
     /** The dynamic attributes. */
     private String[] dynamicAttributes;
 
@@ -48,6 +50,8 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
 
     /** Listener for the repository. */
     private IRepositoryListener repositoryListener;
+
+
 
 
 
@@ -81,7 +85,7 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
                 "The property repositoryListener in the class " + this.getClass().getName() 
                 + " can't be null.");
     }
-    
+
 
     /**
      * Listen for an application event.
@@ -160,24 +164,24 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
         // If the attribute is a and the value is v, a candidat group is a group 
         // wich uses a=v in its definition.
         for (String attributeName : dynamicAttributes) {
-            final String[] attributeValues = entry.getAttributeValues(attributeName);
-            if (attributeValues != null) {
-                for (String attributeValue : attributeValues) {
+            String[] attributeValues = entry.getAttributeValues(attributeName);
+            if (attributeValues == null) {
+                attributeValues = UNDEF_VALUE;
+            }
 
-                    final Set<DynGroup> candidatGroupsForAtt = 
-                        daoService.getGroupsForAttributeValue(attributeName, attributeValue);
+            final Set<DynGroup> candidatGroupsForAtt = 
+                daoService.getGroupsForAttributeValues(attributeName, attributeValues);
 
-                    for (DynGroup candidatGroupForAtt : candidatGroupsForAtt) {
+            for (DynGroup candidatGroupForAtt : candidatGroupsForAtt) {
 
-                        if (!candidatGroups.containsKey(candidatGroupForAtt.getGroupName())) {
-                            candidatGroups.put(candidatGroupForAtt.getGroupName(), 
-                                    new DynGroupOccurences(candidatGroupForAtt));
-                        }
-                        candidatGroups.get(candidatGroupForAtt.getGroupName()).incrementOccurences();
-                    }
+                if (!candidatGroups.containsKey(candidatGroupForAtt.getGroupName())) {
+                    candidatGroups.put(candidatGroupForAtt.getGroupName(), 
+                            new DynGroupOccurences(candidatGroupForAtt));
                 }
+                candidatGroups.get(candidatGroupForAtt.getGroupName()).incrementOccurences();
             }
         }
+
 
         // The retained groups are those which the number of occurences is equal to
         // the number of attributes used in their definition (the group definition are in a conjonctive form).
@@ -187,7 +191,7 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
 
         for (String candidatGroup : candidatGroups.keySet()) {
             final DynGroupOccurences dynGroupOcc = candidatGroups.get(candidatGroup);
-            if (dynGroupOcc.getOcurrences() == dynGroupOcc.getGroup().getAttributesNb()) {
+            if (dynGroupOcc.getOcurrences() >= dynGroupOcc.getGroup().getAttributesNb()) {
 
                 if (dynGroupOcc.getGroup().isConjunctiveComponentIndirection()) {
                     // The group is only a conjunctive component of another group
@@ -264,7 +268,7 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
     public void handleNewOrModifiedDynamicGroup(final DynamicGroupDefinition definition) {
         daoService.storeOrModifyDynGroup(definition);
         groupsService.resetGroupMembers(definition);
-        
+
     }
 
     /**

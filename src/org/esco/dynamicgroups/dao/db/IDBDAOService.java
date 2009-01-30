@@ -86,8 +86,18 @@ public interface IDBDAOService {
      * @param attributeValue The value of the attribute.
      * @return The set of groups which use the value of the attribute in their definition.
      */
-    Set<DynGroup> getGroupsForAttributeValue(final String attributeName,
-            final String attributeValue);
+//    Set<DynGroup> getGroupsForAttributeValue(final String attributeName,
+//            final String attributeValue);
+
+    /**
+     * Retrieves the groups associated to a given value of a specified attribute.
+     * @param attributeName The considered attribute.
+     * @param attributeValues The values of the attribute.
+     * @return The set of groups which use the values of the attribute in their definition 
+     * (possibly with negation).
+     */
+    Set<DynGroup> getGroupsForAttributeValues(final String attributeName,
+            final String[] attributeValues);
     
     /**
      * Retrieves the values of a given attribute for a group.
