@@ -211,7 +211,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
             final Set<Member> members = group.getImmediateMembers();
             for (Member member : members) {
                 try {
-                    group.deleteMember(member.getSubject());
+                    group.deleteMember(new ESCODeletedSubjectImpl(member.getSubjectId()));
                 } catch (InsufficientPrivilegeException e) {
                     sessionUtil.stopSession(session);
                     LOGGER.error(e, e);
@@ -220,11 +220,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
                     sessionUtil.stopSession(session);
                     LOGGER.error(e, e);
                     throw new DynamicGroupsException(e);
-                } catch (SubjectNotFoundException e) {
-                    sessionUtil.stopSession(session);
-                    LOGGER.error(e, e);
-                    throw new DynamicGroupsException(e);
-                }
+                } 
             }
 
 
@@ -255,7 +251,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
      */
     private void resetAllDynamicGroups() {
         if (ESCODynamicGroupsParameters.instance().getResetOnStartup()) {
-            LOGGER.info("Resetting all the dynamic goups.");
+            LOGGER.info("Resetting all the dynamic groups.");
             final GroupType type = retrieveType(grouperDynamicType);
             if (type != null) {
 
@@ -270,7 +266,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
      * @param stem The current stem.
      */
     private void resetDynamicGroups(final Stem stem) {
-        LOGGER.info("Resetting the dynamic goups under the stem " + stem + ".");
+        LOGGER.info("Resetting the dynamic groups under the stem " + stem + ".");
         @SuppressWarnings("unchecked")
         final Set<Group> groups = stem.getChildGroups();
 
@@ -381,7 +377,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
         try {
             group = GroupFinder.findByName(session, groupName);
         } catch (GroupNotFoundException e) {
-            LOGGER.warn("The group: " + groupName + " can be retrieved from Grouper.");
+            LOGGER.warn("The group: " + groupName + " can't be retrieved from Grouper.");
         }
         return group;
     }
@@ -436,7 +432,8 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
         final GrouperSession session = sessionUtil.createSession();
 
         try {
-            final Subject subject = SubjectFinder.findById(userId);
+            
+            final Subject subject = new ESCODeletedSubjectImpl(userId); 
 
             // Retrieves the groups the subject belongs to.
             final Set<Group> groups = new HashSet<Group>();
@@ -462,14 +459,6 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
 
             sessionUtil.stopSession(session);
 
-        } catch (SubjectNotFoundException e) {
-            sessionUtil.stopSession(session);
-            LOGGER.error(e, e);
-            throw new DynamicGroupsException(e);
-        } catch (SubjectNotUniqueException e) {
-            sessionUtil.stopSession(session);
-            LOGGER.error(e, e);
-            throw new DynamicGroupsException(e);
         } catch (MemberNotFoundException e) {
             sessionUtil.stopSession(session);
             LOGGER.error(e, e);

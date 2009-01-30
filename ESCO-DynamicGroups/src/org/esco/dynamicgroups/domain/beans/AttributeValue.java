@@ -24,6 +24,9 @@ public class AttributeValue implements Serializable {
     
     /** Value of the dynamic attribute. */
     private String attributeValue;
+    
+    /** Negative flag. */
+    private boolean negative;
 
     /**
      * Builds an instance of AttributeValue.
@@ -36,11 +39,14 @@ public class AttributeValue implements Serializable {
      * Builds an instance of DynAttribute.
      * @param attributeName The name of the attribute.
      * @param attributeValue The value of the attribute.
+     * @param negative The negation flag.
      */
     public AttributeValue(final String attributeName,
-            final String attributeValue) {
+            final String attributeValue,
+            final boolean negative) {
         this.attributeName = attributeName;
         this.attributeValue = attributeValue;
+        this.negative = negative;
     }
     
     /**
@@ -117,6 +123,22 @@ public class AttributeValue implements Serializable {
      */
     public void setAttributeName(final String attributeName) {
         this.attributeName = attributeName;
+    }
+
+    /**
+     * Getter for negative.
+     * @return negative.
+     */
+    public boolean isNegative() {
+        return negative;
+    }
+
+    /**
+     * Setter for negative.
+     * @param negative the new value for negative.
+     */
+    public void setNegative(final boolean negative) {
+        this.negative = negative;
     }
 
   

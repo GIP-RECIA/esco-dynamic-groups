@@ -52,7 +52,8 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
     /** Constant for the attribute name. */
     private static final String ATTRIBUTE_NAME = "attributeName";
 
-
+    /** Negative constant. */
+    private static final String NEGATIVE = "negative";
 
     /**
      * Builds an instance of HibernateDAOServiceImpl.
@@ -177,12 +178,17 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
                 for (AtomicProposition atom : atoms) {
                     final DynAttribute dynAtt = retrieveOrCreateDynAttribut(session, atom.getAttribute());
                     final GroupAttributeValueAssoc grpAttAssoc = 
-                        new GroupAttributeValueAssoc(dynAtt, atom.getValue(), dynGroup);
+                        new GroupAttributeValueAssoc(dynAtt, 
+                                atom.getValue().replaceAll(STD_JOCKER, SQL_JOCKER), 
+                                atom.isNegative(), 
+                                dynGroup);
+                    
                     storeGroupAttributeValueAssocInternal(session, grpAttAssoc);
-                }
+                } 
             }
         }
     }
+    
 
     /**
      * Retrieves the groups corresponding to the cunjunctive components o a group.
@@ -193,15 +199,15 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
     protected List<DynGroup> retrieveConjunctiveComponents(final Session session, 
             final DynGroup dynGroup) {
 
-        final StringBuilder queryString = new StringBuilder("from ");
+        final StringBuilder queryString = new StringBuilder(FROM);
         queryString.append(DynGroup.class.getName());
-        queryString.append(" where ");
+        queryString.append(WHERE);
         queryString.append(GROUP_NAME);
         queryString.append(" like '");
         queryString.append(DynGroup.CONJ_COMP_INDIRECTION);
         queryString.append(ESCAPE);
         queryString.append(DynGroup.OPEN_CURLY_BRACKET);
-        queryString.append(PERCENT);
+        queryString.append(SQL_JOCKER);
         queryString.append(ESCAPE);
         queryString.append(DynGroup.CLOSE_CURLY_BRACKET);
         queryString.append(dynGroup.getGroupName());
@@ -226,7 +232,7 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
         commit();
         closeSessionForThread();
     }
-    
+
     /**
      * Resolves the indirections, i.e. : the groups that correspond to a conjunctive component
      * are replaced by the original group.<br/>
@@ -243,7 +249,7 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
             LOGGER.debug("Start to retrieve the group associated to the cunjunctive components: "
                     + dynGroups);
         }
-        
+
         startTransaction();
         final Session session = openOrRetrieveSessionForThread();
         for (DynGroup dynGroup : dynGroups) {
@@ -259,10 +265,10 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
                 result.add(dynGroup);
             }
         }
-        
+
         commit();
         closeSessionForThread();
-        
+
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Resolution of the cunjunctive components: "
@@ -283,7 +289,7 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
             deleteInternal(session, association);
         }
     }
-    
+
     /**
      * Deletes a DynGroup instance.
      * @param session The session to use.
@@ -393,37 +399,166 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
     /**
      * Retrieves the groups associated to a given value of a specified attribute.
      * @param attributeName The considered attribute.
-     * @param attributeValue The value of the attribute.
-     * @return The set of groups which use the value of the attribute in their definition.
-     * @see org.esco.dynamicgroups.dao.db.IDBDAOService#getGroupsForAttributeValue(java.lang.String, java.lang.String)
+     * @param attributeValues The values of the attribute.
+     * @return The set of groups which use the values of the attribute in their definition 
+     * (possibly with negation).
+     * @see org.esco.dynamicgroups.dao.db.IDBDAOService#getGroupsForAttributeValues(String, String[])
      */
-    public Set<DynGroup> getGroupsForAttributeValue(final String attributeName, 
-            final String attributeValue) {
+    public Set<DynGroup> getGroupsForAttributeValues(final String attributeName, 
+            final String[] attributeValues) {
 
+        if (attributeValues.length == 0) {
+            return new HashSet<DynGroup>();
+        }
+        
         final Set<DynGroup> result = new HashSet<DynGroup>();
 
         startTransaction();
+        
         final Session session = openOrRetrieveSessionForThread();
-
-        final Criteria criteria = session.createCriteria(GroupAttributeValueAssoc.class);
-        criteria.setFetchMode(GROUP, FetchMode.JOIN);
-        criteria.setFetchMode(ATTRIBUTE, FetchMode.JOIN);
-        criteria.add(Restrictions.eq(ATTRIBUTE_VALUE, attributeValue));
-        criteria.createCriteria(ATTRIBUTE, ATTRIBUTE).add(Restrictions.eq(ATTRIBUTE_NAME, attributeName));
-        criteria.setCacheable(true);
+     
+        
+        final StringBuilder queryString = new StringBuilder("SELECT gva");
+        queryString.append(" ");
+        queryString.append(FROM); 
+        queryString.append(GroupAttributeValueAssoc.class.getSimpleName());
+        queryString.append(" gva ");
+        queryString.append(", ");
+        queryString.append(DynGroup.class.getSimpleName());
+        queryString.append(" dg, ");
+        queryString.append(DynAttribute.class.getSimpleName());
+        queryString.append(" da ");
+        //queryString.append(" left join fetch DynGroup.groupName");
+        //queryString.append(" left join fetch DynAttribute.attributeName");
+        queryString.append(WHERE);
+        queryString.append(" gva.attribute.attributeId = da.attributeId");
+        queryString.append(" AND da.attributeName = '" );
+        queryString.append(attributeName);
+        queryString.append("'");
+      
+        
+        
+        
+        // To handle the groups defined on the attribute values and those defined on 
+        // their negation.
+        StringBuilder noNegValueCritSb = new StringBuilder();
+        StringBuilder negValueCritSb = new StringBuilder();
+        boolean init = true;
+        for (String value : attributeValues) {
+            if (init) {
+                init = false;
+                noNegValueCritSb = new StringBuilder(" (('");
+                noNegValueCritSb.append(value);
+                noNegValueCritSb.append("' LIKE ");
+                noNegValueCritSb.append("gva.attributeValue");
+                
+                negValueCritSb = new StringBuilder(" (NOT('");
+                negValueCritSb.append(value);
+                negValueCritSb.append("' LIKE ");
+                negValueCritSb.append("gva.attributeValue");
+            } else {
+                
+                noNegValueCritSb.append(" OR '");
+                noNegValueCritSb.append(value);
+                noNegValueCritSb.append("' LIKE ");
+                noNegValueCritSb.append("gva.attributeValue");
+                
+                negValueCritSb.append(" OR '");
+                negValueCritSb.append(value);
+                negValueCritSb.append("' LIKE ");
+                negValueCritSb.append("gva.attributeValue");
+            }
+        }
+        
+        noNegValueCritSb.append(") AND ");
+        noNegValueCritSb.append("gva.negative");
+        noNegValueCritSb.append("=FALSE)");
+        
+        negValueCritSb.append(") AND ");
+        negValueCritSb.append("gva.negative");
+        negValueCritSb.append("=TRUE)");
+      
+        queryString.append(" AND (");
+        queryString.append(noNegValueCritSb.toString());
+        queryString.append(" OR ");
+        queryString.append(negValueCritSb.toString());
+        queryString.append(") ");
+        
 
         // Retieves the associations.
-        @SuppressWarnings("unchecked")
-        List<GroupAttributeValueAssoc> associations =  criteria.list();
+        final Query query = session.createQuery(queryString.toString());
+        query.setCacheable(true);
+        
+                @SuppressWarnings("unchecked")
+        List<GroupAttributeValueAssoc> associations =  query.list();
 
-        closeSessionForThread();
 
         // Retrieves the groups.
         for (GroupAttributeValueAssoc association : associations) {
             result.add(association.getGroup());
-
         }
-
+        closeSessionForThread();
+        return result;
+    }
+    
+    /**
+     * Retrieves the groups associated to a given value of a specified attribute.
+     * @param attributeName The considered attribute.
+     * @param attributeValues The values of the attribute.
+     * @return The set of groups which use the values of the attribute in their definition 
+     * (possibly with negation).
+     * @see org.esco.dynamicgroups.dao.db.IDBDAOService#getGroupsForAttributeValues(String, String[])
+     */
+    public Set<DynGroup> getGroupsForAttributeValues_(final String attributeName, 
+            final String[] attributeValues) {
+        
+        final Set<DynGroup> result = new HashSet<DynGroup>();
+        
+        startTransaction();
+        final Session session = openOrRetrieveSessionForThread();
+        
+        final Criteria criteria = session.createCriteria(GroupAttributeValueAssoc.class);
+        criteria.setFetchMode(GROUP, FetchMode.JOIN);
+        criteria.setFetchMode(ATTRIBUTE, FetchMode.JOIN);
+        
+        // To handle the groups defined on the attribute values and those defined on 
+        // their negation.
+        Criterion noNegValueCrit = null;
+        Criterion negValueCrit = null;
+        for (String value : attributeValues) {
+            if (noNegValueCrit == null) {
+                
+                noNegValueCrit = Restrictions.and(Restrictions.like(value, ATTRIBUTE_VALUE), 
+                        Restrictions.eq(NEGATIVE, false));
+                negValueCrit = Restrictions.and(Restrictions.not(Restrictions.like(value, ATTRIBUTE_VALUE)), 
+                        Restrictions.eq(NEGATIVE, true));
+            } else {
+                noNegValueCrit = Restrictions.and(Restrictions.like(value, ATTRIBUTE_VALUE), noNegValueCrit);
+                negValueCrit = Restrictions.and(Restrictions.not(Restrictions.like(value, ATTRIBUTE_VALUE)), 
+                        negValueCrit);
+            }
+            
+        }
+        criteria.add(Restrictions.or(noNegValueCrit, negValueCrit));
+        
+        
+        criteria.createCriteria(ATTRIBUTE, ATTRIBUTE).add(Restrictions.eq(ATTRIBUTE_NAME, attributeName));
+        criteria.setCacheable(true);
+        
+        
+        
+        // Retieves the associations.
+        @SuppressWarnings("unchecked")
+        List<GroupAttributeValueAssoc> associations =  criteria.list();
+        
+        closeSessionForThread();
+        
+        // Retrieves the groups.
+        for (GroupAttributeValueAssoc association : associations) {
+            result.add(association.getGroup());
+            
+        }
+        
         return result;
     }
 
@@ -453,7 +588,7 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
         // Retrieves the attributes.
         for (GroupAttributeValueAssoc association : associations) {
             result.add(new AttributeValue(association.getAttribute().getAttributeName(), 
-                    association.getAttributeValue()));
+                    association.getAttributeValue(), association.isNegative()));
         }
 
         return result;
@@ -491,7 +626,6 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
         criteria.createCriteria(GROUP, GROUP).add(groupConj);
         criteria.createCriteria(ATTRIBUTE, ATTRIBUTE).add(Restrictions.eq(ATTRIBUTE_NAME, attributeName));
         criteria.setCacheable(true);
-
 
         @SuppressWarnings("unchecked")
         final List<GroupAttributeValueAssoc> associations =  criteria.list();
@@ -552,7 +686,7 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
         @SuppressWarnings("unchecked")
         final List<GroupAttributeValueAssoc> associations =  criteria.list();
         result.addAll(associations);
-     
+
         return result;
     }
 }

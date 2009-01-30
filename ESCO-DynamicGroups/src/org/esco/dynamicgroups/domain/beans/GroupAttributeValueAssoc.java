@@ -17,17 +17,19 @@ public class GroupAttributeValueAssoc implements Serializable {
     
     /** Id of the association. */
     private long attributeValueId;
-    
-       
+           
     /** Value of the attribute. */
     private String attributeValue;
     
     /** The attribute in the association. */ 
     private DynAttribute attribute;
     
+    /** Negative flag. */
+    private boolean negative;
+    
     /** The group in the association. */
     private DynGroup group;
-    
+   
     /**
      * Builds an instance of GroupAttributeValueAssoc.
      */
@@ -39,14 +41,17 @@ public class GroupAttributeValueAssoc implements Serializable {
      * Builds an instance of GroupAttributeValueAssoc.
      * @param attribute The dynamic attribute.
      * @param attributeValue The value of the attribute.
+     * @param negative Negative flag.
      * @param group The group.
      */
     public GroupAttributeValueAssoc(final DynAttribute attribute,
             final String attributeValue,
+            final boolean negative,
             final DynGroup group) {
         this.attribute = attribute;
         this.group = group;
         this.attributeValue = attributeValue;
+        this.negative = negative;
     }
     
     /**
@@ -111,6 +116,22 @@ public class GroupAttributeValueAssoc implements Serializable {
      */
     public void setGroup(final DynGroup group) {
         this.group = group;
+    }
+
+    /**
+     * Getter for negative.
+     * @return negative.
+     */
+    public boolean isNegative() {
+        return negative;
+    }
+
+    /**
+     * Setter for negative.
+     * @param negative the new value for negative.
+     */
+    public void setNegative(final boolean negative) {
+        this.negative = negative;
     }
 
     

@@ -17,9 +17,19 @@ import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
  *
  */
 public class AbstractHibernateDAOSupport  extends HibernateDaoSupport {
-    /** Constant for %.*/
-    protected static final String PERCENT = "%";
     
+    /** General  jocker constant. */
+    protected static final String STD_JOCKER = "*";
+
+    /** SQL Jocker constant. */
+    protected static final String SQL_JOCKER = "%";
+    
+    /** From constant. */
+    protected static final String FROM = "from ";
+
+    /** Where constant. */
+    protected static final String WHERE = " where ";
+
     /** Escape sequence. */
     protected static final String ESCAPE = "\\";
     

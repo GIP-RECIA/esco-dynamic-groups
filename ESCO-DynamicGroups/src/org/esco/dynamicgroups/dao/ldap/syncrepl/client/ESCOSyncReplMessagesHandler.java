@@ -95,8 +95,8 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
      * #processLDAPMessage(com.novell.ldap.LDAPMessage)
      */
     public void processLDAPMessage(final LDAPMessage message) {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.trace("Handling the message: " + message);
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Handling the message tag: " + message.getTag());
         }
         if (message instanceof LDAPSearchResult) {
             handleLDAPSearchResult((LDAPSearchResult) message);
