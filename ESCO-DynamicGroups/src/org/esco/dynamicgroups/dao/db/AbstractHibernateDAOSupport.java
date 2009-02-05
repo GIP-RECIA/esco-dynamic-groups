@@ -19,7 +19,7 @@ import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
 public class AbstractHibernateDAOSupport  extends HibernateDaoSupport {
     
     /** General  jocker constant. */
-    protected static final String STD_JOCKER = "*";
+    protected static final String STD_JOCKER = "\\*";
 
     /** SQL Jocker constant. */
     protected static final String SQL_JOCKER = "%";

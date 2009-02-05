@@ -65,17 +65,15 @@ public class SyncRequestControl extends LDAPControl {
      * 
      * Constructor for SyncRequestControl.
      * @param newMode The synchronization mode.
-     * @param newCookie The cookie.
      * @param newReloadHint The flag.
      * @throws IOException
      */
     public SyncRequestControl(final int newMode, 
-            final byte[] newCookie, 
             final boolean newReloadHint) throws IOException {
 
         super(OID, true, null);
         this.mode = newMode;
-        this.cookie = newCookie;
+        this.cookie = CookieManager.instance().getCurrentCookie();
         this.reloadHint = newReloadHint;
 
         // Builds the BER encoded value.

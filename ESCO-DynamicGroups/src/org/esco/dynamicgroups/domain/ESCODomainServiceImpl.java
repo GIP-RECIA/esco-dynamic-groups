@@ -37,6 +37,7 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(ESCODomainServiceImpl.class);
 
+    /** Value of an undefined attribute. */
     private static final String[] UNDEF_VALUE = {"___UNDEF_VALUE_DYNGRP___"}; 
 
     /** The dynamic attributes. */
@@ -50,10 +51,6 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
 
     /** Listener for the repository. */
     private IRepositoryListener repositoryListener;
-
-
-
-
 
     /**
      * Builds an instance of ESCODomainServiceImpl.

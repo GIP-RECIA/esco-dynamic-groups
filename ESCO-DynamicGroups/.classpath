@@ -6,7 +6,7 @@
 	<classpathentry kind="lib" path="lib/aspectwerkz-2.0.RC3.jar"/>
 	<classpathentry kind="lib" path="lib/aspectwerkz-core-2.0.RC3.jar"/>
 	<classpathentry kind="lib" path="lib/grouper.jar" sourcepath="/grouper-1.2.1"/>
-	<classpathentry kind="lib" path="lib/ldap.jar"/>
+	<classpathentry kind="lib" path="lib/ldap.jar" sourcepath="/jldap"/>
 	<classpathentry kind="lib" path="lib/subject-0.3.0-rc1-cvs.jar" sourcepath="/subject"/>
 	<classpathentry kind="lib" path="lib/commons-collections-3.1.jar"/>
 	<classpathentry kind="lib" path="lib/dom4j-1.6.1.jar"/>
