@@ -7,6 +7,8 @@ import com.novell.ldap.LDAPMessage;
 import com.novell.ldap.LDAPSearchResult;
 
 import org.apache.log4j.Logger;
+import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.CookieManager;
+import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncInfoMessage;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncStateControl;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
@@ -100,6 +102,8 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
         }
         if (message instanceof LDAPSearchResult) {
             handleLDAPSearchResult((LDAPSearchResult) message);
+        } else if (message instanceof SyncInfoMessage) {
+            CookieManager.instance().updateCurrentCookie(((SyncInfoMessage) message).getCookie());
         }
     }
     
@@ -112,6 +116,7 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
         
         if (control != null) {
             LOGGER.trace("A SyncStateControl is present in the message.");
+            CookieManager.instance().updateCurrentCookie(control.getCookie());
             final LDAPEntry entry = searchResultMessage.getEntry();
             if (control.isAdd()) {
                 addAction.trigger(entry);
@@ -175,22 +180,7 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
         return presentAction;
     }
 
-    /**
-     * Getter for stringRepresentation.
-     * @return stringRepresentation.
-     */
-    public String getStringRepresentation() {
-        return stringRepresentation;
-    }
-
-    /**
-     * Setter for stringRepresentation.
-     * @param stringRepresentation the new value for stringRepresentation.
-     */
-    public void setStringRepresentation(final String stringRepresentation) {
-        this.stringRepresentation = stringRepresentation;
-    }
-
+    
     /**
      * Setter for addAction.
      * @param addAction the new value for addAction.

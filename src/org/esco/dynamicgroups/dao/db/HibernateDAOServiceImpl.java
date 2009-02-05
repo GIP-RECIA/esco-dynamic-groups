@@ -428,8 +428,6 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
         queryString.append(" dg, ");
         queryString.append(DynAttribute.class.getSimpleName());
         queryString.append(" da ");
-        //queryString.append(" left join fetch DynGroup.groupName");
-        //queryString.append(" left join fetch DynAttribute.attributeName");
         queryString.append(WHERE);
         queryString.append(" gva.attribute.attributeId = da.attributeId");
         queryString.append(" AND da.attributeName = '" );
@@ -437,34 +435,33 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
         queryString.append("'");
       
         
-        
-        
         // To handle the groups defined on the attribute values and those defined on 
         // their negation.
         StringBuilder noNegValueCritSb = new StringBuilder();
         StringBuilder negValueCritSb = new StringBuilder();
         boolean init = true;
         for (String value : attributeValues) {
+            final String escValue = value.replaceAll("'", "");
             if (init) {
                 init = false;
                 noNegValueCritSb = new StringBuilder(" (('");
-                noNegValueCritSb.append(value);
+                noNegValueCritSb.append(escValue);
                 noNegValueCritSb.append("' LIKE ");
                 noNegValueCritSb.append("gva.attributeValue");
                 
                 negValueCritSb = new StringBuilder(" (NOT('");
-                negValueCritSb.append(value);
+                negValueCritSb.append(escValue);
                 negValueCritSb.append("' LIKE ");
                 negValueCritSb.append("gva.attributeValue");
             } else {
                 
                 noNegValueCritSb.append(" OR '");
-                noNegValueCritSb.append(value);
+                noNegValueCritSb.append(escValue);
                 noNegValueCritSb.append("' LIKE ");
                 noNegValueCritSb.append("gva.attributeValue");
                 
                 negValueCritSb.append(" OR '");
-                negValueCritSb.append(value);
+                negValueCritSb.append(escValue);
                 negValueCritSb.append("' LIKE ");
                 negValueCritSb.append("gva.attributeValue");
             }
@@ -489,8 +486,8 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
         final Query query = session.createQuery(queryString.toString());
         query.setCacheable(true);
         
-                @SuppressWarnings("unchecked")
-        List<GroupAttributeValueAssoc> associations =  query.list();
+        @SuppressWarnings("unchecked")
+        final List<GroupAttributeValueAssoc> associations =  query.list();
 
 
         // Retrieves the groups.
@@ -501,67 +498,6 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
         return result;
     }
     
-    /**
-     * Retrieves the groups associated to a given value of a specified attribute.
-     * @param attributeName The considered attribute.
-     * @param attributeValues The values of the attribute.
-     * @return The set of groups which use the values of the attribute in their definition 
-     * (possibly with negation).
-     * @see org.esco.dynamicgroups.dao.db.IDBDAOService#getGroupsForAttributeValues(String, String[])
-     */
-    public Set<DynGroup> getGroupsForAttributeValues_(final String attributeName, 
-            final String[] attributeValues) {
-        
-        final Set<DynGroup> result = new HashSet<DynGroup>();
-        
-        startTransaction();
-        final Session session = openOrRetrieveSessionForThread();
-        
-        final Criteria criteria = session.createCriteria(GroupAttributeValueAssoc.class);
-        criteria.setFetchMode(GROUP, FetchMode.JOIN);
-        criteria.setFetchMode(ATTRIBUTE, FetchMode.JOIN);
-        
-        // To handle the groups defined on the attribute values and those defined on 
-        // their negation.
-        Criterion noNegValueCrit = null;
-        Criterion negValueCrit = null;
-        for (String value : attributeValues) {
-            if (noNegValueCrit == null) {
-                
-                noNegValueCrit = Restrictions.and(Restrictions.like(value, ATTRIBUTE_VALUE), 
-                        Restrictions.eq(NEGATIVE, false));
-                negValueCrit = Restrictions.and(Restrictions.not(Restrictions.like(value, ATTRIBUTE_VALUE)), 
-                        Restrictions.eq(NEGATIVE, true));
-            } else {
-                noNegValueCrit = Restrictions.and(Restrictions.like(value, ATTRIBUTE_VALUE), noNegValueCrit);
-                negValueCrit = Restrictions.and(Restrictions.not(Restrictions.like(value, ATTRIBUTE_VALUE)), 
-                        negValueCrit);
-            }
-            
-        }
-        criteria.add(Restrictions.or(noNegValueCrit, negValueCrit));
-        
-        
-        criteria.createCriteria(ATTRIBUTE, ATTRIBUTE).add(Restrictions.eq(ATTRIBUTE_NAME, attributeName));
-        criteria.setCacheable(true);
-        
-        
-        
-        // Retieves the associations.
-        @SuppressWarnings("unchecked")
-        List<GroupAttributeValueAssoc> associations =  criteria.list();
-        
-        closeSessionForThread();
-        
-        // Retrieves the groups.
-        for (GroupAttributeValueAssoc association : associations) {
-            result.add(association.getGroup());
-            
-        }
-        
-        return result;
-    }
-
     /**
      * Retrieves the list of attributes values involved in a group definition.
      * @param groupName The of the considered group.

@@ -76,4 +76,20 @@ public class SyncDoneControl extends LDAPControl {
 	    }
 	    return stringRepresentation;
 	}
+
+    /**
+     * Getter for cookie.
+     * @return cookie.
+     */
+    public final byte[] getCookie() {
+        return cookie;
+    }
+
+    /**
+     * Setter for cookie.
+     * @param cookie the new value for cookie.
+     */
+    public final void setCookie(final byte[] cookie) {
+        this.cookie = cookie;
+    }
 }

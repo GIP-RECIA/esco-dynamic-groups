@@ -31,6 +31,9 @@ public class ESCODynamicGroupsParameters implements Serializable {
     /** Prefix for the properties. */
     private static final String PROPERTIES_PREFIX = "esco.dynamic.groups.";
 
+    /** Name of the file to use for the ldap sync cookie. */
+    private static final String DEF_SYNCREPL_COOKIE_FILE = "esco_dg.cookie";
+   
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(ESCODynamicGroupsParameters.class);
 
@@ -69,6 +72,12 @@ public class ESCODynamicGroupsParameters implements Serializable {
 
     /** LDAP id attribute. */
     private String ldapUidAttribute;
+    
+    /** Replicat id. */
+    private int syncReplRID;
+    
+    /** Name of the file to use for the cookie file. */
+    private String syncReplCookieFile;
 
     /** Idle duration for the SyncRepl client. */
     private int syncreplClientIdle;
@@ -88,7 +97,6 @@ public class ESCODynamicGroupsParameters implements Serializable {
 
     /** The field used in grouper to define the members. */
     private String grouperDefinitionField;
-
 
     /** The Grouper user used to open the Grouper sessions. */
     private String grouperUser;
@@ -158,6 +166,8 @@ public class ESCODynamicGroupsParameters implements Serializable {
         final String ldapSearchAttributesKey = PROPERTIES_PREFIX + "ldap.search.attributes";
         final String ldapUidAttributeKey = PROPERTIES_PREFIX + "ldap.uid.attribute";
         final String synreplClientIDLEKey = PROPERTIES_PREFIX + "syncrepl.client.idle";
+        final String synreplRIDKey = PROPERTIES_PREFIX + "syncrepl.rid";
+        final String synreplCookieFileKey = PROPERTIES_PREFIX + "syncrepl.cookie.file";
         final String grouperTypeKey = PROPERTIES_PREFIX + "grouper.type";
         final String grouperSubjSourceKey = PROPERTIES_PREFIX + "grouper.subjects.source";
         final String createGrouperTypeKey = PROPERTIES_PREFIX + "grouper.create.type";
@@ -176,7 +186,9 @@ public class ESCODynamicGroupsParameters implements Serializable {
         setLdapSearchFilter(parseStringFromProperty(params, ldapSearchFilterKey));
         setLdapSearchAttributesFromArray(parseStringArrayFromProperty(params, ldapSearchAttributesKey));
         setLdapUidAttribute(parseStringFromProperty(params, ldapUidAttributeKey));
+        setSyncReplRID(parsePositiveIntegerSafeFromProperty(params, synreplRIDKey));
         setSyncreplClientIdle(parseIntegerFromProperty(params, synreplClientIDLEKey) * MILLIS_TO_SECONDS_FACTOR);
+        setSyncReplCookieFile(parseStringSafeFromProperty(params, synreplCookieFileKey, DEF_SYNCREPL_COOKIE_FILE));
         setGrouperSubjectsSourceId(parseStringFromProperty(params, grouperSubjSourceKey));
         setGrouperType(parseStringFromProperty(params, grouperTypeKey));
         setCreateGrouperType(parseBooleanFromProperty(params, createGrouperTypeKey)); 
@@ -208,6 +220,25 @@ public class ESCODynamicGroupsParameters implements Serializable {
     private Integer parseIntegerFromProperty(final Properties properties, final String key) {
         return PropertyParser.instance().parseIntegerFromProperty(LOGGER, ESCO_DG_PARAMETERS_FILE, properties, key);
     }
+    
+    /**
+     * Retrieves a positive integer value from a properties instance for a given key.
+     * @param properties The properties instance.
+     * @param key The considered key.
+     * @return The positive  Integer value if available and valid in the properties, 0 otherwise.
+     */
+    private Integer parsePositiveIntegerSafeFromProperty(final Properties properties, final String key) {
+        Integer value =  PropertyParser.instance().parsePositiveIntegerFromProperty(LOGGER, 
+                ESCO_DG_PARAMETERS_FILE, properties, key);
+        
+        if (value == null) {
+            LOGGER.error("Unable to retrieve a valid rid in the file: " + ESCO_DG_PARAMETERS_FILE 
+                    + ": using 0 as rid.");
+            return 0;
+        }
+        
+        return value;
+    }
 
     /**
      * Retrieves the string value from a properties instance for a given key.
@@ -217,6 +248,18 @@ public class ESCODynamicGroupsParameters implements Serializable {
      */
     private String parseStringFromProperty(final Properties properties, final String key) {
         return PropertyParser.instance().parseStringFromProperty(LOGGER, ESCO_DG_PARAMETERS_FILE, properties, key);
+    }
+    /**
+     * Retrieves the string value from a properties instance for a given key.
+     * @param properties The properties instance.
+     * @param key The considered key.
+     * @param defaultValue The default value to use if the key is not in the Properties instance.
+     * @return The String value if available in the properties, null otherwise.
+     */
+    private String parseStringSafeFromProperty(final Properties properties, 
+            final String key, 
+            final String defaultValue) {
+        return PropertyParser.instance().parseStringFromPropertySafe(properties, key, defaultValue);
     }
 
     /**
@@ -266,6 +309,9 @@ public class ESCODynamicGroupsParameters implements Serializable {
 
         sb.append("; SyncRepl Client idle: ");
         sb.append(getSyncreplClientIdle());
+
+        sb.append("; SyncRepl cookie file: ");
+        sb.append(getSyncReplCookieFile());
 
         sb.append("; Grouper Subjects source: ");
         sb.append(getGrouperSubjectsSourceId());
@@ -597,5 +643,37 @@ public class ESCODynamicGroupsParameters implements Serializable {
      */
     public void setGrouperSubjectsSourceId(final String grouperSubjectsSourceId) {
         this.grouperSubjectsSourceId = grouperSubjectsSourceId;
+    }
+
+    /**
+     * Getter for syncReplCookieFile.
+     * @return syncReplCookieFile.
+     */
+    public String getSyncReplCookieFile() {
+        return syncReplCookieFile;
+    }
+
+    /**
+     * Setter for syncReplCookieFile.
+     * @param syncReplCookieFile the new value for syncReplCookieFile.
+     */
+    public void setSyncReplCookieFile(final String syncReplCookieFile) {
+        this.syncReplCookieFile = syncReplCookieFile;
+    }
+
+    /**
+     * Getter for syncReplRID.
+     * @return syncReplRID.
+     */
+    public int getSyncReplRID() {
+        return syncReplRID;
+    }
+
+    /**
+     * Setter for syncReplRID.
+     * @param syncReplRID the new value for syncReplRID.
+     */
+    public void setSyncReplRID(final int syncReplRID) {
+        this.syncReplRID = syncReplRID;
     }
 }

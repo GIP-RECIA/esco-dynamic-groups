@@ -143,4 +143,20 @@ public class SyncStateControl extends LDAPControl {
     public boolean isDelete() {
         return state == DELETE;
     }
+
+    /**
+     * Getter for cookie.
+     * @return cookie.
+     */
+    public final byte[] getCookie() {
+        return cookie;
+    }
+
+    /**
+     * Setter for cookie.
+     * @param cookie the new value for cookie.
+     */
+    public final void setCookie(final byte[] cookie) {
+        this.cookie = cookie;
+    }
 }

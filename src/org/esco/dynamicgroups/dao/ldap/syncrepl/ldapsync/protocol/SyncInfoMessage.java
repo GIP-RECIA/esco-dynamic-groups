@@ -157,4 +157,20 @@ public class SyncInfoMessage extends LDAPIntermediateResponse {
         }
         return stringRepresentation;
     }
+
+    /**
+     * Getter for cookie.
+     * @return cookie.
+     */
+    public byte[] getCookie() {
+        return cookie;
+    }
+
+    /**
+     * Setter for cookie.
+     * @param cookie the new value for cookie.
+     */
+    public void setCookie(final byte[] cookie) {
+        this.cookie = cookie;
+    }
 }

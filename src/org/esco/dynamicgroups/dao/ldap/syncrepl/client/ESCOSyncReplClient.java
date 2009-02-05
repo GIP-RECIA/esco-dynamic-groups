@@ -12,6 +12,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Calendar;
 
 import org.apache.log4j.Logger;
+import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.CookieManager;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncDoneControl;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncInfoMessage;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncRequestControl;
@@ -54,8 +55,6 @@ public class ESCOSyncReplClient implements InitializingBean {
     
     /** Flag for a stop request. */
     private boolean stopRequest;
-
-
 
     /**
      * Builds an instance of ESCOSyncReplClient.
@@ -126,7 +125,7 @@ public class ESCOSyncReplClient implements InitializingBean {
         final LDAPSearchConstraints constraints = new LDAPSearchConstraints();
         LDAPSearchQueue queue = null;
         final SyncRequestControl syncRequestCtrl = 
-            new SyncRequestControl(SyncRequestControl.REFRESH_AND_PERSIST, null, false);
+            new SyncRequestControl(SyncRequestControl.REFRESH_AND_PERSIST, false);
 
         // Registers the new protocol implementation elements.
         LDAPIntermediateResponse.register(SyncInfoMessage.OID, SyncInfoMessage.class);
@@ -176,6 +175,7 @@ public class ESCOSyncReplClient implements InitializingBean {
                         messagesHandler.processLDAPMessage(queue.getResponse());
                     } catch (LDAPException e) {
                         e.printStackTrace();
+                        logger.error(e, e);
                     }
                 }
             }
@@ -189,6 +189,7 @@ public class ESCOSyncReplClient implements InitializingBean {
         }  catch (LDAPException e) {
            logger.error(e, e);
         }
+        CookieManager.instance().saveCurrentCookie();
         logger.info("SyncRepl Client stopped.");
         setRunning(false);
         
