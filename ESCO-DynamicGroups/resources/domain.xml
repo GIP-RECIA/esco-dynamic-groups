@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+	<bean id="parameters" class="org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters">
+		<constructor-arg value="resources/esco-dynamifGroups.properties" />
+	</bean>
+
+	<bean id="repositoryListener" class="org.esco.dynamicgroups.domain.SyncReplClientListenerImpl">
+		<property name="syncReplClient" ref="synReplClient" />
+	</bean>
+	
+	<bean id="domainService" class="org.esco.dynamicgroups.domain.ESCODomainServiceImpl"
+		  depends-on="parameters">
+		<property name="daoService" ref="daoService" />
+		<property name="groupsService" ref="groupsService" />
+		<property name="repositoryListener" ref="repositoryListener" />
+	</bean>
+
+</beans>
