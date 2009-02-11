@@ -39,5 +39,11 @@ public interface IDomainService {
      */
     void handleNewOrModifiedDynamicGroup(final DynamicGroupDefinition definition);
     
+    /**
+     * Deletes a group.
+     * @param groupName The name of the group to delete.
+     */
+    void handleDeletedGroup(final String groupName);
+    
     
 }

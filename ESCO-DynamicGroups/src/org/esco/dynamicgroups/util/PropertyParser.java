@@ -159,6 +159,32 @@ public class PropertyParser implements Serializable {
     }
     
     /**
+     * Retrieves the integer value from a properties INSTANCE for a given key.
+     * @param logger The logger to use.
+     * @param propertiesSourceName The name of the source used to load the properties.
+     * @param properties The properties INSTANCE.
+     * @param key The considered key.
+     * @return The Integer value if available in the properties, null otherwise.
+     */
+    public Integer parseIntegerFromPropertySafe(final Logger logger,
+            final String propertiesSourceName,
+            final Properties properties, 
+            final String key) {
+        final String strValue = properties.getProperty(key);
+        if (strValue == null) {
+            return null;
+        }
+        try {
+            final int intValue = Integer.parseInt(strValue.trim());
+            return intValue;
+        } catch (NumberFormatException e) {
+            logger.error("Invalid value for " + key + ": " + strValue + IN_FILE + propertiesSourceName);
+            logger.error(e, e);
+            return null;
+        }
+    }
+    
+    /**
      * Retrieves the integer value from a properties instance for a given key.
      * @param logger The logger to use.
      * @param propertiesSourceName The name of the source used to load the properties.
@@ -166,17 +192,41 @@ public class PropertyParser implements Serializable {
      * @param key The considered key.
      * @return The Integer value if available in the properties, null otherwise.
      */
-    public Integer parsePositiveIntegerFromProperty(final Logger logger,
+    public Integer parsePositiveIntegerFromPropertySafe(final Logger logger,
             final String propertiesSourceName,
             final Properties properties, 
             final String key) {
-        final Integer intValue = parseIntegerFromProperty(logger, propertiesSourceName, properties, key);
+        final Integer intValue = parseIntegerFromPropertySafe(logger, propertiesSourceName, properties, key);
         if (intValue == null) {
             return intValue;
         }
         if (intValue < 0) {
             logger.error("Invalid value for " + key + ": " + intValue 
                     + IN_FILE + propertiesSourceName + " (should be >= 0).");
+            return null;
+        }
+        return intValue;
+    }
+    
+    /**
+     * Retrieves the integer value from a properties instance for a given key.
+     * @param logger The logger to use.
+     * @param propertiesSourceName The name of the source used to load the properties.
+     * @param properties The properties instance.
+     * @param key The considered key.
+     * @return The Integer value if available in the properties, null otherwise.
+     */
+    public Integer parseStrictPositiveIntegerFromPropertySafe(final Logger logger,
+            final String propertiesSourceName,
+            final Properties properties, 
+            final String key) {
+        final Integer intValue = parseIntegerFromPropertySafe(logger, propertiesSourceName, properties, key);
+        if (intValue == null) {
+            return intValue;
+        }
+        if (intValue <= 0) {
+            logger.error("Invalid value for " + key + ": " + intValue 
+                    + IN_FILE + propertiesSourceName + " (should be > 0).");
             return null;
         }
         return intValue;

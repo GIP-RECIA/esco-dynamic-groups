@@ -16,8 +16,8 @@ import org.esco.dynamicgroups.dao.db.IDBDAOService;
 import org.esco.dynamicgroups.dao.grouper.IGroupsDAOService;
 import org.esco.dynamicgroups.domain.beans.DynGroup;
 import org.esco.dynamicgroups.domain.beans.DynGroupOccurences;
+import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
 import org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition;
-import org.esco.dynamicgroups.util.ESCODynamicGroupsParameters;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
@@ -32,7 +32,9 @@ import org.springframework.util.Assert;
  * 13 janv. 2009
  *
  */
-public class ESCODomainServiceImpl implements IDomainService, ApplicationListener, InitializingBean {
+public class ESCODomainServiceImpl 
+    implements IDomainService, ApplicationListener, 
+        InitializingBean {
 
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(ESCODomainServiceImpl.class);
@@ -51,7 +53,7 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
 
     /** Listener for the repository. */
     private IRepositoryListener repositoryListener;
-
+    
     /**
      * Builds an instance of ESCODomainServiceImpl.
      */
@@ -61,6 +63,7 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
             LOGGER.debug("Creates an instance of ESCODomainServiceImpl - Attributes: " 
                     + Arrays.toString(dynamicAttributes) + ".");
         }
+        DomainRegistry.instance().setDomainService(this);
     }
 
     /**
@@ -93,6 +96,7 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
     public void onApplicationEvent(final ApplicationEvent event) {
         if (event instanceof ContextRefreshedEvent) {
             if (!repositoryListener.isListening()) {
+                
                 repositoryListener.listen();
             }
         } else if (event instanceof ContextClosedEvent) {
@@ -284,5 +288,12 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
         this.repositoryListener = repositoryListener;
     }
 
-
+    /**
+     * Deletes a group.
+     * @param groupName The name of the group to delete.
+     * @see org.esco.dynamicgroups.domain.IDomainService#handleDeletedGroup(java.lang.String)
+     */
+    public void handleDeletedGroup(final String groupName) {
+        this.daoService.deleteDynGroup(new DynGroup(groupName));
+    }
 }

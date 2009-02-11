@@ -29,6 +29,51 @@ public class SyncReplClientListenerImpl implements IRepositoryListener, Initiali
 
     /** The ldap replication client. */
     private ESCOSyncReplClient syncReplClient;
+    
+    /** The thread for the listener. */
+    private Thread thread;
+    
+    /**
+     * Exception handler.
+     * @author GIP RECIA - A. Deman
+     * 9 févr. 2009
+     *
+     */
+    private static class ExceptionHandler implements Thread.UncaughtExceptionHandler, Serializable {
+        
+        /** Serial veriosn uid.*/
+        private static final long serialVersionUID = 1776039245072654844L;
+        
+        /** The logger to use. */
+        private Logger logger;
+        
+        /** The listener. */
+        private IRepositoryListener listener;
+        
+        /**
+         * Builds an instance of ExceptionHandler.
+         * @param listener The listener to use.
+         * @param logger The logger to use.
+         */
+        public ExceptionHandler(final IRepositoryListener listener, 
+                final Logger logger) {
+            this.logger = logger;
+            this.listener = listener;
+        }
+
+        /**
+         * Handles an uncaught exception.
+         * @param thread The thread where the exception has to be caught.
+         * @param exception The exception to handle.
+         * @see java.lang.Thread.UncaughtExceptionHandler#uncaughtException(java.lang.Thread, java.lang.Throwable)
+         */
+        public void uncaughtException(final Thread thread, final Throwable exception) {
+                logger.fatal("Uncaught exception in the thread. The handler is trying to stop the listener." 
+                        + " See below for the traces.");
+                logger.fatal(exception, exception);
+                listener.stop();
+        }
+    }
 
     /**
      * Builds an instance of SyncReplClientListenerImpl.
@@ -56,7 +101,7 @@ public class SyncReplClientListenerImpl implements IRepositoryListener, Initiali
 
         LOGGER.debug("Starting the listener.");
         
-        final Thread thread = new Thread() {
+        thread = new Thread() {
 
             /**
              * Run method.
@@ -71,9 +116,11 @@ public class SyncReplClientListenerImpl implements IRepositoryListener, Initiali
                 }
             }
         };
+        thread.setUncaughtExceptionHandler(new ExceptionHandler(this, LOGGER));
+        
         thread.start();
         
-        LOGGER.debug("Listener stopped.");
+        LOGGER.debug("Listener started.");
 
     }
     
@@ -82,21 +129,24 @@ public class SyncReplClientListenerImpl implements IRepositoryListener, Initiali
      * @see org.esco.dynamicgroups.domain.IRepositoryListener#stop()
      */
     public void stop() {
-        LOGGER.debug("Stopping the listener.");
-        getSyncReplClient().requestToStop();
-        final int secondInMillis = 1000;
-        int count = 0;
         
-        while (getSyncReplClient().isRunning() && count++ < NB_MAX_WAIT) {
-            LOGGER.debug(" Waitting for the listener to be stopped " + count + "/" + NB_MAX_WAIT + ".");
-            
-            try {
-                Thread.sleep(secondInMillis);
-            } catch (InterruptedException e) {
-                // Nothing to do.
+        if (thread != null) {
+            LOGGER.debug("Stopping the listener. ===>");
+            getSyncReplClient().requestToStop();
+            final int secondInMillis = 1000;
+            int count = 0;
+        
+            while (getSyncReplClient().isRunning() && count++ < NB_MAX_WAIT) {
+                LOGGER.debug(" Waitting for the listener to be stopped " + count + "/" + NB_MAX_WAIT + ".");
+                try {
+                    Thread.sleep(secondInMillis);
+                } catch (InterruptedException e) {
+                    // Nothing to do.
+                }
             }
+            LOGGER.debug("Listener stopped");
+            thread = null;
         }
-        LOGGER.debug("Listener stopped");
     }
     
     /**

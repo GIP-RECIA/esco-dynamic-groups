@@ -15,6 +15,7 @@ import org.esco.dynamicgroups.domain.beans.AttributeValue;
 import org.esco.dynamicgroups.domain.beans.DynAttribute;
 import org.esco.dynamicgroups.domain.beans.DynGroup;
 import org.esco.dynamicgroups.domain.beans.GroupAttributeValueAssoc;
+import org.esco.dynamicgroups.domain.beans.IStringCleaner;
 import org.esco.dynamicgroups.domain.definition.AtomicProposition;
 import org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition;
 import org.esco.dynamicgroups.domain.definition.IProposition;
@@ -25,6 +26,7 @@ import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
+import org.springframework.util.Assert;
 
 /**
  * Hibernate implementation of the DAO service.
@@ -43,24 +45,33 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
     /** Constant for the group name. */
     private static final String GROUP_NAME = "groupName";
 
-    /** Constant for the attribute value. */
-    private static final String ATTRIBUTE_VALUE = "attributeValue";
-
     /** Constant for the attribute. */
     private static final String ATTRIBUTE = "attribute";
 
     /** Constant for the attribute name. */
     private static final String ATTRIBUTE_NAME = "attributeName";
 
-    /** Negative constant. */
-    private static final String NEGATIVE = "negative";
+    /** The String cleaner. */
+    private IStringCleaner stringCleaner;
 
     /**
      * Builds an instance of HibernateDAOServiceImpl.
      */
     public HibernateDAOServiceImpl() {
         super();
-    }  
+    } 
+    
+    /**
+     * Checks the initialization of the bean.
+     * @see org.springframework.dao.support.DaoSupport#initDao()
+     */
+    @Override
+    protected void initDao() {
+        Assert.notNull(this.stringCleaner, 
+                "The property stringCleaner in the class " 
+                + this.getClass().getName() 
+                + " can't be null."); 
+    }
 
     /**
      * Retrieves the attribute associated to a given name.
@@ -179,7 +190,7 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
                     final DynAttribute dynAtt = retrieveOrCreateDynAttribut(session, atom.getAttribute());
                     final GroupAttributeValueAssoc grpAttAssoc = 
                         new GroupAttributeValueAssoc(dynAtt, 
-                                atom.getValue().replaceAll(STD_JOCKER, SQL_JOCKER), 
+                                stringCleaner.clean(atom.getValue().replaceAll(STD_JOCKER, SQL_JOCKER)), 
                                 atom.isNegative(), 
                                 dynGroup);
                     
@@ -441,7 +452,8 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
         StringBuilder negValueCritSb = new StringBuilder();
         boolean init = true;
         for (String value : attributeValues) {
-            final String escValue = value.replaceAll("'", "");
+            final String escValue = stringCleaner.clean(value);
+             
             if (init) {
                 init = false;
                 noNegValueCritSb = new StringBuilder(" (('");
@@ -573,7 +585,6 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
         return result;
     }
 
-
     /**
      * Retrieves the values of a given attribute for a group.
      * @param attributeName The name of the attribute.
@@ -624,5 +635,21 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
         result.addAll(associations);
 
         return result;
+    }
+
+    /**
+     * Getter for stringCleaner.
+     * @return stringCleaner.
+     */
+    public IStringCleaner getStringCleaner() {
+        return stringCleaner;
+    }
+
+    /**
+     * Setter for stringCleaner.
+     * @param stringCleaner the new value for stringCleaner.
+     */
+    public void setStringCleaner(final IStringCleaner stringCleaner) {
+        this.stringCleaner = stringCleaner;
     }
 }

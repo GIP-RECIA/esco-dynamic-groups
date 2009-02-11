@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.esco.dynamicgroups.util;
+package org.esco.dynamicgroups.domain.beans;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,6 +12,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.esco.dynamicgroups.util.PropertyParser;
 
 
 
@@ -25,23 +26,32 @@ public class ESCODynamicGroupsParameters implements Serializable {
     /** Serial version UID. */
     private static final long serialVersionUID = -186884409502387377L;
 
-    /** Files that contains the parameters, loaded from the class path. */
-    private static final String ESCO_DG_PARAMETERS_FILE = "esco-dynamicGroups.properties";
-
     /** Prefix for the properties. */
     private static final String PROPERTIES_PREFIX = "esco.dynamic.groups.";
 
     /** Name of the file to use for the ldap sync cookie. */
     private static final String DEF_SYNCREPL_COOKIE_FILE = "esco_dg.cookie";
    
+    /** Default modulo for saving the cookie. */
+    private static final int DEF_SYNCREPL_MODULO = 100;
+    
+    /** Default value for the idle loop when trying to reconnect to the ldap. */
+    private static final int DEF_LDAP_RECONNECT_IDLE = 30;
+    
+    /** Default value for the number of retry for the reconnections. */
+    private static final int DEF_LDAP_RECONNECT_ATTEMPTS_NB = 5;
+    
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(ESCODynamicGroupsParameters.class);
-
+    
     /** Singleton instance. */
-    private static final ESCODynamicGroupsParameters INSTANCE = new ESCODynamicGroupsParameters();
+    private static ESCODynamicGroupsParameters instance;
 
     /** To convert milliseconds into seconds.*/
     private static final  int MILLIS_TO_SECONDS_FACTOR = 1000; 
+    
+    /** The configuration file to use. */
+    private String configurationFile;
 
     /** Properties instance used to initialize this instance. */
     private Properties parametersProperties;
@@ -60,6 +70,12 @@ public class ESCODynamicGroupsParameters implements Serializable {
 
     /** Credentials associated to the bind DN.*/
     private String ldapCredentials;
+    
+    /** Idle value in seconds when trying to reconnect. */
+    private int ldapReconnectionIdle;
+    
+    /** Number of retries for the ldap reconnections. */
+    private int ldapReconnectionAttemptsNb;
 
     /** The LDAP base for the search. */
     private String ldapSearchBase;
@@ -78,6 +94,9 @@ public class ESCODynamicGroupsParameters implements Serializable {
     
     /** Name of the file to use for the cookie file. */
     private String syncReplCookieFile;
+    
+    /** The modulo for saving the cookie in its file. */
+    private int syncReplCookieSaveModulo;
 
     /** Idle duration for the SyncRepl client. */
     private int syncreplClientIdle;
@@ -107,10 +126,13 @@ public class ESCODynamicGroupsParameters implements Serializable {
 
     /**
      * Constructor for ESCODynamicGroupsParameters.
+     * @param configurationFile The configuration file to use.
      */
-    private ESCODynamicGroupsParameters() {
+    private ESCODynamicGroupsParameters(final String configurationFile) {
+        this.configurationFile = configurationFile;
+        
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Loading ESCODynamicGroupsParameters from file " + ESCO_DG_PARAMETERS_FILE);
+            LOGGER.debug("Loading ESCODynamicGroupsParameters from file " + configurationFile);
         }
         
         initialize();
@@ -118,6 +140,7 @@ public class ESCODynamicGroupsParameters implements Serializable {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Loaded values: " + this);
         }
+        setInstance(this);
     }
 
     /**
@@ -125,7 +148,7 @@ public class ESCODynamicGroupsParameters implements Serializable {
      * @return The singleton.
      */
     public static ESCODynamicGroupsParameters instance() {
-        return INSTANCE;
+        return instance;
     }
 
     /**
@@ -134,10 +157,10 @@ public class ESCODynamicGroupsParameters implements Serializable {
     private void initialize() {
         try {
             final ClassLoader cl = getClass().getClassLoader();
-            final InputStream is  = cl.getResourceAsStream(ESCO_DG_PARAMETERS_FILE);
+            final InputStream is  = cl.getResourceAsStream(configurationFile);
             final Properties params = new Properties();
             if (is == null) {
-                LOGGER.error("Unable to load (from classpath) " + ESCO_DG_PARAMETERS_FILE);
+                LOGGER.fatal("Unable to load (from classpath) " + configurationFile);
             }
             params.load(is);
             loadFromProperties(params);
@@ -161,6 +184,8 @@ public class ESCODynamicGroupsParameters implements Serializable {
         final String ldapVersionKey = PROPERTIES_PREFIX + "ldap.version";
         final String ldapBindDNKey = PROPERTIES_PREFIX + "ldap.bind.dn";
         final String ldapCredentialsKey = PROPERTIES_PREFIX + "ldap.credentials";
+        final String ldapReconnectionIdleKey = PROPERTIES_PREFIX + "ldap.reconnection.idle";
+        final String ldapReconnectionAttemptsNbKey = PROPERTIES_PREFIX + "reconnection.nb.attempts";
         final String ldapSearchBaseKey = PROPERTIES_PREFIX + "ldap.search.base";
         final String ldapSearchFilterKey = PROPERTIES_PREFIX + "ldap.search.filter";
         final String ldapSearchAttributesKey = PROPERTIES_PREFIX + "ldap.search.attributes";
@@ -168,6 +193,7 @@ public class ESCODynamicGroupsParameters implements Serializable {
         final String synreplClientIDLEKey = PROPERTIES_PREFIX + "syncrepl.client.idle";
         final String synreplRIDKey = PROPERTIES_PREFIX + "syncrepl.rid";
         final String synreplCookieFileKey = PROPERTIES_PREFIX + "syncrepl.cookie.file";
+        final String synreplCookieSaveModuloKey = PROPERTIES_PREFIX + "syncrepl.cookie.save.modulo";
         final String grouperTypeKey = PROPERTIES_PREFIX + "grouper.type";
         final String grouperSubjSourceKey = PROPERTIES_PREFIX + "grouper.subjects.source";
         final String createGrouperTypeKey = PROPERTIES_PREFIX + "grouper.create.type";
@@ -182,13 +208,19 @@ public class ESCODynamicGroupsParameters implements Serializable {
         setLdapVersion(parseIntegerFromProperty(params, ldapVersionKey));
         setLdapBindDN(parseStringFromProperty(params, ldapBindDNKey));
         setLdapCredentials(parseStringFromProperty(params, ldapCredentialsKey));
+        setLdapReconnectionIdle(parseStrictPositiveIntegerSafeFromProperty(params, ldapReconnectionIdleKey, 
+                DEF_LDAP_RECONNECT_IDLE) * MILLIS_TO_SECONDS_FACTOR);
+        setLdapReconnectionAttemptsNb(parseStrictPositiveIntegerSafeFromProperty(params, ldapReconnectionAttemptsNbKey, 
+                DEF_LDAP_RECONNECT_ATTEMPTS_NB));
         setLdapSearchBase(parseStringFromProperty(params, ldapSearchBaseKey));
         setLdapSearchFilter(parseStringFromProperty(params, ldapSearchFilterKey));
         setLdapSearchAttributesFromArray(parseStringArrayFromProperty(params, ldapSearchAttributesKey));
         setLdapUidAttribute(parseStringFromProperty(params, ldapUidAttributeKey));
-        setSyncReplRID(parsePositiveIntegerSafeFromProperty(params, synreplRIDKey));
+        setSyncReplRID(parsePositiveIntegerSafeFromProperty(params, synreplRIDKey, 0));
         setSyncreplClientIdle(parseIntegerFromProperty(params, synreplClientIDLEKey) * MILLIS_TO_SECONDS_FACTOR);
         setSyncReplCookieFile(parseStringSafeFromProperty(params, synreplCookieFileKey, DEF_SYNCREPL_COOKIE_FILE));
+        setSyncReplCookieSaveModulo(parseStrictPositiveIntegerSafeFromProperty(params, synreplCookieSaveModuloKey, 
+                DEF_SYNCREPL_MODULO));
         setGrouperSubjectsSourceId(parseStringFromProperty(params, grouperSubjSourceKey));
         setGrouperType(parseStringFromProperty(params, grouperTypeKey));
         setCreateGrouperType(parseBooleanFromProperty(params, createGrouperTypeKey)); 
@@ -208,7 +240,7 @@ public class ESCODynamicGroupsParameters implements Serializable {
      * @return The Boolean value if available in the properties, null otherwise.
      */
     private Boolean parseBooleanFromProperty(final Properties properties, final String key) {
-        return PropertyParser.instance().parseBooleanFromProperty(LOGGER, ESCO_DG_PARAMETERS_FILE, properties, key);
+        return PropertyParser.instance().parseBooleanFromProperty(LOGGER, configurationFile, properties, key);
     }
 
     /**
@@ -218,23 +250,49 @@ public class ESCODynamicGroupsParameters implements Serializable {
      * @return The Integer value if available in the properties, null otherwise.
      */
     private Integer parseIntegerFromProperty(final Properties properties, final String key) {
-        return PropertyParser.instance().parseIntegerFromProperty(LOGGER, ESCO_DG_PARAMETERS_FILE, properties, key);
+        return PropertyParser.instance().parseIntegerFromProperty(LOGGER, configurationFile, properties, key);
     }
     
     /**
      * Retrieves a positive integer value from a properties instance for a given key.
      * @param properties The properties instance.
      * @param key The considered key.
+     * @param defaultValue The default value to use if the property is not found.
      * @return The positive  Integer value if available and valid in the properties, 0 otherwise.
      */
-    private Integer parsePositiveIntegerSafeFromProperty(final Properties properties, final String key) {
-        Integer value =  PropertyParser.instance().parsePositiveIntegerFromProperty(LOGGER, 
-                ESCO_DG_PARAMETERS_FILE, properties, key);
+    private Integer parsePositiveIntegerSafeFromProperty(final Properties properties, 
+            final String key, final int defaultValue) {
+        Integer value =  PropertyParser.instance().parsePositiveIntegerFromPropertySafe(LOGGER, 
+                configurationFile, properties, key);
         
         if (value == null) {
-            LOGGER.error("Unable to retrieve a valid rid in the file: " + ESCO_DG_PARAMETERS_FILE 
-                    + ": using 0 as rid.");
-            return 0;
+            LOGGER.warn("Unable to retrieve a valid value in the file: " + configurationFile
+                    + " for the property: " + key
+                    + " - Using the default value: " + defaultValue + ".");
+            return defaultValue;
+        }
+        
+        return value;
+    }
+    
+    
+    /**
+     * Retrieves a positive integer value from a properties instance for a given key.
+     * @param properties The properties instance.
+     * @param key The considered key.
+     * @param defaultValue The default value to use if the property is not found.
+     * @return The positive  Integer value if available and valid in the properties, 0 otherwise.
+     */
+    private Integer parseStrictPositiveIntegerSafeFromProperty(final Properties properties, 
+            final String key, final int defaultValue) {
+        Integer value =  PropertyParser.instance().parseStrictPositiveIntegerFromPropertySafe(LOGGER, 
+                configurationFile, properties, key);
+        
+        if (value == null) {
+            LOGGER.warn("Unable to retrieve a valid value in the file: " + configurationFile
+                    + " for the property: " + key
+                    + " - Using the default value: " + defaultValue + ".");
+            return defaultValue;
         }
         
         return value;
@@ -247,7 +305,7 @@ public class ESCODynamicGroupsParameters implements Serializable {
      * @return The String value if available in the properties, null otherwise.
      */
     private String parseStringFromProperty(final Properties properties, final String key) {
-        return PropertyParser.instance().parseStringFromProperty(LOGGER, ESCO_DG_PARAMETERS_FILE, properties, key);
+        return PropertyParser.instance().parseStringFromProperty(LOGGER, configurationFile, properties, key);
     }
     /**
      * Retrieves the string value from a properties instance for a given key.
@@ -269,7 +327,7 @@ public class ESCODynamicGroupsParameters implements Serializable {
      * @return The String array value if available in the properties, null otherwise.
      */
     private String[] parseStringArrayFromProperty(final Properties properties, final String key) {
-        return PropertyParser.instance().parseStringArrayFromProperty(LOGGER, ESCO_DG_PARAMETERS_FILE, properties, key);
+        return PropertyParser.instance().parseStringArrayFromProperty(LOGGER, configurationFile, properties, key);
     }
 
     /**
@@ -296,6 +354,11 @@ public class ESCODynamicGroupsParameters implements Serializable {
                 sb.append("*");
             }
         }
+        sb.append("; LDAP reconnection idle: ");
+        sb.append(getLdapReconnectionIdle());
+        sb.append("; LDAP reconnection attempts nb: ");
+        sb.append(getLdapReconnectionAttemptsNb());
+        
         sb.append("; LDAP Search base: ");
         sb.append(getLdapSearchBase());
         sb.append("; LDAP Search filter: ");
@@ -312,6 +375,9 @@ public class ESCODynamicGroupsParameters implements Serializable {
 
         sb.append("; SyncRepl cookie file: ");
         sb.append(getSyncReplCookieFile());
+
+        sb.append("; SyncRepl cookie save modulo: ");
+        sb.append(getSyncReplCookieSaveModulo());
 
         sb.append("; Grouper Subjects source: ");
         sb.append(getGrouperSubjectsSourceId());
@@ -676,4 +742,86 @@ public class ESCODynamicGroupsParameters implements Serializable {
     public void setSyncReplRID(final int syncReplRID) {
         this.syncReplRID = syncReplRID;
     }
+
+    /**
+     * Getter for syncReplCookieSaveModulo.
+     * @return syncReplCookieSaveModulo.
+     */
+    public int getSyncReplCookieSaveModulo() {
+        return syncReplCookieSaveModulo;
+    }
+
+    /**
+     * Setter for syncReplCookieSaveModulo.
+     * @param syncReplCookieSaveModulo the new value for syncReplCookieSaveModulo.
+     */
+    public void setSyncReplCookieSaveModulo(final int syncReplCookieSaveModulo) {
+        this.syncReplCookieSaveModulo = syncReplCookieSaveModulo;
+    }
+
+    /**
+     * Getter for ldapReconnectionIdle.
+     * @return ldapReconnectionIdle.
+     */
+    public int getLdapReconnectionIdle() {
+        return ldapReconnectionIdle;
+    }
+
+    /**
+     * Setter for ldapReconnectionIdle.
+     * @param ldapReconnectionIdle the new value for ldapReconnectionIdle.
+     */
+    public void setLdapReconnectionIdle(final int ldapReconnectionIdle) {
+        this.ldapReconnectionIdle = ldapReconnectionIdle;
+    }
+
+    /**
+     * Getter for ldapReconnectionAttemptsNb.
+     * @return ldapReconnectionAttemptsNb.
+     */
+    public int getLdapReconnectionAttemptsNb() {
+        return ldapReconnectionAttemptsNb;
+    }
+
+    /**
+     * Setter for ldapReconnectionAttemptsNb.
+     * @param ldapReconnectionAttemptsNb the new value for ldapReconnectionAttemptsNb.
+     */
+    public void setLdapReconnectionAttemptsNb(final int ldapReconnectionAttemptsNb) {
+        this.ldapReconnectionAttemptsNb = ldapReconnectionAttemptsNb;
+    }
+
+    /**
+     * Getter for configurationFile.
+     * @return configurationFile.
+     */
+    public String getConfigurationFile() {
+        return configurationFile;
+    }
+
+    /**
+     * Setter for configurationFile.
+     * @param configurationFile the new value for configurationFile.
+     */
+    public void setConfigurationFile(final String configurationFile) {
+        this.configurationFile = configurationFile;
+    }
+
+    /**
+     * Getter for instance.
+     * @return instance.
+     */
+    protected static synchronized ESCODynamicGroupsParameters getInstance() {
+        return instance;
+    }
+
+    /**
+     * Setter for instance.
+     * @param instance the new value for instance.
+     */
+    protected static synchronized void setInstance(final ESCODynamicGroupsParameters instance) {
+        ESCODynamicGroupsParameters.instance = instance;
+    }
+
+   
 }

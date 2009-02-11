@@ -7,7 +7,7 @@ import java.io.Serializable;
 
 import org.esco.dynamicgroups.ESCOEntryDTOFactory;
 import org.esco.dynamicgroups.domain.IDomainService;
-import org.esco.dynamicgroups.util.ESCODynamicGroupsParameters;
+import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 

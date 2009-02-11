@@ -21,10 +21,10 @@ import javax.naming.directory.SearchResult;
 
 import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.dao.grouper.IGroupsDAOService;
+import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
 import org.esco.dynamicgroups.domain.definition.AtomicProposition;
 import org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition;
 import org.esco.dynamicgroups.domain.definition.IProposition;
-import org.esco.dynamicgroups.util.ESCODynamicGroupsParameters;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
