@@ -15,7 +15,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 import org.apache.log4j.Logger;
-import org.esco.dynamicgroups.util.ESCODynamicGroupsParameters;
+import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
 
 /**
  * Cookie manager for the LdapSync Protocol.
@@ -64,6 +64,12 @@ public class CookieManager implements Serializable {
 
     /** Replicat id. */
     private int rid;
+    
+    /** The saveModulo for saving the cookie. */
+    private int saveModulo;
+    
+    /** Change counter to determine when to save the cookie. */
+    private int changesCount;
 
     /** The last cookie. */
     private byte[] currentCookie;
@@ -74,6 +80,7 @@ public class CookieManager implements Serializable {
     private CookieManager() {
         cookieFileName = ESCODynamicGroupsParameters.instance().getSyncReplCookieFile();
         rid = ESCODynamicGroupsParameters.instance().getSyncReplRID();
+        saveModulo = ESCODynamicGroupsParameters.instance().getSyncReplCookieSaveModulo();
         initializeCookie();
     }
 
@@ -120,7 +127,7 @@ public class CookieManager implements Serializable {
     private byte[] read() {
         try {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Loading the cookie from the file: " + new File(cookieFileName));
+                LOGGER.debug("Loading the cookie from the file: " + new File(cookieFileName).getCanonicalPath());
             }
             final BufferedReader reader = new BufferedReader(new FileReader(cookieFileName));
             final String line = reader.readLine();
@@ -205,8 +212,15 @@ public class CookieManager implements Serializable {
     public synchronized void updateCurrentCookie(final byte[] newCookie) {
         if (newCookie != null) {
             this.currentCookie = newCookie;
+            changesCount++;
             if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Number of changes: " + changesCount + " Cookie updated: " + new String(currentCookie) );
                 LOGGER.trace("Cookie updated: " + new String(currentCookie));
+            }
+            
+            if (changesCount % saveModulo == 0) {
+                write(currentCookie);
+                changesCount = 0;
             }
         }
     }

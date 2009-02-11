@@ -17,7 +17,7 @@ import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncDoneContro
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncInfoMessage;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncRequestControl;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncStateControl;
-import org.esco.dynamicgroups.util.ESCODynamicGroupsParameters;
+import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
@@ -47,22 +47,35 @@ public class ESCOSyncReplClient implements InitializingBean {
     /** Messages handler. */
     private ISyncReplMessagesHandler messagesHandler;
 
+    /** The connection to the LDAP. */
+    private LDAPConnection lc;
+
+    /** The LDAP search queue. */
+    private LDAPSearchQueue queue;
+
     /** Counter for the idle loops. */
     private int idleCount;
-    
+
     /** Running flag. */
     private boolean running;
-    
+
     /** Flag for a stop request. */
     private boolean stopRequest;
+    
+    /** Idle interval when trying to reconnect to the ldap. */
+    private int reconnectionIdle;
+    
+    /** Number of attempts when trying to reconnect to the ldap. */
+    private int nbMaxAttempts;
 
     /**
      * Builds an instance of ESCOSyncReplClient.
      */
     public ESCOSyncReplClient() {
         super();
+        reconnectionIdle = ESCODynamicGroupsParameters.instance().getLdapReconnectionIdle();
+        nbMaxAttempts = ESCODynamicGroupsParameters.instance().getLdapReconnectionAttemptsNb();
     }
-
 
     /**
      * Checks the properties after the beans injection.
@@ -74,8 +87,6 @@ public class ESCOSyncReplClient implements InitializingBean {
                 "The property messagesHandler in the class " + this.getClass().getName() 
                 + " can't be null.");
     }
-
-
 
     /**
      * @param args Not used.
@@ -92,107 +103,207 @@ public class ESCOSyncReplClient implements InitializingBean {
      */
     private void sleepSafe(final long millis) {
         try {
-            Thread.sleep(REFRESH_STAGE_IDLE);
+            Thread.sleep(millis);
         } catch (InterruptedException e) {
             /* Nothing to do. */
         }
     }
 
     /**
+     * Creates the connexion to the ldap and initializes the search. 
+     */
+    private void connect() {
+        boolean needToConnect = lc == null;
+        if (!needToConnect) {
+            needToConnect = !lc.isConnectionAlive();
+        }
+        if (needToConnect) {
+            final ESCODynamicGroupsParameters parameters = ESCODynamicGroupsParameters.instance();
+
+            final int ldapPort = parameters.getLdapPort(); 
+            final int ldapVersion =  parameters.getLdapVersion();        
+            final String ldapHost = parameters.getLdapHost();
+            final String bindDN = parameters.getLdapBindDN();
+            final String credentials = parameters.getLdapCredentials();
+            final String searchFilter = parameters.getLdapSearchFilter();
+            final String searchBase = parameters.getLdapSearchBase();
+            final String[] attributes = parameters.getLdapSearchAttributesAsArray();
+
+
+            lc = new LDAPConnection();
+            final LDAPSearchConstraints constraints = new LDAPSearchConstraints();
+            queue = null;
+            try {
+                final SyncRequestControl syncRequestCtrl = 
+                    new SyncRequestControl(SyncRequestControl.REFRESH_AND_PERSIST, false);
+
+                // Registers the new protocol implementation elements.
+                LDAPIntermediateResponse.register(SyncInfoMessage.OID, SyncInfoMessage.class);
+                LDAPControl.register(SyncDoneControl.OID, SyncDoneControl.class);
+                LDAPControl.register(SyncStateControl.OID, SyncStateControl.class);
+
+
+                lc.connect(ldapHost, ldapPort);
+                lc.bind(ldapVersion, bindDN, credentials.getBytes("UTF8") );
+                constraints.setControls(syncRequestCtrl);
+
+                queue = lc.search(searchBase, 
+                        LDAPConnection.SCOPE_SUB, 
+                        searchFilter, 
+                        attributes, 
+                        false,                 
+                        null, 
+                        constraints);
+
+                logger.info("SyncRepl Client connected.");
+
+            } catch (LDAPException e) {
+                logger.error(e, e);
+
+                try { 
+                    lc.disconnect(); 
+                    queue = null;
+                } catch (LDAPException e2) {  
+                    logger.error(e2, e2);
+                }
+            } catch (UnsupportedEncodingException e) {
+                logger.error(e, e);
+            } catch (IOException e) {
+                logger.error(e, e);
+            }
+        }
+    }
+    
+
+    /**
+     * Checks the connection and tries to reconnect if needed.
+     */
+    private void checkConnection() {
+        if (!(lc.isConnected() && lc.isConnectionAlive())) {
+            
+            boolean connected = false;
+            int nbAttempts = 0;
+            while (!connected && nbAttempts++ < nbMaxAttempts) {
+                if (logger.isInfoEnabled()) {
+                    logger.info("Connection to the LDAP seems to be closed trying to reconnect - attempt: " 
+                            + nbAttempts + "/" + nbMaxAttempts + ".");
+                }
+                connect();
+                connected = lc != null && queue != null;
+                if (connected) {
+                    connected = lc.isConnectionAlive();
+                }
+                if (!connected) {
+                    sleepSafe(reconnectionIdle);
+                }
+            }
+            if (!connected) {
+                logger.fatal("Unable to reconnect to the ldap. Client requested to stop.");
+                requestToStop();
+            }
+        }
+    } 
+
+    /**
      * Launches the client.
      * @throws IOException 
      */
     public void launch() throws IOException {
-       
+
         logger.info("Starting the SyncRepl Client.");
         setRunning(true);
         setStopRequest(false);
-        
-        final ESCODynamicGroupsParameters parameters = ESCODynamicGroupsParameters.instance();
+        connect();
 
-        final int ldapPort = parameters.getLdapPort(); 
-        final int ldapVersion =  parameters.getLdapVersion();        
-        final String ldapHost = parameters.getLdapHost();
-        final String bindDN = parameters.getLdapBindDN();
-        final String credentials = parameters.getLdapCredentials();
-        final String searchFilter = parameters.getLdapSearchFilter();
-        final String searchBase = parameters.getLdapSearchBase();
-        final String[] attributes = parameters.getLdapSearchAttributesAsArray();
-        final int idle = parameters.getSyncreplClientIdle();
+        //        final ESCODynamicGroupsParameters parameters = ESCODynamicGroupsParameters.instance();
+
+        //        final int ldapPort = parameters.getLdapPort(); 
+        //        final int ldapVersion =  parameters.getLdapVersion();        
+        //        final String ldapHost = parameters.getLdapHost();
+        //        final String bindDN = parameters.getLdapBindDN();
+        //        final String credentials = parameters.getLdapCredentials();
+        //        final String searchFilter = parameters.getLdapSearchFilter();
+        //        final String searchBase = parameters.getLdapSearchBase();
+        //        final String[] attributes = parameters.getLdapSearchAttributesAsArray();
+        //        final int idle = parameters.getSyncreplClientIdle();
+        final int idle = ESCODynamicGroupsParameters.instance().getSyncreplClientIdle();
 
 
-        LDAPConnection lc = new LDAPConnection();
-        final LDAPSearchConstraints constraints = new LDAPSearchConstraints();
-        LDAPSearchQueue queue = null;
-        final SyncRequestControl syncRequestCtrl = 
-            new SyncRequestControl(SyncRequestControl.REFRESH_AND_PERSIST, false);
-
-        // Registers the new protocol implementation elements.
-        LDAPIntermediateResponse.register(SyncInfoMessage.OID, SyncInfoMessage.class);
-        LDAPControl.register(SyncDoneControl.OID, SyncDoneControl.class);
-        LDAPControl.register(SyncStateControl.OID, SyncStateControl.class);
-
-        try {
-            lc.connect(ldapHost, ldapPort);
-            lc.bind(ldapVersion, bindDN, credentials.getBytes("UTF8") );
-            constraints.setControls(syncRequestCtrl);
-
-            queue = lc.search(searchBase, 
-                    LDAPConnection.SCOPE_SUB, 
-                    searchFilter, 
-                    attributes, 
-                    false,                 
-                    null, 
-                    constraints);
-
-            logger.info("SyncRepl Client connected.");
-
-        } catch (LDAPException e) {
-            logger.error(e, e);
-
-            try { 
-                lc.disconnect(); 
-            } catch (LDAPException e2) {  
-                e2.printStackTrace();
-            }
-            System.exit(1);
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
+        //        lc = new LDAPConnection();
+        //        final LDAPSearchConstraints constraints = new LDAPSearchConstraints();
+        //        queue = null;
+        //        final SyncRequestControl syncRequestCtrl = 
+        //            new SyncRequestControl(SyncRequestControl.REFRESH_AND_PERSIST, false);
+        //
+        //        // Registers the new protocol implementation elements.
+        //        LDAPIntermediateResponse.register(SyncInfoMessage.OID, SyncInfoMessage.class);
+        //        LDAPControl.register(SyncDoneControl.OID, SyncDoneControl.class);
+        //        LDAPControl.register(SyncStateControl.OID, SyncStateControl.class);
+        //
+        //        try {
+        //            lc.connect(ldapHost, ldapPort);
+        //            lc.bind(ldapVersion, bindDN, credentials.getBytes("UTF8") );
+        //            constraints.setControls(syncRequestCtrl);
+        //
+        //            queue = lc.search(searchBase, 
+        //                    LDAPConnection.SCOPE_SUB, 
+        //                    searchFilter, 
+        //                    attributes, 
+        //                    false,                 
+        //                    null, 
+        //                    constraints);
+        //
+        //            logger.info("SyncRepl Client connected.");
+        //
+        //        } catch (LDAPException e) {
+        //            logger.error(e, e);
+        //
+        //            try { 
+        //                lc.disconnect(); 
+        //            } catch (LDAPException e2) {  
+        //                e2.printStackTrace();
+        //            }
+        //            System.exit(1);
+        //        } catch (UnsupportedEncodingException e) {
+        //            e.printStackTrace();
+        //        }
 
         if (queue != null) {
             int contextualIdle = REFRESH_STAGE_IDLE;
             while (!isStopRequest()) {
-                if (!queue.isResponseReceived()) {
-                    sleepSafe(contextualIdle);
-                    idleCount++;
-                    mark();
+                if (queue != null) {
+                    if (!queue.isResponseReceived()) {
+                        sleepSafe(contextualIdle);
+                        idleCount++;
+                        mark();
 
-                } else {
-                    try {
-                        contextualIdle = idle;
-                        idleCount = 0;
-                        messagesHandler.processLDAPMessage(queue.getResponse());
-                    } catch (LDAPException e) {
-                        e.printStackTrace();
-                        logger.error(e, e);
+                    } else {
+                        try {
+                            contextualIdle = idle;
+                            idleCount = 0;
+                            messagesHandler.processLDAPMessage(queue.getResponse());
+                        } catch (LDAPException e) {
+                            e.printStackTrace();
+                            logger.error(e, e);
+                        }
                     }
                 }
+                checkConnection();
             }
         }
 
         //disconnect from the server before exiting
         try {
-            
+
             lc.abandon(queue);
             lc.disconnect();
         }  catch (LDAPException e) {
-           logger.error(e, e);
+            logger.error(e, e);
         }
         CookieManager.instance().saveCurrentCookie();
         logger.info("SyncRepl Client stopped.");
         setRunning(false);
-        
+
     }
 
     /**
@@ -201,7 +312,7 @@ public class ESCOSyncReplClient implements InitializingBean {
     private void mark() {
         if (idleCount == MARK_INTERVAL) {
             idleCount = 0;
-            logger.info(MARK_PREFIX + Calendar.getInstance().getTime() + MARK_SUFFIX);
+            logger.info(MARK_PREFIX + Calendar.getInstance().getTime() + MARK_SUFFIX); 
         }
     }
 
@@ -212,7 +323,6 @@ public class ESCOSyncReplClient implements InitializingBean {
     public ISyncReplMessagesHandler getMessagesHandler() {
         return messagesHandler;
     }
-
 
     /**
      * Setter for messagesHandler.
@@ -236,7 +346,7 @@ public class ESCOSyncReplClient implements InitializingBean {
     public synchronized void requestToStop() {
         stopRequest = true;
     }
-    
+
     /**
      * Setter for stop request.
      * @param stopRequest The new value for stop request.
@@ -244,7 +354,7 @@ public class ESCOSyncReplClient implements InitializingBean {
     protected void setStopRequest(final boolean stopRequest) {
         this.stopRequest = stopRequest;
     }
-    
+
     /**
      * Getter for stopRequest.
      * @return stopRequest.
@@ -252,7 +362,7 @@ public class ESCOSyncReplClient implements InitializingBean {
     protected synchronized boolean isStopRequest() {
         return stopRequest;
     }
-    
+
     /**
      * Setter for running.
      * @param running the new value for running.
@@ -260,9 +370,5 @@ public class ESCOSyncReplClient implements InitializingBean {
     protected synchronized void setRunning(final boolean running) {
         this.running = running;
     }
-
-
-
-
 }
 

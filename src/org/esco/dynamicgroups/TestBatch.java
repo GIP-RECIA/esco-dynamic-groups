@@ -1,7 +1,7 @@
 package org.esco.dynamicgroups;
 
-import edu.internet2.middleware.grouper.GroupModifyException;
-import edu.internet2.middleware.grouper.InsufficientPrivilegeException;
+import edu.internet2.middleware.grouper.exception.GroupModifyException;
+import edu.internet2.middleware.grouper.exception.InsufficientPrivilegeException;
 
 
 import org.esco.dynamicgroups.dao.db.IDBDAOService;

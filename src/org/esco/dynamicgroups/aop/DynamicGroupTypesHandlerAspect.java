@@ -3,9 +3,9 @@
  */
 package org.esco.dynamicgroups.aop;
 
-import edu.internet2.middleware.grouper.AttributeNotFoundException;
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupType;
+import edu.internet2.middleware.grouper.exception.AttributeNotFoundException;
 
 import java.io.Serializable;
 
@@ -13,8 +13,8 @@ import org.apache.log4j.Logger;
 import org.codehaus.aspectwerkz.joinpoint.CodeRtti;
 import org.codehaus.aspectwerkz.joinpoint.JoinPoint;
 import org.esco.dynamicgroups.domain.IDomainService;
+import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
 import org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition;
-import org.esco.dynamicgroups.util.ESCODynamicGroupsParameters;
 
 
 

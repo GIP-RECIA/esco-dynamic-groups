@@ -3,26 +3,26 @@
  */
 package org.esco.dynamicgroups.dao.grouper;
 
-import edu.internet2.middleware.grouper.AttributeNotFoundException;
 import edu.internet2.middleware.grouper.Field;
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
-import edu.internet2.middleware.grouper.GroupNotFoundException;
 import edu.internet2.middleware.grouper.GroupType;
 import edu.internet2.middleware.grouper.GroupTypeFinder;
 import edu.internet2.middleware.grouper.GrouperSession;
-import edu.internet2.middleware.grouper.InsufficientPrivilegeException;
 import edu.internet2.middleware.grouper.Member;
-import edu.internet2.middleware.grouper.MemberAddException;
-import edu.internet2.middleware.grouper.MemberDeleteException;
 import edu.internet2.middleware.grouper.MemberFinder;
-import edu.internet2.middleware.grouper.MemberNotFoundException;
 import edu.internet2.middleware.grouper.Membership;
-import edu.internet2.middleware.grouper.Privilege;
-import edu.internet2.middleware.grouper.SchemaException;
 import edu.internet2.middleware.grouper.Stem;
 import edu.internet2.middleware.grouper.StemFinder;
 import edu.internet2.middleware.grouper.SubjectFinder;
+import edu.internet2.middleware.grouper.exception.AttributeNotFoundException;
+import edu.internet2.middleware.grouper.exception.GroupNotFoundException;
+import edu.internet2.middleware.grouper.exception.InsufficientPrivilegeException;
+import edu.internet2.middleware.grouper.exception.MemberAddException;
+import edu.internet2.middleware.grouper.exception.MemberDeleteException;
+import edu.internet2.middleware.grouper.exception.MemberNotFoundException;
+import edu.internet2.middleware.grouper.exception.SchemaException;
+import edu.internet2.middleware.grouper.privs.Privilege;
 import edu.internet2.middleware.subject.Subject;
 import edu.internet2.middleware.subject.SubjectNotFoundException;
 import edu.internet2.middleware.subject.SubjectNotUniqueException;
@@ -37,9 +37,9 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.domain.IDynamicGroupInitializer;
 import org.esco.dynamicgroups.domain.beans.DynGroup;
+import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
 import org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition;
 import org.esco.dynamicgroups.exceptions.DynamicGroupsException;
-import org.esco.dynamicgroups.util.ESCODynamicGroupsParameters;
 import org.esco.dynamicgroups.util.GrouperSessionUtil;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationEvent;
@@ -320,7 +320,6 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
                 }
             } else {
                 boolean defFieldFound = false;
-                @SuppressWarnings("unchecked")
                 final Set<Field> fields = type.getFields();
                 final Iterator<Field> it = fields.iterator();
                 while (it.hasNext() && !defFieldFound) {
@@ -355,8 +354,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
      * @return True if the dynamic type is found in the types of the group.
      */
     private boolean isDynamicGroup(final Group group) {
-        @SuppressWarnings("unchecked")
-        Set<GroupType> types = group.getTypes();
+        final Set<GroupType> types = group.getTypes();
 
         for (GroupType type : types) {
             if (grouperDynamicType.equals(type.getName())) {
@@ -459,11 +457,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
 
             sessionUtil.stopSession(session);
 
-        } catch (MemberNotFoundException e) {
-            sessionUtil.stopSession(session);
-            LOGGER.error(e, e);
-            throw new DynamicGroupsException(e);
-        } catch (GroupNotFoundException e) {
+        }  catch (GroupNotFoundException e) {
             sessionUtil.stopSession(session);
             LOGGER.error(e, e);
             throw new DynamicGroupsException(e);

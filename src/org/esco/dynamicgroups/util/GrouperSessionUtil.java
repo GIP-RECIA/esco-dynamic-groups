@@ -4,8 +4,8 @@
 package org.esco.dynamicgroups.util;
 
 import edu.internet2.middleware.grouper.GrouperSession;
-import edu.internet2.middleware.grouper.SessionException;
 import edu.internet2.middleware.grouper.SubjectFinder;
+import edu.internet2.middleware.grouper.exception.SessionException;
 import edu.internet2.middleware.subject.Subject;
 import edu.internet2.middleware.subject.SubjectNotFoundException;
 import edu.internet2.middleware.subject.SubjectNotUniqueException;

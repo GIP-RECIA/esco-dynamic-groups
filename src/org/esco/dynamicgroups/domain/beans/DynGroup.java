@@ -53,6 +53,14 @@ public class DynGroup implements Serializable {
     
     /**
      * Builds an instance of DynGroup.
+     * @param groupName The name of the group.
+     */
+    public DynGroup(final String groupName) {
+        this(groupName, "");
+    }
+    
+    /**
+     * Builds an instance of DynGroup.
      * @param definition The definition of the group to buikd.
      */
     public DynGroup(final DynamicGroupDefinition definition) {
