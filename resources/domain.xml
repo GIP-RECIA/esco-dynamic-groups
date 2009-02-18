@@ -5,8 +5,10 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
 
 	<bean id="parameters" class="org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters">
-		<constructor-arg value="resources/esco-dynamifGroups.properties" />
+		<constructor-arg value="resources/esco-dynamicGroups.properties" />
 	</bean>
+	
+	<bean id="hooksInstaller" class="org.esco.dynamicgroups.hooks.ESCOHooksInstaller" depends-on="parameters"/>
 
 	<bean id="repositoryListener" class="org.esco.dynamicgroups.domain.SyncReplClientListenerImpl">
 		<property name="syncReplClient" ref="synReplClient" />
