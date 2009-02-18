@@ -53,6 +53,12 @@ public interface IDBDAOService {
     void storeDynGroup(final DynGroup dynGroup);
     
     /**
+     * Deletes a group.
+     * @param groupName The name of the group to delete.
+     */
+    void deleteDynGroup(final String groupName);
+    
+    /**
      * Deletes a DynGroup instance.
      * @param dynGroup The instance to delete.
      */
