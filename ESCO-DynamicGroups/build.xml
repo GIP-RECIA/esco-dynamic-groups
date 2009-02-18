@@ -17,6 +17,7 @@
 	<property name="esco-dg.aspectwerkz.aop.def" value="META-INF/esco-dynamic-groups.aop.xml"/>
 	<property name="esco-dg.version" value="0.1.0-alpha0"/>
 	<property name="esco-dg.grouper-dg.lib" value="grouper-esco-dg-${esco-dg.version}.jar"/>
+	<property name="esco-dg.grouper-dg-hooks.lib" value="grouper-esco-dg-hooks-${esco-dg.version}.jar"/>
 	<property name="esco-dg.grouper-dg.3rdPart.lib" value="grouper-esco-dg-3rdPart.jar"/>
 		
 	
@@ -110,6 +111,28 @@
 			        <attribute name="Implementation-Version"  value="${esco-dg.version}"/>
 			        <attribute name="Implementation-URL"      value="http://middleware.internet2.edu/dir/groups/grouper/"/>
 			    </manifest>
+			</jar>
+	</target>
+	
+	<target name="esco-dg.grouper-dg-hooks.jar" 
+			description="Creates the jar for grouper with dynamic groups support." 
+			depends="esco-dg.create.dist.dir, esco-dg.compile" >
+			<!--javac  srcdir="${esco-dg.src.dir}"
+								 includes="org/esco/dynamicgroups/**"
+						         excludes="org/esco/dynamicgroups/aop/**"
+								 destdir="${esco-dg.build.dir}"
+						         debug="true"
+						         deprecation="true"
+						         optimize="true"
+						 		 classpathref="esco-dg.classpath">
+				 </javac-->
+		 	<jar destfile="${esco-dg.dist.dir}${esco-dg.grouper-dg-hooks.lib}" basedir="${esco-dg.build.dir}" excludes="**/aop/*">
+		  	   		<manifest>
+		  	   			<attribute name="Built-By"                value="A. Deman - GIP RECIA"/>
+				        <attribute name="Implementation-Vendor"   value="ESCO/GIP RECIA for the dynamic groups add on."/>
+				        <attribute name="Implementation-Title"    value="grouper with dynamic groups support"/>
+				        <attribute name="Implementation-Version"  value="${esco-dg.version}"/>
+				    </manifest>
 			</jar>
 	</target>
 	
