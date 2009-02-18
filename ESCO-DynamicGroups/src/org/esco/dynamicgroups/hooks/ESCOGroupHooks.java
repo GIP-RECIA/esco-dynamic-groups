@@ -12,7 +12,6 @@ import edu.internet2.middleware.grouper.hooks.beans.HooksGroupBean;
 
 import java.io.Serializable;
 import java.util.Iterator;
-import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.domain.DomainRegistry;
@@ -26,8 +25,10 @@ import org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition;
  */
 public class ESCOGroupHooks extends GroupHooks implements Serializable {
 
+    /** Prefixe used by grouper for the attributes in the changed fields. */
     private static final String ATTRIBUTE_PREFIX = "attribute__";
 
+    /** Extension field in Grouper. */ 
     private static final String EXTENSION = "extension";
 
     /** Serial version UID. */
@@ -41,7 +42,7 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
 
     /** The definition field for the dynamic groups. */
     private String definitionField;
-    
+
     /** The grouper internal name for the definiton field. */
     private String definitionFieldInternal;
 
@@ -49,21 +50,137 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
      * Builds an instance of ESCOGroupHooks.
      */
     public ESCOGroupHooks() {
-        LOGGER.info("Creation of an hooks of class: " + getClass().getSimpleName());
         dynamicType = ESCODynamicGroupsParameters.instance().getGrouperType();
         definitionField = ESCODynamicGroupsParameters.instance().getGrouperDefinitionField();
         definitionFieldInternal = ATTRIBUTE_PREFIX + definitionField;
+
+        if (LOGGER.isInfoEnabled()) {
+            final StringBuilder sb = new StringBuilder("Creation of an hooks of class: ");
+            sb.append(getClass().getSimpleName());
+            sb.append(" - dynamic type: ");
+            sb.append(dynamicType);
+            sb.append(" Definition field: ");
+            sb.append(definitionField);
+            sb.append(".");
+            LOGGER.info(sb.toString());
+        }
     }
 
     /**
-     * Handles a dynamic group.
-     * @param group The group to handle.
+     * @param hooksContext
+     * @param postDeleteBean
+     * @see edu.internet2.middleware.grouper.hooks.GroupHooks#groupPostDelete(HooksContext, HooksGroupBean)
      */
-    protected void handleDynamicGroup(final Group group) { 
+    @Override
+    public void groupPostDelete(final HooksContext hooksContext, final HooksGroupBean postDeleteBean) {
+        final Group group = postDeleteBean.getGroup();
 
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Handles dynamic type for the group: " + group.getName());
+        if (isDynamicGroup(group)) {
+            DomainRegistry.instance().getDomainService().handleDeletedGroup(group.getName());
         }
+    }
+
+
+    /**
+     * @param hooksContext
+     * @param postUpdateBean
+     * @see edu.internet2.middleware.grouper.hooks.GroupHooks#groupPostUpdate(HooksContext, HooksGroupBean)
+     */
+    @Override
+    public void groupPostUpdate(final HooksContext hooksContext, final HooksGroupBean postUpdateBean) {
+
+        final Group group = postUpdateBean.getGroup();
+
+        if (isDynamicGroup(group)) {
+
+            if (isExtensionUpdate(group)) {
+                final String previousName = group.dbVersion().getName();
+
+                // The extension of the group is modified.
+                if (LOGGER.isDebugEnabled()) {
+                    final String newName = group.getName();
+                    final StringBuilder sb = new StringBuilder("Modification of the extension - Previous name: ");
+                    sb.append(previousName);
+                    sb.append(" - New name: ");
+                    sb.append(newName);
+                    LOGGER.debug(sb.toString());
+                }
+
+                DomainRegistry.instance().getDomainService().handleDeletedGroup(previousName);
+                DomainRegistry.instance().getDomainService().handleNewOrModifiedDynamicGroup(buildDefinition(group));
+
+            } else if (isDefinitionUpdate(group)) {
+
+                // The defition field of the dynamic group is modified.
+                LOGGER.debug("Modification of the definition field.");
+
+                DomainRegistry.instance().getDomainService().handleNewOrModifiedDynamicGroup(buildDefinition(group));
+            }
+        }
+    }
+
+    /**
+     * Tests if the extension of a group is modified.
+     * @param group the group to test.
+     * @return True if the extension of the group is modified.
+     */
+    protected boolean isExtensionUpdate(final Group group) {
+
+        if (!group.dbVersionDifferentFields().contains(EXTENSION)) {
+            return false;
+        }
+
+        final String currentExtension = group.getAttributeOrNull(EXTENSION);
+        final String previousExtension = group.dbVersion().getAttributeOrNull(EXTENSION);
+
+        if (!currentExtension.equals(previousExtension)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Test if the definiton field associated to a dynamic group is changed.
+     * @param group The group.
+     * @return true if the fied that contains the defintion of the group is changed.
+     */
+    protected boolean isDefinitionUpdate(final Group group) {
+
+        if (!group.dbVersionDifferentFields().contains(definitionFieldInternal)) {
+            return false;
+        }
+        final String currentDefinition = group.getAttributeOrNull(definitionField);
+        final String previousDefinition = group.dbVersion().getAttributeOrNull(definitionField);
+        if (!currentDefinition.equals(previousDefinition)) {
+            return true;
+        }
+        return false;
+    } 
+
+    /**
+     * Tests if a group is dynamic.
+     * @param group The group to test.
+     * @return True if the group has the dynamic type.
+     */
+    protected boolean isDynamicGroup(final Group group) {
+        final Iterator<GroupType> it = group.getTypes().iterator(); 
+        while (it.hasNext()) {
+            if (dynamicType.equals(it.next().getName())) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("The group " + group.getName() + " is dynamic.");
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Builds the definition of a dynamic group.
+     * @param group The group associated to the dynamic group definition. 
+     * @return The Dynamic group definition.
+     */
+    protected DynamicGroupDefinition buildDefinition(final Group group) {
 
         String membersDef = null;
         try {
@@ -76,166 +193,13 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
         final DynamicGroupDefinition groupDef = new DynamicGroupDefinition(group.getName(), membersDef);
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("The dynamic group " + group.getName() 
-                    + " will be initialized with the definition: " + groupDef);
+            final StringBuilder sb = new StringBuilder("Dynamic group definition built: ");
+            sb.append(groupDef);
+            LOGGER.debug(sb.toString());
         }
-        DomainRegistry.instance().getDomainService().handleNewOrModifiedDynamicGroup(groupDef);
-    }
-    
-    /**
-     * Tests if the extension of a group is modified.
-     * @param group the group to test.
-     * @return True if the extension of the group is modified.
-     */
-    protected boolean isExtensionUpdate(final Group group) {
-        if (!group.dbVersionDifferentFields().contains(EXTENSION)) {
-            return false;
-        }
-        final String currentName = group.getAttributeOrNull(EXTENSION);
-        final String previousName = group.dbVersion().getAttributeOrNull(EXTENSION);
-        if (!currentName.equals(previousName)) {
-            return true;
-        }
-        return false;
-    }
-    
-    /**
-     * Test if the definiton field associated to a dynamic group is changed.
-     * @param group The group.
-     * @return true if the fied that contains the defintion of the group is changed.
-     */
-    protected boolean isDefinitionUpdate(final Group group) {
-        if (!group.dbVersionDifferentFields().contains(definitionFieldInternal)) {
-            return false;
-        }
-        final String currentDefinition = group.getAttributeOrNull(definitionField);
-        final String previousDefinition = group.dbVersion().getAttributeOrNull(definitionField);
-        if (!currentDefinition.equals(previousDefinition)) {
-            return true;
-        }
-        return false;
+
+        return groupDef;
     }
 
-    /**
-     * Tests if a group is dynamic.
-     * @param group The group to test.
-     * @return True if the group has the dynamic type.
-     */
-    protected boolean isDynamicGroup(final Group group) {
-        final Iterator<GroupType> it = group.getTypes().iterator(); 
-        while (it.hasNext()) {
-            if (dynamicType.equals(it.next().getName())) {
-                return true;
-            }
-        }
-        return false;
-    }
-    
-    
-
-    /**
-     * Tests if a group has to be handled, i.e. tests if the group has the dynamic type
-     * and the extension or the field that contains the definition has changed.
-     * @param group The group to test.
-     * @return True if the group has to be handled as a dynamic group.
-     */
-    protected boolean groupHasTobeHandled(final Group group) {
-        LOGGER.trace("Tests if the group has to be handled as a dynamic one.");
-        
-        if (!isDynamicGroup(group)) {
-            return false;
-        }
-        final Group previous = group.dbVersion();
-        final String currentName = group.getAttributeOrNull(EXTENSION);
-        final String previousName = previous.getAttributeOrNull(EXTENSION);
-        boolean result = false;
-        if (!currentName.equals(previousName)) {
-            LOGGER.info(" EXTENSION has changed: current: " + currentName 
-                    + " previous: " + previousName);
-            result = true;
-        }
-
-        final String currentDynAtt = group.getAttributeOrNull(definitionField);
-        final String previousDynAtt = previous.getAttributeOrNull(definitionField);
-
-        if (!currentDynAtt.equals(previousDynAtt)) {
-            LOGGER.info(" Definition field changed");
-            result = true;
-        }
-        return result;
-
-    }
-
-    /**
-     * Displays the differences between the current state of a group and its previous state.
-     * @param label  A label to use for the logs.
-     * @param g The group.
-     */
-protected void displayDifferences(final String label, final Group g) {
-        LOGGER.info("---------" + label + "-------------");
-        LOGGER.info("   g.dbVersionIsDifferent(): " + g.dbVersionIsDifferent());
-        LOGGER.info("  g.dbVersionDifferentFields(true): " + g.dbVersionDifferentFields(true));
-        final Map<String, String> attributes = g.getAttributes();
-        LOGGER.info("Current attributes: ");
-        for (String key : attributes.keySet()) {
-            LOGGER.debug("   " + key + " = " + attributes.get(key));
-        }
-
-        final Map<String, String> prevAttributes = g.dbVersion().getAttributes();
-        LOGGER.info("Previous attributes: ");
-        for (String key : prevAttributes.keySet()) {
-            LOGGER.debug("   " + key + " = " + prevAttributes.get(key));
-        }
-
-        LOGGER.info("----------------------");
-    }
-
-
-    /**
-     * @param hooksContext
-     * @param postDeleteBean
-     * @see edu.internet2.middleware.grouper.hooks.GroupHooks#groupPostDelete(HooksContext, HooksGroupBean)
-     */
-    @Override
-    public void groupPostDelete(final HooksContext hooksContext, final HooksGroupBean postDeleteBean) {
-        final Group group = postDeleteBean.getGroup();
-
-        if (groupHasTobeHandled(group)) {
-            DomainRegistry.instance().getDomainService().handleDeletedGroup(group.getName());
-        }
-    }
-
-    /**
-     * @param hooksContext
-     * @param preUpdateBean
-     * @see edu.internet2.middleware.grouper.hooks.GroupHooks#groupPreUpdate(HooksContext, HooksGroupBean)
-     */
-    @Override
-    public void groupPreUpdate(final HooksContext hooksContext, final HooksGroupBean preUpdateBean) {
-        LOGGER.trace("groupPreUpdate");
-        
-        displayDifferences("groupPreUpdate", preUpdateBean.getGroup());
-//      final Group group = preUpdateBean.getGroup();
-//
-//      if (groupHasTobeHandled(group)) {
-//          handleDynamicGroup(group);
-//      }
-    }
-
-
-    /**
-     * @param hooksContext
-     * @param postUpdateBean
-     * @see edu.internet2.middleware.grouper.hooks.GroupHooks#groupPostUpdate(HooksContext, HooksGroupBean)
-     */
-    @Override
-    public void groupPostUpdate(final HooksContext hooksContext, final HooksGroupBean postUpdateBean) {
-        LOGGER.trace("groupPostUpdate");
-        displayDifferences("groupPostUpdate", postUpdateBean.getGroup());
-        LOGGER.info(" isExtensionUpdate: " + isExtensionUpdate(postUpdateBean.getGroup()));
-        LOGGER.info(" isDefinitionUpdate: " + isDefinitionUpdate(postUpdateBean.getGroup()));
-    }
-
-  
 
 }

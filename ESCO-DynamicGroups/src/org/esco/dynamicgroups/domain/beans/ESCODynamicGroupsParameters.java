@@ -162,6 +162,14 @@ public class ESCODynamicGroupsParameters implements Serializable {
             if (is == null) {
                 LOGGER.fatal("Unable to load (from classpath) " + configurationFile);
             }
+            LOGGER.fatal("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            Properties p = System.getProperties();
+            for (Object k : p.keySet()) {
+                LOGGER.fatal(k + " ====> " + p.get(k));
+            }
+            
+            LOGGER.fatal("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            
             params.load(is);
             loadFromProperties(params);
             setParametersProperties(params);

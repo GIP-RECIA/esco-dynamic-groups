@@ -243,6 +243,34 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
         commit();
         closeSessionForThread();
     }
+    
+    /**
+     * Deletes a group.
+     * @param name The name of the group to delete.
+     * @see org.esco.dynamicgroups.dao.db.IDBDAOService#deleteDynGroup(java.lang.String)
+     */
+    public void deleteDynGroup(final String name) {
+        startTransaction();
+        final Session session = openOrRetrieveSessionForThread();
+        final DynGroup group = 
+            (DynGroup) retrieveUniqueInstanceByAttributeInternal(session, DynGroup.class, GROUP_NAME, name);
+        if (group != null) {
+            deleteDynGroupInternal(session, group);
+            if (LOGGER.isDebugEnabled()) {
+                final StringBuilder sb = new StringBuilder("Deleting the group: " );
+                sb.append(name);
+                sb.append(".");
+                LOGGER.debug(sb.toString());
+            }
+        
+        } else {
+            LOGGER.error("Unable to retrieve the group for deletion: " + name);
+        }
+
+        commit();
+        closeSessionForThread();
+
+    }
 
     /**
      * Resolves the indirections, i.e. : the groups that correspond to a conjunctive component
@@ -652,4 +680,6 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
     public void setStringCleaner(final IStringCleaner stringCleaner) {
         this.stringCleaner = stringCleaner;
     }
+
+   
 }

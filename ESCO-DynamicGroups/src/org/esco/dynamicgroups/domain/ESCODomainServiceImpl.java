@@ -294,6 +294,6 @@ public class ESCODomainServiceImpl
      * @see org.esco.dynamicgroups.domain.IDomainService#handleDeletedGroup(java.lang.String)
      */
     public void handleDeletedGroup(final String groupName) {
-        this.daoService.deleteDynGroup(new DynGroup(groupName));
+        this.daoService.deleteDynGroup(groupName);
     }
 }
