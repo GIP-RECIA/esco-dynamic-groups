@@ -82,8 +82,6 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
     /** Initialization flag. */
     private boolean initialized;
 
-
-
     /**
      * Builds an instance of GrouperDAOServiceImpl.
      */
@@ -100,8 +98,6 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
                     + " - deleted users are removed from all groups: " + removeFromAllGroups 
                     + " - reset on startup: " + resetOnStartup + ".");
         }
-
-
     }
 
 
