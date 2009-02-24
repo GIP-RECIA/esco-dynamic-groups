@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.esco.dynamicgroups.util;
+package org.esco.dynamicgroups.dao.grouper;
 
 import edu.internet2.middleware.grouper.GrouperSession;
 import edu.internet2.middleware.grouper.SubjectFinder;
