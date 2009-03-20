@@ -92,7 +92,7 @@ public class DynamicGroupDefinition implements Serializable {
      * (A+BC) + DCE + G will return {(A+BC), DCE, G }.
      * 
      */
-    public List<IProposition> getConjunctiveProposition() {
+    public List<IProposition> getConjunctivePropositions() {
         return proposition.getConjunctivePropositions();
     }
 
