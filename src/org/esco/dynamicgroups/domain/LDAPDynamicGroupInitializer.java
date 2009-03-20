@@ -84,9 +84,19 @@ public class LDAPDynamicGroupInitializer implements IDynamicGroupInitializer, In
      * Builds an instance of LDAPDynamicGroupInitializer.
      */
     public LDAPDynamicGroupInitializer() {
-        connectToLDAP();
-        ldapSearchBase = ESCODynamicGroupsParameters.instance().getLdapSearchBase();
-        uidAttribute = ESCODynamicGroupsParameters.instance().getLdapUidAttribute();
+        this(false);
+    }
+    
+    /**
+     * Builds an instance of LDAPDynamicGroupInitializer.
+     * @param offline Flag to determine if a connection to the LDAP should be established.
+     */
+    public LDAPDynamicGroupInitializer(final boolean offline) {
+        if (!offline) {
+            connectToLDAP();
+            ldapSearchBase = ESCODynamicGroupsParameters.instance().getLdapSearchBase();
+            uidAttribute = ESCODynamicGroupsParameters.instance().getLdapUidAttribute();
+        }
     }
 
     /**
@@ -222,7 +232,7 @@ public class LDAPDynamicGroupInitializer implements IDynamicGroupInitializer, In
      */
     public String translateToLdapFilter(final DynamicGroupDefinition definition) {
         final StringBuilder sb = new StringBuilder();
-        List<IProposition> conjProps = definition.getConjunctiveProposition();
+        List<IProposition> conjProps = definition.getConjunctivePropositions();
         if (conjProps.size() > 0) {
             if (conjProps.size() == 1) {
                 sb.append(translateConjPropToLDAPFilter(conjProps.get(0)));

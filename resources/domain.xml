@@ -20,5 +20,13 @@
 		<property name="groupsService" ref="groupsService" />
 		<property name="repositoryListener" ref="repositoryListener" />
 	</bean>
+	
+	<bean id="i18nService" class="org.springframework.context.support.ResourceBundleMessageSource">
+		<property bale ="basenames">
+			<list>
+				<value>i18n/statistics</value>
+			</list>
+		</property>
+	</bean>
 
 </beans>

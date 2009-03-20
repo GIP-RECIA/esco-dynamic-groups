@@ -35,8 +35,6 @@ public class ESCODeletedSubjectImpl implements Subject {
     /** Id if a subject. */
     private  String id;
     
-   
-    
     /**
      * Builds an instance of ESCODeletedSubjectImpl.
      * @param id Identifier of the subject.
@@ -44,7 +42,6 @@ public class ESCODeletedSubjectImpl implements Subject {
     ESCODeletedSubjectImpl(final String id) {
         this.id = id;
     }
-    
 
     /**
      * Gives the value of a single-valued attribute.

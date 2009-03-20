@@ -86,12 +86,7 @@ public class DynGroup implements Serializable {
      */
     public DynGroup(final String groupName, final String groupDefinition) {
        this.groupName = groupName;
-       this.groupDefinition = groupDefinition;
-       
-       final IProposition prop = PropositionCodec.instance().decode(groupDefinition);
-       if (prop != null) {
-           attributesNb = prop.toDisjunctiveNormalForm().getAtomicPropositions().size();
-       }
+       setGroupDefinition(groupDefinition);
     }
     
     /**
@@ -167,6 +162,11 @@ public class DynGroup implements Serializable {
      */
     public void setGroupDefinition(final String groupDefinition) {
         this.groupDefinition = groupDefinition;
+        
+        final IProposition prop = PropositionCodec.instance().decode(groupDefinition);
+        if (prop != null) {
+            attributesNb = prop.toDisjunctiveNormalForm().getAtomicPropositions().size();
+        }
     }
 
     /**

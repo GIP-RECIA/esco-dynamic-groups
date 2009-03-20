@@ -1,1 +1,47 @@
-Supprimer l'uid de la liste des attributs dynamiques.
+* Supprimer l'uid de la liste des attributs dynamiques.
+
+* Gérer les erreurs lors de la saisie des definitions dynamiques :
+    - +fois le même attribut e.g. And(att=1, And (att1=1,...)
+ 
+* And et Or non binaires.
+
+* i18n
+
+* Statistiques + rapport:
+ - chaque entree, groupe d'entrée doit être activable/ desativable.
+ - Envoyé par mail.
+ - format text / HTML.
+ - Stocké en base pour consultation.
+
+   Nombre de notifications
+   Nombre de groupes dynamiques crees.
+   Nombre de definitions modifiees
+   Nombre de groupes dynamiques inactifs (sans defintion).
+   
+ 
+ Appartenances :
+ 	Groupe le plus peuplé
+ 	Groupe le moins peuplé
+ 	Moyenne
+ 	Ecart type
+ 	
+ 	N premiers groupes dynamiques vides.
+ 	
+
+Activités des groupes :
+	esco:grouper1 : 30 ajouts, 50 suppressions
+	utilisateurs ajoutés : uid1, uid2...
+	utilisateurs supprimés : uid1, uid2...
+	
+	esco:groupe2 : 10 ajouts
+	utilisateurs ajoutés : uid1, uid2...
+	utilisateurs supprimés : uid1, uid2...
+	
+	
+	
+Vérifications de cohérence.	 	
+    N premieres groupes != peuplement obtenu par le processus d'initialisation. 	
+ 	  
+   
+ 
+   

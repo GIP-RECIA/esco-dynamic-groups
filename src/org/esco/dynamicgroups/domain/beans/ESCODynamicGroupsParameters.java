@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.InvalidPropertiesFormatException;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.Set;
 
@@ -123,6 +124,9 @@ public class ESCODynamicGroupsParameters implements Serializable {
     /** Flag used to detemine if a deleted user should be removed from
      * all the groups or only from the dynamic ones.*/
     private boolean removeFromAllGroups;
+    
+    /** The locale to use. */
+    private Locale locale;
 
     /**
      * Constructor for ESCODynamicGroupsParameters.
@@ -162,13 +166,7 @@ public class ESCODynamicGroupsParameters implements Serializable {
             if (is == null) {
                 LOGGER.fatal("Unable to load (from classpath) " + configurationFile);
             }
-            LOGGER.fatal("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            Properties p = System.getProperties();
-            for (Object k : p.keySet()) {
-                LOGGER.fatal(k + " ====> " + p.get(k));
-            }
             
-            LOGGER.fatal("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
             
             params.load(is);
             loadFromProperties(params);
@@ -209,6 +207,7 @@ public class ESCODynamicGroupsParameters implements Serializable {
         final String grouperDefKey = PROPERTIES_PREFIX + "grouper.definiton.field";
         final String grouperUserKey = PROPERTIES_PREFIX + "grouper.user";
         final String removeFromAllGroupsKey = PROPERTIES_PREFIX + "grouper.remove.from.all.groups";
+        final String localeKey = PROPERTIES_PREFIX + "locale";
 
         // Retrieves the values.
         setLdapHost(parseStringFromProperty(params, ldapHostKey));
@@ -236,9 +235,13 @@ public class ESCODynamicGroupsParameters implements Serializable {
         setGrouperDefinitionField(parseStringFromProperty(params, grouperDefKey));
         setGrouperUser(parseStringFromProperty(params, grouperUserKey));
         setRemoveFromAllGroups(parseBooleanFromProperty(params, removeFromAllGroupsKey)); 
-
+        setLocale(new Locale(parseStringFromProperty(params, localeKey)));
+        
+        
         // Adds the LDAP id attributes in the search attributes.
         ldapSearchAttributes.add(ldapUidAttribute);
+        
+        
     }
 
     /**
@@ -829,6 +832,22 @@ public class ESCODynamicGroupsParameters implements Serializable {
      */
     protected static synchronized void setInstance(final ESCODynamicGroupsParameters instance) {
         ESCODynamicGroupsParameters.instance = instance;
+    }
+
+    /**
+     * Getter for locale.
+     * @return locale.
+     */
+    public Locale getLocale() {
+        return locale;
+    }
+
+    /**
+     * Setter for locale.
+     * @param locale the new value for locale.
+     */
+    public void setLocale(final Locale locale) {
+        this.locale = locale;
     }
 
    
