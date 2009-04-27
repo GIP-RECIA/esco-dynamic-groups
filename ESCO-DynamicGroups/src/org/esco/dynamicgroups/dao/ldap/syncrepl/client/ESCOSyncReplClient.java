@@ -146,6 +146,7 @@ public class ESCOSyncReplClient implements InitializingBean {
                 lc.connect(ldapHost, ldapPort);
                 lc.bind(ldapVersion, bindDN, credentials.getBytes("UTF8") );
                 constraints.setControls(syncRequestCtrl);
+                constraints.setMaxResults(0);
 
                 queue = lc.search(searchBase, 
                         LDAPConnection.SCOPE_SUB, 
