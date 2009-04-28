@@ -318,14 +318,11 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
                 final Set<Field> fields = type.getFields();
                 final Iterator<Field> it = fields.iterator();
                 while (it.hasNext() && !defFieldFound) {
-                    //                        final Field field = it.next();
-                    //                        final String fieldName = field.getName();
                     defFieldFound = it.next().getName().equals(definitionField);
                 }
                 if (!defFieldFound) {
-                    LOGGER.fatal("The group type " + grouperDynamicType 
+                    LOGGER.error("The group type " + grouperDynamicType 
                             + " does not contain the definition field: " + definitionField);
-                    System.exit(1);
                 } else {
                     LOGGER.info("Group type " + grouperDynamicType + " is valid.");
                 }

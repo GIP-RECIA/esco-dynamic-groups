@@ -14,12 +14,10 @@
 	
 	<target name="_esco-dg.clean" 
 		description="Try to remove the original jar of the grouper api and previous jar">
-		<delete>
-			<fileset dir="${esco-dg.deploy.dir}/WEB-INF/lib/" casesensitive="yes">
-				<include name="grouper*.jar"/>
-			  	<exclude name="grouper-lib*.jar"/>
-			</fileset>			
-		</delete>
+		<delete quiet="true" dir="${esco-dg.build.dir}"/>
+		<delete quiet="true" dir="${esco-dg.dist.dir}"/>
+		<delete quiet="true" dir="${esco-dg.tmp.dir}"/>
+		
 	</target>
 
   	<target name="_esco-dg.deploy" 

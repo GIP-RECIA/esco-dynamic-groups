@@ -3,24 +3,19 @@
  */
 package org.esco.dynamicgroups.domain;
 
+import com.novell.ldap.LDAPConnection;
+import com.novell.ldap.LDAPEntry;
+import com.novell.ldap.LDAPException;
+import com.novell.ldap.LDAPSearchResults;
+
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
-
-import javax.naming.Context;
-import javax.naming.NameAlreadyBoundException;
-import javax.naming.NamingEnumeration;
-import javax.naming.NamingException;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.DirContext;
-import javax.naming.directory.InitialDirContext;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
 
 import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.dao.grouper.IGroupsDAOService;
+import org.esco.dynamicgroups.dao.ldap.LDAPConnectionManager;
 import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
 import org.esco.dynamicgroups.domain.definition.AtomicProposition;
 import org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition;
@@ -44,9 +39,6 @@ public class LDAPDynamicGroupInitializer implements IDynamicGroupInitializer, In
     /** Serial version UID.*/
     private static final long serialVersionUID = 3555266918663719714L;
 
-    /** Factory for the ldap context.*/
-    private static final String LDAP_CTX_FACTORY = "com.sun.jndi.ldap.LdapCtxFactory";
-
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(LDAPDynamicGroupInitializer.class); 
 
@@ -68,9 +60,6 @@ public class LDAPDynamicGroupInitializer implements IDynamicGroupInitializer, In
     /** Close bracket constant. */
     private static final char CLOSE_BRACKET = ')';
 
-    /** The LDAP ldapContext. */
-    private DirContext ldapContext;
-
     /** The group service to use. */
     private IGroupsDAOService groupsService;
 
@@ -80,25 +69,43 @@ public class LDAPDynamicGroupInitializer implements IDynamicGroupInitializer, In
     /** The name of the uid attribute. */
     private String uidAttribute;
     
+    /** The uidAttribute as a String array. */
+    private String[] uidAttributeArray;
+    
+    /** The LDAP Connection. */
+    private LDAPConnection connection;
+
     /**
      * Builds an instance of LDAPDynamicGroupInitializer.
      */
     public LDAPDynamicGroupInitializer() {
         this(false);
     }
-    
+
     /**
      * Builds an instance of LDAPDynamicGroupInitializer.
      * @param offline Flag to determine if a connection to the LDAP should be established.
      */
     public LDAPDynamicGroupInitializer(final boolean offline) {
         if (!offline) {
-            connectToLDAP();
+            
             ldapSearchBase = ESCODynamicGroupsParameters.instance().getLdapSearchBase();
             uidAttribute = ESCODynamicGroupsParameters.instance().getLdapUidAttribute();
+            uidAttributeArray = new String[] {uidAttribute};
+            connection = LDAPConnectionManager.instance().connect();
         }
     }
-
+    
+    /**
+     * Checks the connection and tries to reconnect if needed.
+     */
+    private void checkConnection() {
+        synchronized (connection) {
+            if (!LDAPConnectionManager.instance().isActiveConnection(connection)) {
+                connection = LDAPConnectionManager.instance().connect();
+            }
+        }
+    } 
     /**
      * Checks the bean injection.
      * @throws Exception
@@ -117,65 +124,32 @@ public class LDAPDynamicGroupInitializer implements IDynamicGroupInitializer, In
      * @see org.esco.dynamicgroups.domain.IDynamicGroupInitializer#initialize(DynamicGroupDefinition)
      */
     public void initialize(final DynamicGroupDefinition definition) {
-
         if (definition.isValid()) {
-
-            // Builds the list of the initial members of the group.
-            final SearchControls ctls = new SearchControls();
+            checkConnection();
+            
             final String filter = translateToLdapFilter(definition);
-            final Set<String> userIds = new HashSet<String>();
+           
             try {
-                final NamingEnumeration<SearchResult> answer = ldapContext.search(ldapSearchBase, filter, ctls);
-
-                while (answer.hasMore()) {
-                    final Attribute uidAttRes = answer.next().getAttributes().get(uidAttribute);
-                    if (uidAttRes == null) {
-                        LOGGER.error("Error unable to retrieve the attribute attribute: " + uidAttribute 
-                                + " - using search base: " + ldapSearchBase 
-                                + " and filter: " + filter + ".");
-                    } else {
-                        userIds.add((String) uidAttRes.get()); 
-                    }
+                final LDAPSearchResults result = getConnection().search(ldapSearchBase, 
+                        LDAPConnection.SCOPE_SUB, 
+                        filter, 
+                        uidAttributeArray, 
+                        false);
+                final Set<String> userIds = new HashSet<String>();
+                while (result.hasMore()) {
+                    final LDAPEntry entry = result.next();
+                    userIds.add(entry.getAttribute(uidAttribute).getStringValue());
                 }
 
                 // Adds the members to the list.
                 groupsService.addToGroup(definition.getGroupName(), userIds);
 
-            } catch (NamingException e) {
-                e.printStackTrace();
+            } catch (LDAPException e) {
+                LOGGER.error(e, e);
             }
         }
     }
-
-    /**
-     * Performs the LDAP connexion.
-     */
-    protected void connectToLDAP() {
-        final ESCODynamicGroupsParameters params = ESCODynamicGroupsParameters.instance();
-        final String ldapURL = "ldap://" + params.getLdapHost() + ":" + params.getLdapPort() + "/"; 
-
-        LOGGER.info("Connecting ldap: " + ldapURL);
-
-        Properties ldapEnv = new Properties();
-
-        ldapEnv.put(Context.INITIAL_CONTEXT_FACTORY, LDAP_CTX_FACTORY);
-        ldapEnv.put(Context.PROVIDER_URL, ldapURL);
-        ldapEnv.put(Context.SECURITY_PRINCIPAL, params.getLdapBindDN());
-        ldapEnv.put(Context.SECURITY_CREDENTIALS, params.getLdapCredentials());
-
-        try {
-            ldapContext = new InitialDirContext(ldapEnv);
-
-        } catch (NameAlreadyBoundException e ) {
-            LOGGER.fatal(e, e);
-            System.exit(1);
-        } catch (NamingException e) {
-            LOGGER.fatal(e, e);
-            System.exit(1);
-        } 
-    }
-
-
+   
     /**
      * Translates a conjunctive proposition into an ldap filter.
      * @param proposition The conjunctive proposition.
@@ -193,13 +167,13 @@ public class LDAPDynamicGroupInitializer implements IDynamicGroupInitializer, In
                 sb.append(EQUAL);
                 sb.append(atom.getValue());
                 sb.append(CLOSE_BRACKET);
-                
+
                 if (atom.isNegative()) {
                     sb.insert(0, NOT);
                     sb.insert(0, OPEN_BRACKET);
                     sb.append(CLOSE_BRACKET);
                 }
-                
+
             } else {
                 sb.append(OPEN_BRACKET);
                 sb.append(AND);
@@ -265,5 +239,15 @@ public class LDAPDynamicGroupInitializer implements IDynamicGroupInitializer, In
         this.groupsService = groupsService;
     }
 
-  
+    /**
+     * Getter for connection.
+     * @return connection.
+     */
+    protected LDAPConnection getConnection() {
+        synchronized (connection) {
+            return connection;
+        }
+    }
+
+
 }
