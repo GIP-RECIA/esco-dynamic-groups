@@ -11,7 +11,7 @@
 	<property name="esco-dg.classes.dir" value="${esco-dg.build.dir}classes/"/>
 	<property name="esco-dg.dist.dir" value="dist/"/>
 	<property name="esco-dg.tmp.dir" value="tmp/"/>
-	<property name="esco-dg.prop.dir" value="properties/"/>
+	<property name="esco-dg.prop.dir" value="resources/"/>
 	
 	<property name="esco-dg.src.dir" value="src/"/>
 	<property name="esco-dg.aspectwerkz.aop.def" value="META-INF/esco-dynamic-groups.aop.xml"/>

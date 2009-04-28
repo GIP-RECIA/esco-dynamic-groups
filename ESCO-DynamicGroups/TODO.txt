@@ -5,10 +5,16 @@
  
 * And et Or non binaires.
 
+* Utilisation de l'api JLDAP pour l'initialisation.
+
 * i18n
 
+* Revoir le schema de la base pour être en FN.
+
+* Voir la creation de la base.
+
 * Statistiques + rapport:
- - chaque entree, groupe d'entrée doit être activable/ desativable.
+ - chaque entree, groupe d'entrée doit être activable/ desactivable.
  - Envoyé par mail.
  - format text / HTML.
  - Stocké en base pour consultation.
@@ -16,7 +22,7 @@
    Nombre de notifications
    Nombre de groupes dynamiques crees.
    Nombre de definitions modifiees
-   Nombre de groupes dynamiques inactifs (sans defintion).
+   Nombre de groupes dynamiques inactifs (sans definition).
    
  
  Appartenances :

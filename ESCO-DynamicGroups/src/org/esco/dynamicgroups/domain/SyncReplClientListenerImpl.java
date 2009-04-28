@@ -120,7 +120,7 @@ public class SyncReplClientListenerImpl implements IRepositoryListener, Initiali
         
         thread.start();
         
-        LOGGER.debug("Listener started.");
+        LOGGER.info("Listener started.");
 
     }
     
@@ -131,7 +131,7 @@ public class SyncReplClientListenerImpl implements IRepositoryListener, Initiali
     public void stop() {
         
         if (thread != null) {
-            LOGGER.debug("Stopping the listener. ===>");
+            LOGGER.debug("Stopping the listener.");
             getSyncReplClient().requestToStop();
             final int secondInMillis = 1000;
             int count = 0;
@@ -144,7 +144,7 @@ public class SyncReplClientListenerImpl implements IRepositoryListener, Initiali
                     // Nothing to do.
                 }
             }
-            LOGGER.debug("Listener stopped");
+            LOGGER.info("Listener stopped");
             thread = null;
         }
     }
