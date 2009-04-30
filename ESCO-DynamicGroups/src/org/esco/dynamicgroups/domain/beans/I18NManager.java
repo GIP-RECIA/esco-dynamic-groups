@@ -70,5 +70,19 @@ public class I18NManager implements Serializable, ApplicationContextAware, Initi
     public String getI18nMessage(final String key) {
         return appCtx.getMessage(key, null, UNDEF_I18N + key, parameters.getLocale());
     }
+    /**
+     * Getter for parameters.
+     * @return parameters.
+     */
+    public ESCODynamicGroupsParameters getParameters() {
+        return parameters;
+    }
+    /**
+     * Setter for parameters.
+     * @param parameters the new value for parameters.
+     */
+    public void setParameters(final ESCODynamicGroupsParameters parameters) {
+        this.parameters = parameters;
+    }
     
 }

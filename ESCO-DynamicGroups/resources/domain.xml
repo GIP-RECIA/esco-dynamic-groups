@@ -18,8 +18,7 @@
 	</bean>
 	
 	<bean id="statisticsManagerProvider" class="org.esco.dynamicgroups.domain.statistics.StatisticsManagerProviderForHooks">
-		<property name="parameters" ref="parameters"/>
-		<property name="i18n" ref="i18n"/>
+		<property name="statisticsManager" ref="statisticsManager"/>
 	</bean>
 	
 	<bean id="hooksInstaller" class="org.esco.dynamicgroups.hooks.ESCOHooksInstaller" depends-on="parameters, statisticsManagerProvider"/>

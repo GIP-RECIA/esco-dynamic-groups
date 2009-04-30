@@ -58,7 +58,7 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
         dynamicType = ESCODynamicGroupsParameters.instance().getGrouperType();
         definitionField = ESCODynamicGroupsParameters.instance().getGrouperDefinitionField();
         definitionFieldInternal = ATTRIBUTE_PREFIX + definitionField;
-        statisticsManager = StatisticsManagerProviderForHooks.getStatisticsManager();
+        statisticsManager = StatisticsManagerProviderForHooks.instance().getStatisticsManager();
 
         if (LOGGER.isInfoEnabled()) {
             final StringBuilder sb = new StringBuilder("Creation of an hooks of class: ");
@@ -121,6 +121,7 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
                 LOGGER.debug("Modification of the definition field.");
 
                 DomainRegistry.instance().getDomainService().handleNewOrModifiedDynamicGroup(buildDefinition(group));
+                
             }
         }
     }
@@ -158,6 +159,7 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
         final String currentDefinition = group.getAttributeOrNull(definitionField);
         final String previousDefinition = group.dbVersion().getAttributeOrNull(definitionField);
         if (!currentDefinition.equals(previousDefinition)) {
+            statisticsManager.handleDefinitionModification(group.getName(), previousDefinition, currentDefinition);
             return true;
         }
         return false;

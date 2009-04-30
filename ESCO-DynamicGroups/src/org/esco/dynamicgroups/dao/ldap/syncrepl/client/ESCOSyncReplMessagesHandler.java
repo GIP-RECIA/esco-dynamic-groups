@@ -10,6 +10,7 @@ import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.CookieManager;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncInfoMessage;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncStateControl;
+import org.esco.dynamicgroups.domain.statistics.IStatisticsManager;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
@@ -38,6 +39,9 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
 
     /** Present Action.*/
     private ISyncReplTriggeredAction presentAction;
+    
+    /** The statistics manager. */
+    private IStatisticsManager statisticsManager;
     
     /** The string representation of the message handler. */
     private String stringRepresentation;
@@ -70,6 +74,10 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
 
         Assert.notNull(this.presentAction, 
                 "The property presentAction in the class " + this.getClass().getName() 
+                + " can't be null.");
+        
+        Assert.notNull(this.statisticsManager, 
+                "The property statisticsManager in the class " + this.getClass().getName() 
                 + " can't be null.");
         
     }
@@ -127,6 +135,7 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
             } else if (control.isPresent()) {
                 presentAction.trigger(entry);
             }
+            statisticsManager.handleSyncReplNotifications(control);
         } else {
             LOGGER.trace("No SyncStateControl in the message.");
         }
@@ -211,5 +220,21 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
      */
     public void setPresentAction(final ISyncReplTriggeredAction presentAction) {
         this.presentAction = presentAction;
+    }
+
+    /**
+     * Getter for statisticsManager.
+     * @return statisticsManager.
+     */
+    public IStatisticsManager getStatisticsManager() {
+        return statisticsManager;
+    }
+
+    /**
+     * Setter for statisticsManager.
+     * @param statisticsManager the new value for statisticsManager.
+     */
+    public void setStatisticsManager(final IStatisticsManager statisticsManager) {
+        this.statisticsManager = statisticsManager;
     }
 }

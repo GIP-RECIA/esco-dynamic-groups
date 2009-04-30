@@ -14,34 +14,46 @@ import org.springframework.util.Assert;
  */
 public class StatisticsManagerProviderForHooks implements InitializingBean {
 
+    /** Singleton. */
+    private static StatisticsManagerProviderForHooks instance;
+    
     /**
      * The available instance of statistics manger.
      */
-    private static IStatisticsManager statisticsManager;
+    private IStatisticsManager statisticsManager;
     
     /**
      * Builds an instance of StatisticsManagerProviderForHooks.
      */
     public StatisticsManagerProviderForHooks() {
         super();
+        instance = this;
     }
 
+    /**
+     * Gives the available instance.
+     * @return The singleton.
+     */
+    public static StatisticsManagerProviderForHooks instance() {
+        return instance;
+    }
+    
     /**
      * Getter for statisticsManager.
      * @return statisticsManager.
      */
-    public static IStatisticsManager getStatisticsManager() {
-        return statisticsManager;
+    public IStatisticsManager getStatisticsManager() {
+        return this.statisticsManager;
     }
 
     /**
      * Setter for statisticsManager.
      * @param statisticsManager the new value for statisticsManager.
      */
-    public static void setStatisticsManager(final IStatisticsManager statisticsManager) {
-        StatisticsManagerProviderForHooks.statisticsManager = statisticsManager;
+    public void setStatisticsManager(final IStatisticsManager statisticsManager) {
+        this.statisticsManager = statisticsManager;
     }
-
+    
     /**
      * Checks the bean injection. 
      * @throws Exception
