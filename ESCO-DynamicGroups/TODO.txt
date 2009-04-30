@@ -5,7 +5,7 @@
  
 * And et Or non binaires.
 
-* Utilisation de l'api JLDAP pour l'initialisation.
+* tâche ant pour la verification de propositions logiques
 
 * i18n
 
@@ -14,12 +14,15 @@
 * Voir la creation de la base.
 
 * Statistiques + rapport:
+
+ - i18n
+
  - chaque entree, groupe d'entrée doit être activable/ desactivable.
  - Envoyé par mail.
  - format text / HTML.
- - Stocké en base pour consultation.
+ - Serialisation pour les arrêts reprises
 
-   Nombre de notifications
+   Nombre de notifications / add / modify/ delete
    Nombre de groupes dynamiques crees.
    Nombre de definitions modifiees
    Nombre de groupes dynamiques inactifs (sans definition).
