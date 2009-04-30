@@ -131,9 +131,34 @@ public class ESCODynamicGroupsParameters implements Serializable {
     /** Flag to determine the format of the report. */
     private boolean xHTMLReport;
     
-    /** Flag to determine if the modifications of definitiona have to handled in 
+    /** Flag to determine if the modifications of definition have to handled in 
      * the statistics. */
      private boolean countDefinitionModifications;
+     
+     /** Flag to determine if the SyncRepl notifications have to handled in 
+      * the statistics. */
+     private boolean countSyncReplNotifications;
+     
+     /** SMTP server.*/
+     private String smtpsrHost;
+
+     /** From field of the mail. */
+     private String fromField;
+
+     /** To field of the mail. */
+     private String toField;
+
+     /** Login for the smtp server. */
+     private String smtpUser;
+
+     /** Password for the smtp server. */
+     private String smtpPassword;
+
+     /** Prefix to use for the subjects.*/
+     private String subjectPrefix = "";
+
+     /** Flag to disable the mails. */
+     private boolean mailDisabled;
     
     /**
      * Constructor for ESCODynamicGroupsParameters.
@@ -218,6 +243,7 @@ public class ESCODynamicGroupsParameters implements Serializable {
         
         final String xHTMLReportKey = PROPERTIES_PREFIX + "report.xhtml.format";
         final String countDefModKey = PROPERTIES_PREFIX + "stats.handle.definition.modifications";
+        final String countSyncReplKey = PROPERTIES_PREFIX + "stats.handle.syncrepl.notifications";
         
 
         // Retrieves the values.
@@ -250,7 +276,7 @@ public class ESCODynamicGroupsParameters implements Serializable {
         
         setXHTMLReport(parseBooleanFromProperty(params, xHTMLReportKey));
         setCountDefinitionModifications(parseBooleanFromProperty(params, countDefModKey));
-        
+        setCountSyncReplNotifications(parseBooleanFromProperty(params, countSyncReplKey));
         
         // Adds the LDAP id attributes in the search attributes.
         ldapSearchAttributes.add(ldapUidAttribute);
@@ -902,6 +928,134 @@ public class ESCODynamicGroupsParameters implements Serializable {
      */
     public void setCountDefinitionModifications(final boolean countDefinitionModifications) {
         this.countDefinitionModifications = countDefinitionModifications;
+    }
+
+    /**
+     * Getter for countSyncReplNotifications.
+     * @return countSyncReplNotifications.
+     */
+    public boolean getCountSyncReplNotifications() {
+        return countSyncReplNotifications;
+    }
+
+    /**
+     * Setter for countSyncReplNotifications.
+     * @param countSyncReplNotifications the new value for countSyncReplNotifications.
+     */
+    public void setCountSyncReplNotifications(final boolean countSyncReplNotifications) {
+        this.countSyncReplNotifications = countSyncReplNotifications;
+    }
+
+    /**
+     * Getter for smtpsrHost.
+     * @return smtpsrHost.
+     */
+    public String getSmtpsrHost() {
+        return smtpsrHost;
+    }
+
+    /**
+     * Setter for smtpsrHost.
+     * @param smtpsrHost the new value for smtpsrHost.
+     */
+    public void setSmtpsrHost(final String smtpsrHost) {
+        this.smtpsrHost = smtpsrHost;
+    }
+
+    /**
+     * Getter for fromField.
+     * @return fromField.
+     */
+    public String getFromField() {
+        return fromField;
+    }
+
+    /**
+     * Setter for fromField.
+     * @param fromField the new value for fromField.
+     */
+    public void setFromField(final String fromField) {
+        this.fromField = fromField;
+    }
+
+    /**
+     * Getter for toField.
+     * @return toField.
+     */
+    public String getToField() {
+        return toField;
+    }
+
+    /**
+     * Setter for toField.
+     * @param toField the new value for toField.
+     */
+    public void setToField(final String toField) {
+        this.toField = toField;
+    }
+
+    /**
+     * Getter for smtpUser.
+     * @return smtpUser.
+     */
+    public String getSmtpUser() {
+        return smtpUser;
+    }
+
+    /**
+     * Setter for smtpUser.
+     * @param smtpUser the new value for smtpUser.
+     */
+    public void setSmtpUser(final String smtpUser) {
+        this.smtpUser = smtpUser;
+    }
+
+    /**
+     * Getter for smtpPassword.
+     * @return smtpPassword.
+     */
+    public String getSmtpPassword() {
+        return smtpPassword;
+    }
+
+    /**
+     * Setter for smtpPassword.
+     * @param smtpPassword the new value for smtpPassword.
+     */
+    public void setSmtpPassword(final String smtpPassword) {
+        this.smtpPassword = smtpPassword;
+    }
+
+    /**
+     * Getter for subjectPrefix.
+     * @return subjectPrefix.
+     */
+    public String getSubjectPrefix() {
+        return subjectPrefix;
+    }
+
+    /**
+     * Setter for subjectPrefix.
+     * @param subjectPrefix the new value for subjectPrefix.
+     */
+    public void setSubjectPrefix(final String subjectPrefix) {
+        this.subjectPrefix = subjectPrefix;
+    }
+
+    /**
+     * Getter for mailDisabled.
+     * @return mailDisabled.
+     */
+    public boolean isMailDisabled() {
+        return mailDisabled;
+    }
+
+    /**
+     * Setter for mailDisabled.
+     * @param mailDisabled the new value for mailDisabled.
+     */
+    public void setMailDisabled(final boolean mailDisabled) {
+        this.mailDisabled = mailDisabled;
     }
 
    

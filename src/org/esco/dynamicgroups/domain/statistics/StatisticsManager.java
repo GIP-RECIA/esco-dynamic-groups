@@ -6,6 +6,7 @@ package org.esco.dynamicgroups.domain.statistics;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncStateControl;
 import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
 import org.esco.dynamicgroups.domain.beans.I18NManager;
 import org.springframework.beans.factory.InitializingBean;
@@ -31,6 +32,9 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
     
     /** The statistics regarding the modifications of definition. */
     private IDefinitionModificationsStatsEntry definitionModifications;
+    
+    /** The SyncRepl notifications statistics. */
+    private ISyncReplNotificationsStats syncReplNotifications;
 
     /**
      * Builds an instance of StatisticsManager.
@@ -56,6 +60,10 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
         
         if (parameters.getCountDefinitionModifications()) {
             definitionModifications = new DefinitionModificationsStats(i18n);
+        }
+        
+        if (parameters.getCountSyncReplNotifications()) {
+            syncReplNotifications = new SyncReplNotificationsStats(i18n);
         }
         
         
@@ -87,7 +95,12 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
         final List<String> report = new ArrayList<String>();
         if (definitionModifications != null) {
             synchronized (definitionModifications) {
-                report.add(definitionModifications.getLabel() + " " + definitionModifications.getEntry());
+                report.add(definitionModifications.getLabel() + definitionModifications.getEntry());
+            }
+        }
+        if (syncReplNotifications != null) {
+            synchronized (syncReplNotifications) {
+                report.add(syncReplNotifications.getLabel() + syncReplNotifications.getEntry());
             }
         }
         return report;
@@ -113,6 +126,27 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
     }
 
     /**
+     * Handles the SyncRepl notification.
+     * @param control The control in the LDAP search result.
+     * @see org.esco.dynamicgroups.domain.statistics.IStatisticsManager#handleSyncReplNotifications(SyncStateControl)
+     */
+    public void handleSyncReplNotifications(final SyncStateControl control) {
+        if (syncReplNotifications != null) {
+            synchronized (syncReplNotifications) {
+                if (control.isAdd()) {
+                    syncReplNotifications.handeAddAction();
+                } else if (control.isModify()) {
+                    syncReplNotifications.handeModifyAction();
+                } else if (control.isDelete()) {
+                    syncReplNotifications.handeDeleteAction();
+                } else {
+                    syncReplNotifications.handePresentAction();
+                }
+            }
+        }
+    }
+
+    /**
      * Resets the statistics manager.
      * @see org.esco.dynamicgroups.domain.statistics.IStatisticsManager#reset()
      */
@@ -121,6 +155,11 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
         if (definitionModifications != null) {
             synchronized (definitionModifications) {
                 definitionModifications.reset();
+            }
+        }
+        if (syncReplNotifications != null) {
+            synchronized (syncReplNotifications) {
+                syncReplNotifications.reset();
             }
         }
     }
@@ -140,5 +179,4 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
     public void setI18n(final I18NManager i18n) {
         this.i18n = i18n;
     }
-
 }

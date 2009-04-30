@@ -72,8 +72,6 @@ public class ESCOSyncReplClient implements InitializingBean {
         LDAPControl.register(SyncDoneControl.OID, SyncDoneControl.class);
         LDAPControl.register(SyncStateControl.OID, SyncStateControl.class);
 
-
-
         logger.debug(getClass().getSimpleName() + " created.");
     }
 

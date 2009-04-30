@@ -27,6 +27,7 @@
 		<property name="deleteAction" ref="deleteAction"/>
 		<property name="modifyAction" ref="modifyAction"/>
 		<property name="presentAction" ref="presentAction"/>
+		<property name="statisticsManager" ref="statisticsManager"/>
 	</bean>
 	
 	<bean id="synReplClient" class="org.esco.dynamicgroups.dao.ldap.syncrepl.client.ESCOSyncReplClient">

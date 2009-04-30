@@ -27,15 +27,7 @@
    Nombre de definitions modifiees
    Nombre de groupes dynamiques inactifs (sans definition).
    
- 
- Appartenances :
- 	Groupe le plus peuplé
- 	Groupe le moins peuplé
- 	Moyenne
- 	Ecart type
- 	
- 	N premiers groupes dynamiques vides.
- 	
+  	
 
 Activités des groupes :
 	esco:grouper1 : 30 ajouts, 50 suppressions
@@ -49,7 +41,7 @@ Activités des groupes :
 	
 	
 Vérifications de cohérence.	 	
-    N premieres groupes != peuplement obtenu par le processus d'initialisation. 	
+    N premiers groupes != peuplement obtenu par le processus d'initialisation. 	
  	  
    
  
