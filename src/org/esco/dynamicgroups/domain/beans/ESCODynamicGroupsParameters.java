@@ -128,6 +128,13 @@ public class ESCODynamicGroupsParameters implements Serializable {
     /** The locale to use. */
     private Locale locale;
 
+    /** Flag to determine the format of the report. */
+    private boolean xHTMLReport;
+    
+    /** Flag to determine if the modifications of definitiona have to handled in 
+     * the statistics. */
+     private boolean countDefinitionModifications;
+    
     /**
      * Constructor for ESCODynamicGroupsParameters.
      * @param configurationFile The configuration file to use.
@@ -208,6 +215,10 @@ public class ESCODynamicGroupsParameters implements Serializable {
         final String grouperUserKey = PROPERTIES_PREFIX + "grouper.user";
         final String removeFromAllGroupsKey = PROPERTIES_PREFIX + "grouper.remove.from.all.groups";
         final String localeKey = PROPERTIES_PREFIX + "locale";
+        
+        final String xHTMLReportKey = PROPERTIES_PREFIX + "report.xhtml.format";
+        final String countDefModKey = PROPERTIES_PREFIX + "stats.handle.definition.modifications";
+        
 
         // Retrieves the values.
         setLdapHost(parseStringFromProperty(params, ldapHostKey));
@@ -236,6 +247,9 @@ public class ESCODynamicGroupsParameters implements Serializable {
         setGrouperUser(parseStringFromProperty(params, grouperUserKey));
         setRemoveFromAllGroups(parseBooleanFromProperty(params, removeFromAllGroupsKey)); 
         setLocale(new Locale(parseStringFromProperty(params, localeKey)));
+        
+        setXHTMLReport(parseBooleanFromProperty(params, xHTMLReportKey));
+        setCountDefinitionModifications(parseBooleanFromProperty(params, countDefModKey));
         
         
         // Adds the LDAP id attributes in the search attributes.
@@ -349,7 +363,15 @@ public class ESCODynamicGroupsParameters implements Serializable {
     @Override
     public String toString() {
         final StringBuffer sb = new StringBuffer(getClass().getSimpleName());
-        sb.append("#{LDAP Host: ");
+        sb.append("#{");
+        sb.append("locale");
+        sb.append(getLocale());
+        sb.append(";xhtml report: ");
+        sb.append(isXHTMLReport());
+        sb.append(";count def mods: ");
+        sb.append(getCountDefinitionModifications());
+        
+        sb.append("; LDAP Host: ");
         sb.append(getLdapHost());
         sb.append("; LDAP Port: ");
         sb.append(getLdapPort());
@@ -848,6 +870,38 @@ public class ESCODynamicGroupsParameters implements Serializable {
      */
     public void setLocale(final Locale locale) {
         this.locale = locale;
+    }
+
+    /**
+     * Getter for xHTMLReport.
+     * @return xHTMLReport.
+     */
+    public boolean isXHTMLReport() {
+        return xHTMLReport;
+    }
+
+    /**
+     * Setter for xHTMLReport.
+     * @param report the new value for xHTMLReport.
+     */
+    public void setXHTMLReport(final boolean report) {
+        xHTMLReport = report;
+    }
+
+    /**
+     * Getter for countDefinitionModifications.
+     * @return countDefinitionModifications.
+     */
+    public boolean getCountDefinitionModifications() {
+        return countDefinitionModifications;
+    }
+
+    /**
+     * Setter for countDefinitionModifications.
+     * @param countDefinitionModifications the new value for countDefinitionModifications.
+     */
+    public void setCountDefinitionModifications(final boolean countDefinitionModifications) {
+        this.countDefinitionModifications = countDefinitionModifications;
     }
 
    

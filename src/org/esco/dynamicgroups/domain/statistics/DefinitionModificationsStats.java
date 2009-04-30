@@ -3,29 +3,42 @@
  */
 package org.esco.dynamicgroups.domain.statistics;
 
+import org.esco.dynamicgroups.domain.beans.I18NManager;
 
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 
 /**
  * Entry for the statistics about the dynamic groups definition change.
+ * Note that this class is not thread safe. This point has to be handled 
+ * by the statistics manager implementation.
  * Informations: the number of modifications.
  * @author GIP RECIA - A. Deman
  * 24 févr. 2009
  *
  */
-public class DefinitionModificationsStats extends BaseStatsEntry {
+public class DefinitionModificationsStats implements IDefinitionModificationsStatsEntry {
 
     /** Serial version UID.*/
     private static final long serialVersionUID = -711243293922481685L;
+    
+    /** The key for the label. */
+    private static final String LABEL_KEY = "stats.modified.definitions";
 
+    /** The I18NManager. */
+    private I18NManager i18n;
+    
     /** Number of modified definitions. */
-    private int nbModifiedDefintions;
+    private int nbModifiedDefinitions;
+    
     
     
 
-
+    /**
+     * Builds an instance of DefinitionModificationsStats.
+     * @param i18n The I18N manager.
+     */
+    public DefinitionModificationsStats(final I18NManager i18n) {
+        super();
+    }
 
     /**
      * Gives the hash code for this entry.
@@ -34,7 +47,7 @@ public class DefinitionModificationsStats extends BaseStatsEntry {
      */
     @Override
     public int hashCode() {
-        return nbModifiedDefintions; 
+        return nbModifiedDefinitions; 
     }
 
     /**
@@ -51,7 +64,7 @@ public class DefinitionModificationsStats extends BaseStatsEntry {
         if (!(obj instanceof DefinitionModificationsStats)) {
             return false;
         }
-        return ((DefinitionModificationsStats) obj).nbModifiedDefintions == this.nbModifiedDefintions;
+        return ((DefinitionModificationsStats) obj).nbModifiedDefinitions == this.nbModifiedDefinitions;
     }
 
     /**
@@ -61,43 +74,47 @@ public class DefinitionModificationsStats extends BaseStatsEntry {
      */
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "#{" + nbModifiedDefintions + "}";  
+        return getClass().getSimpleName() + "#{" + nbModifiedDefinitions + "}";  
     }
 
     /**
      * Gives the string that represents the entry.
-     * @param format The format of the output.
-     * @return Tghe text that represents the entry in the specified format
-     * @see org.esco.dynamicgroups.domain.statistics.BaseStatsEntry#
-     * getEntry(org.esco.dynamicgroups.domain.statistics.BaseStatsEntry.OutputFormat)
+     * @return The text that represents the entry.
+     * @see org.esco.dynamicgroups.domain.statistics.IStatisticsEntry#getEntry()
      */
-    public String getEntry(final OutputFormat format) {
-        return null;
-        
+    public String getEntry() {
+        return String.valueOf(nbModifiedDefinitions);
     }
 
     /**
      * Gives the label associated to the entry.
-     * @param format The format of the output.
      * @return The string that contains the label for the entry
      * in the specified format.
-     * @see org.esco.dynamicgroups.domain.statistics.BaseStatsEntry#
-     * getLabel(org.esco.dynamicgroups.domain.statistics.BaseStatsEntry.OutputFormat)
+     * @see org.esco.dynamicgroups.domain.statistics.IStatisticsEntry#getLabel()
      */
-    public String getLabel(final OutputFormat format) {
-        return null;
+    public String getLabel() {
+        return i18n.getI18nMessage(LABEL_KEY);
     }
 
     /**
      * Resets the entry.
-     * @see org.esco.dynamicgroups.domain.statistics.BaseStatsEntry#reset()
+     * @see org.esco.dynamicgroups.domain.statistics.IStatisticsEntry#reset()
      */
     public void reset() {
-        
+        nbModifiedDefinitions = 0;
     }
 
-   
-
-
-   
+    /**
+     * Handles a modification of a dynamic definition.
+     * @param groupName The name of the group.
+     * @param previousDefinition The previous defintion.
+     * @param newDefinition The new definition. 
+     * @see org.esco.dynamicgroups.domain.statistics.IDefinitionModificationsStatsEntry#
+     * handleDefinitionModification(String, String, String)
+     */
+    @Override
+    public void handleDefinitionModification(final String groupName,
+            final String previousDefinition, final String newDefinition) {
+            nbModifiedDefinitions++;
+    }
 }

@@ -8,7 +8,21 @@
 		<constructor-arg value="resources/esco-dynamicGroups.properties" />
 	</bean>
 	
-	<bean id="hooksInstaller" class="org.esco.dynamicgroups.hooks.ESCOHooksInstaller" depends-on="parameters"/>
+	<bean id="i18n" class="org.esco.dynamicgroups.domain.beans.I18NManager">
+		<property name="parameters" ref="parameters"/>
+	</bean>
+	
+	<bean id="statisticsManager" class="org.esco.dynamicgroups.domain.statistics.StatisticsManager">
+		<property name="parameters" ref="parameters"/>
+		<property name="i18n" ref="i18n"/>
+	</bean>
+	
+	<bean id="statisticsManagerProvider" class="org.esco.dynamicgroups.domain.statistics.StatisticsManagerProviderForHooks">
+		<property name="parameters" ref="parameters"/>
+		<property name="i18n" ref="i18n"/>
+	</bean>
+	
+	<bean id="hooksInstaller" class="org.esco.dynamicgroups.hooks.ESCOHooksInstaller" depends-on="parameters, statisticsManagerProvider"/>
 
 	<bean id="repositoryListener" class="org.esco.dynamicgroups.domain.SyncReplClientListenerImpl">
 		<property name="syncReplClient" ref="synReplClient" />
@@ -22,7 +36,7 @@
 	</bean>
 	
 	<bean id="i18nService" class="org.springframework.context.support.ResourceBundleMessageSource">
-		<property bale ="basenames">
+		<property name="basenames">
 			<list>
 				<value>i18n/statistics</value>
 			</list>

@@ -17,6 +17,8 @@ import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.domain.DomainRegistry;
 import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
 import org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition;
+import org.esco.dynamicgroups.domain.statistics.IStatisticsManager;
+import org.esco.dynamicgroups.domain.statistics.StatisticsManagerProviderForHooks;
 
 /**
  * @author GIP RECIA - A. Deman
@@ -45,6 +47,9 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
 
     /** The grouper internal name for the definiton field. */
     private String definitionFieldInternal;
+    
+    /** The statistics manager.*/
+    private IStatisticsManager statisticsManager;
 
     /**
      * Builds an instance of ESCOGroupHooks.
@@ -53,6 +58,7 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
         dynamicType = ESCODynamicGroupsParameters.instance().getGrouperType();
         definitionField = ESCODynamicGroupsParameters.instance().getGrouperDefinitionField();
         definitionFieldInternal = ATTRIBUTE_PREFIX + definitionField;
+        statisticsManager = StatisticsManagerProviderForHooks.getStatisticsManager();
 
         if (LOGGER.isInfoEnabled()) {
             final StringBuilder sb = new StringBuilder("Creation of an hooks of class: ");
