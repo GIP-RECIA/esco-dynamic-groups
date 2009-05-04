@@ -10,7 +10,7 @@ import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.CookieManager;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncInfoMessage;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncStateControl;
-import org.esco.dynamicgroups.domain.statistics.IStatisticsManager;
+import org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 

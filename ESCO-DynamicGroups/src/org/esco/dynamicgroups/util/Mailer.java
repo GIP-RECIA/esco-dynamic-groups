@@ -15,7 +15,9 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 import org.apache.log4j.Logger;
+import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.util.Assert;
 
 /**
  * Util class to send mails.
@@ -39,6 +41,9 @@ public class Mailer implements InitializingBean, IMailer {
 
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(Mailer.class);
+    
+    /** The user parameters. */
+    private ESCODynamicGroupsParameters parameters;
 
     /** SMTP server.*/
     private String smtpHost;
@@ -75,32 +80,16 @@ public class Mailer implements InitializingBean, IMailer {
      * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
      */
     public void afterPropertiesSet() throws Exception {
-
-        final String propertyString = "The property ";
-        final String inClassString = " in the class ";
-        final String mustNotBeNullString = " must not be null.";
-
-        if (smtpHost == null) {
-            throw new IllegalStateException(propertyString + smtpHost + inClassString 
-                    + getClass().getSimpleName() + mustNotBeNullString);
-        }
-        if (fromField == null) {
-            throw new IllegalStateException(propertyString + fromField + inClassString 
-                    + getClass().getSimpleName() + mustNotBeNullString);
-        }
-        if (toField == null) {
-            throw new IllegalStateException(propertyString + toField + inClassString 
-                    + getClass().getSimpleName() + mustNotBeNullString);
-        }
-        if (smtpUser != null) {
-
+        Assert.notNull(this.parameters, 
+                "The property parameters in the class " + this.getClass().getName() 
+                + " can't be null.");
+        setSmtpHost(parameters.getSmtpHost());
+        setFromField(parameters.getFromField());
+        setToField(parameters.getToField());
+        if (parameters.isAuthenticatedSMTPHost()) {
             LOGGER.debug("Authenticated SMTP.");
-
-            if (smtpPassword == null) {
-                throw new IllegalStateException("The property  smtpPassword " 
-                        + "must not be null when the property "
-                        +  "smtpUser is defined.");
-            }
+            setSmtpUser(parameters.getSmtpUser());
+            setSmtpPassword(parameters.getSmtpPassword());
         }
     }
 
@@ -305,6 +294,24 @@ public class Mailer implements InitializingBean, IMailer {
      */
     public void setDisabled(final boolean disabled) {
         this.disabled = disabled;
+    }
+
+
+    /**
+     * Getter for parameters.
+     * @return parameters.
+     */
+    public ESCODynamicGroupsParameters getParameters() {
+        return parameters;
+    }
+
+
+    /**
+     * Setter for parameters.
+     * @param parameters the new value for parameters.
+     */
+    public void setParameters(final ESCODynamicGroupsParameters parameters) {
+        this.parameters = parameters;
     }
 
 }
