@@ -3,6 +3,7 @@
  */
 package org.esco.dynamicgroups.domain.beans;
 
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -32,25 +33,25 @@ public class ESCODynamicGroupsParameters implements Serializable {
 
     /** Name of the file to use for the ldap sync cookie. */
     private static final String DEF_SYNCREPL_COOKIE_FILE = "esco_dg.cookie";
-   
+
     /** Default modulo for saving the cookie. */
     private static final int DEF_SYNCREPL_MODULO = 100;
-    
+
     /** Default value for the idle loop when trying to reconnect to the ldap. */
     private static final int DEF_LDAP_RECONNECT_IDLE = 30;
-    
+
     /** Default value for the number of retry for the reconnections. */
     private static final int DEF_LDAP_RECONNECT_ATTEMPTS_NB = 5;
-    
+
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(ESCODynamicGroupsParameters.class);
-    
+
     /** Singleton instance. */
     private static ESCODynamicGroupsParameters instance;
 
     /** To convert milliseconds into seconds.*/
     private static final  int MILLIS_TO_SECONDS_FACTOR = 1000; 
-    
+
     /** The configuration file to use. */
     private String configurationFile;
 
@@ -71,10 +72,10 @@ public class ESCODynamicGroupsParameters implements Serializable {
 
     /** Credentials associated to the bind DN.*/
     private String ldapCredentials;
-    
+
     /** Idle value in seconds when trying to reconnect. */
     private int ldapReconnectionIdle;
-    
+
     /** Number of retries for the ldap reconnections. */
     private int ldapReconnectionAttemptsNb;
 
@@ -89,13 +90,13 @@ public class ESCODynamicGroupsParameters implements Serializable {
 
     /** LDAP id attribute. */
     private String ldapUidAttribute;
-    
+
     /** Replicat id. */
     private int syncReplRID;
-    
+
     /** Name of the file to use for the cookie file. */
     private String syncReplCookieFile;
-    
+
     /** The modulo for saving the cookie in its file. */
     private int syncReplCookieSaveModulo;
 
@@ -124,55 +125,60 @@ public class ESCODynamicGroupsParameters implements Serializable {
     /** Flag used to detemine if a deleted user should be removed from
      * all the groups or only from the dynamic ones.*/
     private boolean removeFromAllGroups;
-    
+
     /** The locale to use. */
     private Locale locale;
 
     /** Flag to determine the format of the report. */
     private boolean xHTMLReport;
     
+    /** The cron expression used to send the reports. */
+    private String reportCronExpression;
+
     /** Flag to determine if the modifications of definition have to handled in 
      * the statistics. */
-     private boolean countDefinitionModifications;
-     
-     /** Flag to determine if the SyncRepl notifications have to handled in 
-      * the statistics. */
-     private boolean countSyncReplNotifications;
-     
-     /** SMTP server.*/
-     private String smtpsrHost;
+    private boolean countDefinitionModifications;
 
-     /** From field of the mail. */
-     private String fromField;
+    /** Flag to determine if the SyncRepl notifications have to handled in 
+     * the statistics. */
+    private boolean countSyncReplNotifications;
 
-     /** To field of the mail. */
-     private String toField;
+    /** SMTP server.*/
+    private String smtpHost;
 
-     /** Login for the smtp server. */
-     private String smtpUser;
+    /** From field of the mail. */
+    private String fromField;
 
-     /** Password for the smtp server. */
-     private String smtpPassword;
+    /** To field of the mail. */
+    private String toField;
 
-     /** Prefix to use for the subjects.*/
-     private String subjectPrefix = "";
+    /** Login for the smtp server. */
+    private String smtpUser;
 
-     /** Flag to disable the mails. */
-     private boolean mailDisabled;
+    /** Password for the smtp server. */
+    private String smtpPassword;
+
+    /** Prefix to use for the subjects.*/
+    private String subjectPrefix = "";
+
+    /** Flag to disable the mails. */
+    private boolean mailDisabled;
     
+    
+
     /**
      * Constructor for ESCODynamicGroupsParameters.
      * @param configurationFile The configuration file to use.
      */
     private ESCODynamicGroupsParameters(final String configurationFile) {
         this.configurationFile = configurationFile;
-        
+
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Loading ESCODynamicGroupsParameters from file " + configurationFile);
         }
-        
+
         initialize();
-        
+
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Loaded values: " + this);
         }
@@ -198,8 +204,8 @@ public class ESCODynamicGroupsParameters implements Serializable {
             if (is == null) {
                 LOGGER.fatal("Unable to load (from classpath) " + configurationFile);
             }
-            
-            
+
+
             params.load(is);
             loadFromProperties(params);
             setParametersProperties(params);
@@ -223,7 +229,7 @@ public class ESCODynamicGroupsParameters implements Serializable {
         final String ldapBindDNKey = PROPERTIES_PREFIX + "ldap.bind.dn";
         final String ldapCredentialsKey = PROPERTIES_PREFIX + "ldap.credentials";
         final String ldapReconnectionIdleKey = PROPERTIES_PREFIX + "ldap.reconnection.idle";
-        final String ldapReconnectionAttemptsNbKey = PROPERTIES_PREFIX + "reconnection.nb.attempts";
+        final String ldapReconnectionAttemptsNbKey = PROPERTIES_PREFIX + "ldap.reconnection.nb.attempts";
         final String ldapSearchBaseKey = PROPERTIES_PREFIX + "ldap.search.base";
         final String ldapSearchFilterKey = PROPERTIES_PREFIX + "ldap.search.filter";
         final String ldapSearchAttributesKey = PROPERTIES_PREFIX + "ldap.search.attributes";
@@ -240,11 +246,19 @@ public class ESCODynamicGroupsParameters implements Serializable {
         final String grouperUserKey = PROPERTIES_PREFIX + "grouper.user";
         final String removeFromAllGroupsKey = PROPERTIES_PREFIX + "grouper.remove.from.all.groups";
         final String localeKey = PROPERTIES_PREFIX + "locale";
-        
+
         final String xHTMLReportKey = PROPERTIES_PREFIX + "report.xhtml.format";
+        final String reportCronExprKey = PROPERTIES_PREFIX + "report.cron.expression";
+        
         final String countDefModKey = PROPERTIES_PREFIX + "stats.handle.definition.modifications";
         final String countSyncReplKey = PROPERTIES_PREFIX + "stats.handle.syncrepl.notifications";
-        
+        final String mailDisabledKey = PROPERTIES_PREFIX + "mail.disabled";
+        final String mailSMTPKey = PROPERTIES_PREFIX + "mail.smtp";
+        final String mailSmtpUserKey = PROPERTIES_PREFIX + "mail.smtp.user"; 
+        final String mailSmtpPasswdKey = PROPERTIES_PREFIX + "mail.smtp.password";
+        final String mailSubjPrefixKey = PROPERTIES_PREFIX + "mail.subject.prefix";
+        final String mailToKey = PROPERTIES_PREFIX + "mail.to";
+        final String mailFromKey = PROPERTIES_PREFIX + "mail.from";
 
         // Retrieves the values.
         setLdapHost(parseStringFromProperty(params, ldapHostKey));
@@ -273,15 +287,29 @@ public class ESCODynamicGroupsParameters implements Serializable {
         setGrouperUser(parseStringFromProperty(params, grouperUserKey));
         setRemoveFromAllGroups(parseBooleanFromProperty(params, removeFromAllGroupsKey)); 
         setLocale(new Locale(parseStringFromProperty(params, localeKey)));
-        
+
         setXHTMLReport(parseBooleanFromProperty(params, xHTMLReportKey));
+        setReportCronExpression(parseStringFromProperty(params, reportCronExprKey));
         setCountDefinitionModifications(parseBooleanFromProperty(params, countDefModKey));
         setCountSyncReplNotifications(parseBooleanFromProperty(params, countSyncReplKey));
-        
+
+        setMailDisabled(parseBooleanFromProperty(params, mailDisabledKey));
+        if (!isMailDisabled()) {
+            setSmtpHost(parseStringFromProperty(params, mailSMTPKey));
+            setSubjectPrefix(parseStringSafeFromProperty(params, mailSubjPrefixKey, ""));
+            setToField(parseStringFromProperty(params, mailToKey));
+            setFromField(parseStringFromProperty(params, mailFromKey));
+            setSmtpUser(parseStringSafeFromProperty(params, mailSmtpUserKey, ""));
+            if (isAuthenticatedSMTPHost()) {
+                setSmtpPassword(parseStringFromProperty(params, mailSmtpPasswdKey));
+            }
+        }
+
+
         // Adds the LDAP id attributes in the search attributes.
         ldapSearchAttributes.add(ldapUidAttribute);
-        
-        
+
+
     }
 
     /**
@@ -303,7 +331,7 @@ public class ESCODynamicGroupsParameters implements Serializable {
     private Integer parseIntegerFromProperty(final Properties properties, final String key) {
         return PropertyParser.instance().parseIntegerFromProperty(LOGGER, configurationFile, properties, key);
     }
-    
+
     /**
      * Retrieves a positive integer value from a properties instance for a given key.
      * @param properties The properties instance.
@@ -315,18 +343,18 @@ public class ESCODynamicGroupsParameters implements Serializable {
             final String key, final int defaultValue) {
         Integer value =  PropertyParser.instance().parsePositiveIntegerFromPropertySafe(LOGGER, 
                 configurationFile, properties, key);
-        
+
         if (value == null) {
             LOGGER.warn("Unable to retrieve a valid value in the file: " + configurationFile
                     + " for the property: " + key
                     + " - Using the default value: " + defaultValue + ".");
             return defaultValue;
         }
-        
+
         return value;
     }
-    
-    
+
+
     /**
      * Retrieves a positive integer value from a properties instance for a given key.
      * @param properties The properties instance.
@@ -338,14 +366,14 @@ public class ESCODynamicGroupsParameters implements Serializable {
             final String key, final int defaultValue) {
         Integer value =  PropertyParser.instance().parseStrictPositiveIntegerFromPropertySafe(LOGGER, 
                 configurationFile, properties, key);
-        
+
         if (value == null) {
             LOGGER.warn("Unable to retrieve a valid value in the file: " + configurationFile
                     + " for the property: " + key
                     + " - Using the default value: " + defaultValue + ".");
             return defaultValue;
         }
-        
+
         return value;
     }
 
@@ -392,11 +420,33 @@ public class ESCODynamicGroupsParameters implements Serializable {
         sb.append("#{");
         sb.append("locale");
         sb.append(getLocale());
-        sb.append(";xhtml report: ");
+        sb.append("; mail disabled: ");
+        sb.append(isMailDisabled());
+        if (!isMailDisabled()) {
+            sb.append("; smtp: ");
+            sb.append(getSmtpHost());
+            if (isAuthenticatedSMTPHost()) {
+                sb.append("; smtp user: ");
+                sb.append(getSmtpUser());
+                sb.append("; smtp password: ");
+                sb.append(getSmtpPassword().replaceAll(".", "\\*"));
+            }
+            sb.append("; mail to: ");
+            sb.append(getToField());
+            sb.append("; mail from: ");
+            sb.append(getFromField());
+            sb.append("; subject prefix: ");
+            sb.append(getSubjectPrefix());
+        }
+
+
+        sb.append("; xhtml report: ");
         sb.append(isXHTMLReport());
-        sb.append(";count def mods: ");
+        sb.append("; report cron expression: ");
+        sb.append(getReportCronExpression());
+        sb.append("; count def mods: ");
         sb.append(getCountDefinitionModifications());
-        
+
         sb.append("; LDAP Host: ");
         sb.append(getLdapHost());
         sb.append("; LDAP Port: ");
@@ -409,15 +459,13 @@ public class ESCODynamicGroupsParameters implements Serializable {
         if (getLdapCredentials() == null) {
             sb.append(getLdapCredentials());
         } else {
-            for (int i = 0; i < getLdapCredentials().length(); i++) {
-                sb.append("*");
-            }
+            sb.append(getLdapCredentials().replaceAll(".", "\\*"));
         }
         sb.append("; LDAP reconnection idle: ");
         sb.append(getLdapReconnectionIdle());
         sb.append("; LDAP reconnection attempts nb: ");
         sb.append(getLdapReconnectionAttemptsNb());
-        
+
         sb.append("; LDAP Search base: ");
         sb.append(getLdapSearchBase());
         sb.append("; LDAP Search filter: ");
@@ -947,19 +995,19 @@ public class ESCODynamicGroupsParameters implements Serializable {
     }
 
     /**
-     * Getter for smtpsrHost.
-     * @return smtpsrHost.
+     * Getter for smtpHost.
+     * @return smtpHost.
      */
-    public String getSmtpsrHost() {
-        return smtpsrHost;
+    public String getSmtpHost() {
+        return smtpHost;
     }
 
     /**
-     * Setter for smtpsrHost.
-     * @param smtpsrHost the new value for smtpsrHost.
+     * Setter for smtpHost.
+     * @param smtpHost the new value for smtpHost.
      */
-    public void setSmtpsrHost(final String smtpsrHost) {
-        this.smtpsrHost = smtpsrHost;
+    public void setSmtpHost(final String smtpHost) {
+        this.smtpHost = smtpHost;
     }
 
     /**
@@ -1058,5 +1106,28 @@ public class ESCODynamicGroupsParameters implements Serializable {
         this.mailDisabled = mailDisabled;
     }
 
-   
+    /**
+     * Test if the smtp server needs an authetication.
+     * @return True if the smtp is authenticated.
+     */
+    public boolean isAuthenticatedSMTPHost() {
+        return !"".equals(smtpUser);
+    }
+
+    /**
+     * Getter for reportCronExpression.
+     * @return reportCronExpression.
+     */
+    public String getReportCronExpression() {
+        return reportCronExpression;
+    }
+
+    /**
+     * Setter for reportCronExpression.
+     * @param reportCronExpression the new value for reportCronExpression.
+     */
+    public void setReportCronExpression(final String reportCronExpression) {
+        this.reportCronExpression = reportCronExpression;
+    }
+
 }

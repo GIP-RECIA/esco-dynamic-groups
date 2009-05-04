@@ -17,8 +17,8 @@ import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.domain.DomainRegistry;
 import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
 import org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition;
-import org.esco.dynamicgroups.domain.statistics.IStatisticsManager;
-import org.esco.dynamicgroups.domain.statistics.StatisticsManagerProviderForHooks;
+import org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager;
+import org.esco.dynamicgroups.domain.reporting.statistics.StatisticsManagerProviderForHooks;
 
 /**
  * @author GIP RECIA - A. Deman

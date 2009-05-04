@@ -5,10 +5,8 @@ package org.esco.dynamicgroups.domain.beans;
 
 import java.io.Serializable;
 
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.MessageSource;
 import org.springframework.util.Assert;
 
 /**
@@ -17,7 +15,7 @@ import org.springframework.util.Assert;
  * 30 avr. 2009
  *
  */
-public class I18NManager implements Serializable, ApplicationContextAware, InitializingBean {
+public class I18NManager implements Serializable, InitializingBean {
 
     /** Serial version UIDs.*/
     private static final long serialVersionUID = 8053619606448404446L;
@@ -28,9 +26,9 @@ public class I18NManager implements Serializable, ApplicationContextAware, Initi
     /** The user parameters. */
     private ESCODynamicGroupsParameters parameters;
     
-    /** The application context ued to handle the I18n. */
-    private ApplicationContext appCtx;
-    
+    /** The message source instance. */
+    private MessageSource messageSource;
+
     
     /**
      * Builds an instance of I18NManager.
@@ -47,20 +45,12 @@ public class I18NManager implements Serializable, ApplicationContextAware, Initi
         Assert.notNull(this.parameters, 
                 "The property parameters in the class " + this.getClass().getName() 
                 + " can't be null.");
+        Assert.notNull(this.messageSource, 
+                "The property messageSource in the class " + this.getClass().getName() 
+                + " can't be null.");
         
     }
     
-    /**
-     * @param ctx The application context.
-     * @throws BeansException
-     * @see org.springframework.context.ApplicationContextAware#
-     * setApplicationContext(org.springframework.context.ApplicationContext)
-     */
-    public void setApplicationContext(final ApplicationContext ctx)
-            throws BeansException {
-        appCtx = ctx;
-        
-    }
     
     /**
      * Gives the messge that corresponds to an i18n key.
@@ -68,7 +58,7 @@ public class I18NManager implements Serializable, ApplicationContextAware, Initi
      * @return The message.
      */
     public String getI18nMessage(final String key) {
-        return appCtx.getMessage(key, null, UNDEF_I18N + key, parameters.getLocale());
+        return messageSource.getMessage(key, null, UNDEF_I18N + key, parameters.getLocale());
     }
     /**
      * Getter for parameters.
@@ -83,6 +73,20 @@ public class I18NManager implements Serializable, ApplicationContextAware, Initi
      */
     public void setParameters(final ESCODynamicGroupsParameters parameters) {
         this.parameters = parameters;
+    }
+    /**
+     * Getter for messageSource.
+     * @return messageSource.
+     */
+    public MessageSource getMessageSource() {
+        return messageSource;
+    }
+    /**
+     * Setter for messageSource.
+     * @param messageSource the new value for messageSource.
+     */
+    public void setMessageSource(MessageSource messageSource) {
+        this.messageSource = messageSource;
     }
     
 }

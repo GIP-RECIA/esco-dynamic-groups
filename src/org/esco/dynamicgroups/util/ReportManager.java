@@ -3,7 +3,7 @@ package org.esco.dynamicgroups.util;
 import java.io.Serializable;
 import java.util.List;
 
-import org.esco.dynamicgroups.domain.statistics.IStatisticsManager;
+import org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.springframework.scheduling.quartz.QuartzJobBean;
