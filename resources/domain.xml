@@ -15,14 +15,24 @@
 			</list>
 		</property>
 	</bean>
+	
+	
+	
 	<bean id="i18n" class="org.esco.dynamicgroups.domain.beans.I18NManager">
 		<property name="parameters" ref="parameters"/>
 		<property name="messageSource" ref="i18nService"/>
 	</bean>
-	
+	<bean id="xhtmlReportFormatter" class="org.esco.dynamicgroups.domain.reporting.XHTMLReportFormatter"/>
+	<bean id="textReportFormatter" class="org.esco.dynamicgroups.domain.reporting.TextReportFormatter"/>
+	<bean id="reportFormatter" class="org.esco.dynamicgroups.domain.reporting.ReportFormatter">
+		<property name="xhtmlFormatter" ref="xhtmlReportFormatter"/>
+		<property name="textFormatter" ref="textReportFormatter"/>
+		<property name="parameters" ref="parameters"/>
+	</bean>
 	<bean id="statisticsManager" class="org.esco.dynamicgroups.domain.reporting.statistics.StatisticsManager">
 		<property name="parameters" ref="parameters"/>
 		<property name="i18n" ref="i18n"/>
+		<property name="reportFormatter" ref="reportFormatter"/>
 	</bean>
 	
 	<bean id="statisticsManagerProvider" class="org.esco.dynamicgroups.domain.reporting.statistics.StatisticsManagerProviderForHooks">
@@ -36,6 +46,8 @@
 		<property name="parameters" ref="parameters"/>
 	</bean>
 	
+	
+	
 	<bean name="reportingJob" class="org.springframework.scheduling.quartz.JobDetailBean">
   		<property name="jobClass" value="org.esco.dynamicgroups.domain.reporting.ReportingJob"/>
   		<property name="jobDataAsMap">
@@ -43,6 +55,7 @@
      	 		<entry key="statisticsManager" value-ref="statisticsManager"/>
      	 		<entry key="mailer" value-ref="mailer"/>
      	 		<entry key="i18n" value-ref="i18n"/>
+     	 		<entry key="reportFormatter" value-ref="reportFormatter"/>
     		</map>
   		</property>
 	</bean>

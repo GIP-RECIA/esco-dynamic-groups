@@ -25,6 +25,9 @@ import org.esco.dynamicgroups.util.PropertyParser;
  */
 public class ESCODynamicGroupsParameters implements Serializable {
 
+    /** Default cahrset value. */
+    private static final String DEFAULT_CHARSET = "utf-8";
+
     /** Serial version UID. */
     private static final long serialVersionUID = -186884409502387377L;
 
@@ -142,6 +145,9 @@ public class ESCODynamicGroupsParameters implements Serializable {
     /** Flag to determine if the SyncRepl notifications have to handled in 
      * the statistics. */
     private boolean countSyncReplNotifications;
+    
+    /** Flag for statistics about the group creation or deletion. */
+    private boolean countGroupCreationDeletion;
 
     /** SMTP server.*/
     private String smtpHost;
@@ -163,6 +169,9 @@ public class ESCODynamicGroupsParameters implements Serializable {
 
     /** Flag to disable the mails. */
     private boolean mailDisabled;
+    
+    /** The mails charset. */
+    private String mailCharset;
     
     
 
@@ -252,6 +261,8 @@ public class ESCODynamicGroupsParameters implements Serializable {
         
         final String countDefModKey = PROPERTIES_PREFIX + "stats.handle.definition.modifications";
         final String countSyncReplKey = PROPERTIES_PREFIX + "stats.handle.syncrepl.notifications";
+        final String countGroupKey = PROPERTIES_PREFIX + "stats.handle.groups";
+        
         final String mailDisabledKey = PROPERTIES_PREFIX + "mail.disabled";
         final String mailSMTPKey = PROPERTIES_PREFIX + "mail.smtp";
         final String mailSmtpUserKey = PROPERTIES_PREFIX + "mail.smtp.user"; 
@@ -259,6 +270,7 @@ public class ESCODynamicGroupsParameters implements Serializable {
         final String mailSubjPrefixKey = PROPERTIES_PREFIX + "mail.subject.prefix";
         final String mailToKey = PROPERTIES_PREFIX + "mail.to";
         final String mailFromKey = PROPERTIES_PREFIX + "mail.from";
+        final String mailCharsetKey = PROPERTIES_PREFIX + "mail.charset";
 
         // Retrieves the values.
         setLdapHost(parseStringFromProperty(params, ldapHostKey));
@@ -292,7 +304,8 @@ public class ESCODynamicGroupsParameters implements Serializable {
         setReportCronExpression(parseStringFromProperty(params, reportCronExprKey));
         setCountDefinitionModifications(parseBooleanFromProperty(params, countDefModKey));
         setCountSyncReplNotifications(parseBooleanFromProperty(params, countSyncReplKey));
-
+        setCountGroupCreationDeletion(parseBooleanFromProperty(params, countGroupKey));
+        
         setMailDisabled(parseBooleanFromProperty(params, mailDisabledKey));
         if (!isMailDisabled()) {
             setSmtpHost(parseStringFromProperty(params, mailSMTPKey));
@@ -300,6 +313,7 @@ public class ESCODynamicGroupsParameters implements Serializable {
             setToField(parseStringFromProperty(params, mailToKey));
             setFromField(parseStringFromProperty(params, mailFromKey));
             setSmtpUser(parseStringSafeFromProperty(params, mailSmtpUserKey, ""));
+            setMailCharset(parseStringSafeFromProperty(params, mailCharsetKey, DEFAULT_CHARSET));
             if (isAuthenticatedSMTPHost()) {
                 setSmtpPassword(parseStringFromProperty(params, mailSmtpPasswdKey));
             }
@@ -1128,6 +1142,38 @@ public class ESCODynamicGroupsParameters implements Serializable {
      */
     public void setReportCronExpression(final String reportCronExpression) {
         this.reportCronExpression = reportCronExpression;
+    }
+
+    /**
+     * Getter for mailCharset.
+     * @return mailCharset.
+     */
+    public String getMailCharset() {
+        return mailCharset;
+    }
+
+    /**
+     * Setter for mailCharset.
+     * @param mailCharset the new value for mailCharset.
+     */
+    public void setMailCharset(final String mailCharset) {
+        this.mailCharset = mailCharset;
+    }
+
+    /**
+     * Getter for countGroupCreationDeletion.
+     * @return countGroupCreationDeletion.
+     */
+    public boolean getCountGroupCreationDeletion() {
+        return countGroupCreationDeletion;
+    }
+
+    /**
+     * Setter for countGroupCreationDeletion.
+     * @param countGroupCreationDeletion the new value for countGroupCreationDeletion.
+     */
+    public void setCountGroupCreationDeletion(final boolean countGroupCreationDeletion) {
+        this.countGroupCreationDeletion = countGroupCreationDeletion;
     }
 
 }

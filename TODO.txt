@@ -6,8 +6,23 @@
 * And et Or non binaires.
 
 * tâche ant pour la verification de propositions logiques
+* tâche ant pour l'installation.
 
-* i18n
+* Reflechir aux problèmes de synchronization lors de la modification ou lors de la creation.
+
+ 1 - Groupe Cree
+ 2 - Groupe peuplé requette LDAP
+ 3 - Modification LDAP
+ => Etre sûr que la modification LDAP n'intervient pas avant l'initialisation.
+ 
+ * Verifier ce qui se passe lorsque le type dynamique est retiré d'un groupe.
+
+ * revoir la réinitialization de tous les groupes
+    - verifier que le client LDAP n'est pas démarré
+    - récupérer les groupes via le type.
+    - effectuer une comparaison plutôt qu'un vidage/remplissage.
+
+* Suppression du domainregistry dans le hook
 
 * Revoir le schema de la base pour être en FN.
 
@@ -22,12 +37,12 @@
  - format text / HTML.
  - Serialisation pour les arrêts reprises
 
-   Nombre de notifications / add / modify/ delete
-   Nombre de groupes dynamiques crees.
-   Nombre de definitions modifiees
+   xNombre de notifications / add / modify/ delete
+   x Nombre de groupes dynamiques crees/supprimes.
+   xNombre de definitions modifiees
    Nombre de groupes dynamiques inactifs (sans definition).
-   
-  	
+   + liste
+     	
 
 Activités des groupes :
 	esco:grouper1 : 30 ajouts, 50 suppressions

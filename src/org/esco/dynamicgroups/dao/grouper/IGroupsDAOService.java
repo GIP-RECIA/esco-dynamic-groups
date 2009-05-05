@@ -38,6 +38,12 @@ public interface IGroupsDAOService {
     boolean isDynamicGroup(final String groupName);
     
     /**
+     * Gives the list of the dynamic group names whitout a memebership defintion.
+     * @return The list of the group names.
+     */
+    Set<String> getUndefinedDynamicGroups(); 
+    
+    /**
      * Adds a user to a group.
      * @param groupName The name of the group.
      * @param userIds The ids of the users to add to the group.
