@@ -74,10 +74,10 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
      * or only from the dynamic ones.
      */
     private boolean removeFromAllGroups;
-    
+
     /** Flag to determine if the dynamic groups shoudl be reseted. */
     private boolean resetOnStartup;
-    
+
     /** Initialization flag. */
     private boolean initialized;
 
@@ -89,7 +89,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
         grouperDynamicType = ESCODynamicGroupsParameters.instance().getGrouperType();
         removeFromAllGroups = ESCODynamicGroupsParameters.instance().getRemoveFromAllGroups();
         resetOnStartup = ESCODynamicGroupsParameters.instance().getResetOnStartup();
-        
+
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Creates an instance of GrouperDAOServiceImpl - Grouper user: "  
                     + ESCODynamicGroupsParameters.instance().getGrouperUser() 
@@ -126,7 +126,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
             }
         }
     }
-    
+
     /**
      * Adds a user to a group.
      * @param groupName The name of the group.
@@ -252,6 +252,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
 
                 final GrouperSession session = sessionUtil.createSession();
                 resetDynamicGroups(StemFinder.findRootStem(session));
+                sessionUtil.stopSession(session);
             }
         }
     }
@@ -422,7 +423,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
         final GrouperSession session = sessionUtil.createSession();
 
         try {
-            
+
             final Subject subject = new ESCODeletedSubjectImpl(userId); 
 
             // Retrieves the groups the subject belongs to.
@@ -462,6 +463,32 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
             LOGGER.error(e, e);
             throw new DynamicGroupsException(e);
         }
+    }
+    
+    /**
+     * Gives the list of groups with no membership defintions.
+     * @return The group names.
+     * @see org.esco.dynamicgroups.dao.grouper.IGroupsDAOService#getUndefinedDynamicGroups()
+     */
+    public Set<String> getUndefinedDynamicGroups() {
+        final GrouperSession session = sessionUtil.createSession();
+        GroupType type = retrieveType(grouperDynamicType);
+        final Set<Group> groups = GroupFinder.findAllByType(session, type);
+        final Set<String> undefGroups = new HashSet<String>();
+        for (Group group : groups) {
+            String membersDef = null;
+            try {
+                membersDef = group.getAttribute(ESCODynamicGroupsParameters.instance().getGrouperDefinitionField());
+                if ("".equals(membersDef)) {
+                    undefGroups.add(group.getName());
+                }
+            } catch (AttributeNotFoundException e) {
+                LOGGER.error("Unable to retrieve the attribute "  
+                        + ESCODynamicGroupsParameters.instance().getGrouperDefinitionField()
+                        + " for the group: " + group.getName() + ".");
+            }
+        }
+        return undefGroups;
     }
 
     /**
@@ -636,6 +663,4 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
         this.initializer = initializer;
     }
 
-
- 
 }

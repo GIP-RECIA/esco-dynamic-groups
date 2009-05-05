@@ -86,6 +86,38 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
         }
     }
 
+    /**
+     * 
+     * @param hooksContext
+     * @param postCommitInsertBean
+     */
+    @Override
+    public void groupPostCommitInsert(final HooksContext hooksContext, 
+            final HooksGroupBean postCommitInsertBean) {
+        
+        final Group group = postCommitInsertBean.getGroup();
+        
+        if (isDynamicGroup(group)) {
+            statisticsManager.handleCreatedGroup(group.getName());
+        }
+    }
+    
+    /**
+     * 
+     * @param hooksContext
+     * @param postCommitDeleteBean
+     */
+    @Override
+    public void groupPostCommitDelete(final HooksContext hooksContext, 
+            final HooksGroupBean postCommitDeleteBean) {
+        
+        final Group group = postCommitDeleteBean.getGroup();
+        
+        if (isDynamicGroup(group)) {
+            statisticsManager.handleDeletedGroup(group.getName());
+        }
+      
+    }
 
     /**
      * @param hooksContext

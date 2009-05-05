@@ -4,7 +4,6 @@
 package org.esco.dynamicgroups.domain.reporting.statistics;
 
 import java.io.Serializable;
-import java.util.List;
 
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncStateControl;
 
@@ -20,7 +19,7 @@ public interface IStatisticsManager extends Serializable {
      * Generates a report.
      * @return The lines of the report. 
      */
-    List<String> generateReport();
+    String generateReport();
     
     /**
      * Resets the manager.
@@ -42,5 +41,17 @@ public interface IStatisticsManager extends Serializable {
      * @param control The control in the LDAP search result.
      */
     void handleSyncReplNotifications(final SyncStateControl control);
+    
+    /**
+     * Handles the creation of a group.
+     * @param groupName The name of the group.
+     */
+    void handleCreatedGroup(final String groupName);
+
+    /**
+     * Handles the deletion of a group.
+     * @param groupName The name of the group.
+     */
+    void handleDeletedGroup(final String groupName);
 
 }

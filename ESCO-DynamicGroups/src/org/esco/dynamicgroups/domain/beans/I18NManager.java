@@ -85,7 +85,7 @@ public class I18NManager implements Serializable, InitializingBean {
      * Setter for messageSource.
      * @param messageSource the new value for messageSource.
      */
-    public void setMessageSource(MessageSource messageSource) {
+    public void setMessageSource(final MessageSource messageSource) {
         this.messageSource = messageSource;
     }
     

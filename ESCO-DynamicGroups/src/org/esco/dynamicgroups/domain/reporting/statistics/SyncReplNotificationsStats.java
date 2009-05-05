@@ -16,25 +16,39 @@ public class SyncReplNotificationsStats implements ISyncReplNotificationsStats {
 
     /** Serial version UID. */
     private static final long serialVersionUID = -1657137526790547062L;
-    
+
     /** The key for the label. */
     private static final String LABEL_KEY = "stats.syncrepl.notifications";
-    
+
+    /** The key for the add notification. */
+    private static final String ADD_KEY = "stats.syncrepl.notifications.add";
+
+    /** The key for the delete notification. */
+    private static final String DELETE_KEY = "stats.syncrepl.notifications.delete";
+
+    /** The key for the modify notification. */
+    private static final String MODIFY_KEY = "stats.syncrepl.notifications.modify";
+
+    /** The key for the present notification. */
+    private static final String PRESENT_KEY = "stats.syncrepl.notifications.present";
+
+
+
     /** The add count. */
     private int addCount;
-    
+
     /** The delete count. */
     private int deleteCount;
-    
+
     /** The modify count. */
     private int modifyCount;
-    
+
     /** The present count. */
     private int presentCount;
-    
+
     /** The I18N manager. */
     private I18NManager i18n;
-    
+
     /**
      * Builds an instance of SyncReplNotificationsStats.
      * @param i18n The i18N manager.
@@ -42,7 +56,7 @@ public class SyncReplNotificationsStats implements ISyncReplNotificationsStats {
     public SyncReplNotificationsStats(final I18NManager i18n) {
         this.i18n = i18n;
     }
-    
+
     /**
      * Handles an Add action.
      * @see org.esco.dynamicgroups.domain.reporting.statistics.ISyncReplNotificationsStats#handeAddAction()
@@ -81,7 +95,10 @@ public class SyncReplNotificationsStats implements ISyncReplNotificationsStats {
      * @see org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsEntry#getEntry()
      */
     public String getEntry() {
-        return addCount + " - " + deleteCount + " - " + modifyCount + " - " + presentCount;
+        return i18n.getI18nMessage(ADD_KEY) + addCount 
+        + " - " + i18n.getI18nMessage(DELETE_KEY) + deleteCount 
+        + " - " + i18n.getI18nMessage(MODIFY_KEY) + modifyCount 
+        + " - " + i18n.getI18nMessage(PRESENT_KEY) + presentCount;
     }
 
     /**
@@ -90,7 +107,7 @@ public class SyncReplNotificationsStats implements ISyncReplNotificationsStats {
      * @see org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsEntry#getLabel()
      */
     public String getLabel() {
-       return i18n.getI18nMessage(LABEL_KEY);
+        return i18n.getI18nMessage(LABEL_KEY);
     }
 
     /**

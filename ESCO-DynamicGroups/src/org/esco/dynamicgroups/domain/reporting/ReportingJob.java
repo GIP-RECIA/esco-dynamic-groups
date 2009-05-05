@@ -3,7 +3,7 @@
  */
 package org.esco.dynamicgroups.domain.reporting;
 
-import java.util.List;
+import java.util.Calendar;
 
 import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.domain.beans.I18NManager;
@@ -27,6 +27,12 @@ public class ReportingJob extends QuartzJobBean {
     /** The key for the report subject. */
     private static final String REPORT_SUBJ = "report.subject";
 
+    /** Title for the report. */
+    private static final String REPORT_TITLE = "report.title";
+
+    /** Execution date label. */
+    private static final String REPORT_EXEC_DATE = "report.date";
+    
     /** The statistics manager used to generate the report. */
     private IStatisticsManager statisticsManager;
 
@@ -35,6 +41,9 @@ public class ReportingJob extends QuartzJobBean {
 
     /** The I18n manager. */
     private I18NManager i18n;
+    
+    /** The report formatter to use. */
+    private IReportFormatter reportFormatter;
 
     /**
      * Builds an instance of ReportingJob.
@@ -74,15 +83,33 @@ public class ReportingJob extends QuartzJobBean {
             validState =  false;
             
         }
+        
+        if (reportFormatter == null) {
+            LOGGER.error("Invalid state for the instance of " 
+                    + getClass().getName() 
+                    + " the property reportFormatter is null.");
+            validState =  false;
+        }
         if (validState) {
-            final List<String> report = statisticsManager.generateReport();
-            String mailContent = "";
-            for (String logEntry : report) {
-                LOGGER.info(logEntry);
-                mailContent += logEntry + "\n";
             
-            }
+            String mailContent = reportFormatter.getHearder();
+            mailContent += reportFormatter.formatTitleLevel1(i18n.getI18nMessage(REPORT_TITLE));
+            mailContent += reportFormatter.getNewLine();
+            mailContent += reportFormatter.getNewLine();
+            mailContent += reportFormatter.highlight(i18n.getI18nMessage(REPORT_EXEC_DATE));
+            mailContent += reportFormatter.format(Calendar.getInstance().getTime());
+            mailContent += reportFormatter.getNewLine();
+            mailContent += reportFormatter.getSeparation();
+            mailContent += reportFormatter.getNewLine();
+            
+            
+            mailContent += statisticsManager.generateReport();
+            
+
+            
+            mailContent += reportFormatter.getFooter();
             mailer.sendMail(i18n.getI18nMessage(REPORT_SUBJ), mailContent);
+            statisticsManager.reset();
         } else {
             LOGGER.warn("Reporting disabled : invalid state.");
         }
@@ -136,6 +163,24 @@ public class ReportingJob extends QuartzJobBean {
      */
     public void setI18n(final I18NManager i18n) {
         this.i18n = i18n;
+    }
+
+
+    /**
+     * Getter for reportFormatter.
+     * @return reportFormatter.
+     */
+    public IReportFormatter getReportFormatter() {
+        return reportFormatter;
+    }
+
+
+    /**
+     * Setter for reportFormatter.
+     * @param reportFormatter the new value for reportFormatter.
+     */
+    public void setReportFormatter(final IReportFormatter reportFormatter) {
+        this.reportFormatter = reportFormatter;
     }
 
 
