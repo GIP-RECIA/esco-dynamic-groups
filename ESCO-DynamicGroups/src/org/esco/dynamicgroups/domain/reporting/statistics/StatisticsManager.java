@@ -5,6 +5,7 @@ package org.esco.dynamicgroups.domain.reporting.statistics;
 
 
 import org.apache.log4j.Logger;
+import org.esco.dynamicgroups.dao.grouper.IGroupsDAOService;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncStateControl;
 import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
 import org.esco.dynamicgroups.domain.beans.I18NManager;
@@ -42,8 +43,19 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
     /** The groups statistics. */
     private IGroupAddOrDeletedStatsEntry groupsStats;
 
+    /** Statistics for the undefined groups. */
+    private IUndefinedGroupStatsEntry undefGroupsStats;
+    
+    /** Statistics for the groups activity. */
+    private IGroupsActivityStatsEntry groupsActivityStats;
+    
     /** The report formatter to use. */
     private IReportFormatter reportFormatter;
+    
+    /** The group service. */
+    private IGroupsDAOService groupsService;
+    
+    
 
     /**
      * Builds an instance of StatisticsManager.
@@ -66,9 +78,17 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
         Assert.notNull(this.i18n, 
                 "The property i18n in the class " + this.getClass().getName() 
                 + " can't be null.");
+        
         Assert.notNull(this.reportFormatter, 
                 "The property reportFormatter in the class " + this.getClass().getName() 
                 + " can't be null.");
+        
+        if (parameters.getCountUndefiedGroups()) {
+            Assert.notNull(this.groupsService, 
+                "The property groupsService in the class " + this.getClass().getName() 
+                + " can't be null.");
+            undefGroupsStats = new UndefinedGroupStatsEntry(groupsService, i18n);
+        }
 
         if (parameters.getCountDefinitionModifications()) {
             definitionModifications = new DefinitionModificationsStats(i18n);
@@ -81,8 +101,10 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
         if (parameters.getCountGroupCreationDeletion()) {
             groupsStats = new GroupsAddOrDeletedStatsEntry(i18n);
         }
-
-
+        
+        if (parameters.getCountGroupsActivity()) {
+            groupsActivityStats = new GroupsAcrivityStatsEntry(i18n);
+        }
     }
 
     /**
@@ -109,33 +131,70 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
     @Override
     public String generateReport() {
         String report = "";
+        boolean separateGroupsActivity = false;
         
         if (syncReplNotifications != null) {
             synchronized (syncReplNotifications) {
                 LOGGER.info(syncReplNotifications.getLabel() + syncReplNotifications.getEntry());
-                report += reportFormatter.formatEntry(syncReplNotifications.getLabel(), 
-                        syncReplNotifications.getEntry());
-                report += reportFormatter.getNewLine();
+                report += reportFormatter.formatEntry(syncReplNotifications.getLabel(), "");
+                report += reportFormatter.formatList(syncReplNotifications.getNotifications());
             }
             report += reportFormatter.getNewLine();
-            report += reportFormatter.getNewLine();
+            report += reportFormatter.getSeparation();
             report += reportFormatter.getNewLine();
         }
         
-        if (definitionModifications != null) {
-            synchronized (definitionModifications) {
-                LOGGER.info(definitionModifications.getLabel() + definitionModifications.getEntry());
-                report += reportFormatter.formatEntry(definitionModifications.getLabel(), 
-                        definitionModifications.getEntry());
-                report += reportFormatter.getNewLine();
-            }
-        }
         if (groupsStats != null) {
+            separateGroupsActivity = true;
             synchronized (groupsStats) {
                 LOGGER.info(groupsStats.getLabel() + groupsStats.getEntry());
                 report += reportFormatter.formatEntry(groupsStats.getLabel(), 
                         groupsStats.getEntry());
                 report += reportFormatter.getNewLine();
+                report += reportFormatter.getNewLine();
+            }
+        }
+        
+        if (definitionModifications != null) {
+            separateGroupsActivity = true;
+            synchronized (definitionModifications) {
+                LOGGER.info(definitionModifications.getLabel() + definitionModifications.getEntry());
+                report += reportFormatter.formatEntry(definitionModifications.getLabel(), 
+                        definitionModifications.getEntry());
+                report += reportFormatter.getNewLine();
+                report += reportFormatter.getNewLine();
+            }
+        }
+        
+        if (undefGroupsStats != null) {
+            separateGroupsActivity = true;
+            synchronized (undefGroupsStats) {
+                LOGGER.info(undefGroupsStats.getLabel() + undefGroupsStats.getEntry());
+                LOGGER.info(undefGroupsStats.getUndefinedGroupNames());
+                report += reportFormatter.formatEntry(undefGroupsStats.getLabel(), 
+                        undefGroupsStats.getEntry());
+                report += reportFormatter.getNewLine();
+                report += reportFormatter.format(undefGroupsStats.getUndefGroupNamesLabel());
+                report += reportFormatter.formatList(undefGroupsStats.getUndefinedGroupNames());
+            }
+            report += reportFormatter.getNewLine();
+            report += reportFormatter.getNewLine();
+        }
+        
+        if (groupsActivityStats != null) {
+            if (separateGroupsActivity) {
+                report += reportFormatter.getNewLine();
+                report += reportFormatter.getSeparation();
+                report += reportFormatter.getNewLine();
+            }
+            
+            synchronized (groupsActivityStats) {
+                LOGGER.info(groupsActivityStats.getLabel() + groupsActivityStats.getEntry());
+                
+                report += reportFormatter.formatEntry(groupsActivityStats.getLabel(), groupsActivityStats.getEntry());
+                report += reportFormatter.getNewLine();
+                report += reportFormatter.format(groupsActivityStats.getActiveGroupsLabel());
+                report += reportFormatter.formatList(groupsActivityStats.getActiveGroups());
             }
         }
         return report;
@@ -206,6 +265,17 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
                 groupsStats.reset();
             }
         }
+        if (undefGroupsStats != null) {
+            synchronized (undefGroupsStats) {
+                undefGroupsStats.reset();
+            }
+        }
+        
+        if (groupsActivityStats != null) {
+            synchronized (groupsActivityStats) {
+                groupsActivityStats.reset();
+            }
+        }
     }
 
 
@@ -231,6 +301,35 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
         if (groupsStats != null) {
             synchronized (groupsStats) {
                 groupsStats.handleDeletedGroup(groupName);
+            }
+        }
+    }
+    
+    
+    /**
+     * Handles the add of a memebr in a group.
+     * @param groupName The name of the group.
+     * @param userId The id of the user.
+     * @see org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager#handleMemberAdded(String, String)
+     */
+    public void handleMemberAdded(final String groupName, final String userId) {
+        if (groupsActivityStats != null) {
+            synchronized (groupsActivityStats) {
+                groupsActivityStats.handleAddedUser(groupName, userId);
+            }
+        }
+    }
+    
+    /**
+     * Handles the action of removing a member in a group.
+     * @param groupName The name of the group.
+     * @param userId The id of the user.
+     * @see org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager#handleMemberRemoved(String, String)
+     */
+    public void handleMemberRemoved(final String groupName, final String userId) {
+        if (groupsActivityStats != null) {
+            synchronized (groupsActivityStats) {
+                groupsActivityStats.handleRemovedUser(groupName, userId);
             }
         }
     }
@@ -281,6 +380,22 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
      */
     public void setGroupsStats(final IGroupAddOrDeletedStatsEntry groupsStats) {
         this.groupsStats = groupsStats;
+    }
+
+    /**
+     * Getter for groupsService.
+     * @return groupsService.
+     */
+    public IGroupsDAOService getGroupsService() {
+        return groupsService;
+    }
+
+    /**
+     * Setter for groupsService.
+     * @param groupsService the new value for groupsService.
+     */
+    public void setGroupsService(final IGroupsDAOService groupsService) {
+        this.groupsService = groupsService;
     }
 
 }

@@ -87,5 +87,20 @@ public interface IReportFormatter extends Serializable {
      * @return The formatted entry.
      */
     String formatEntry(final String label, final String value);
+    
+    /**
+     * Adds spaces before a text.
+     * @param text The text to padd.
+     * @param paddSize The number of spaces to add.
+     * @return The formatted text.
+     */
+    String padd(final String text, final int paddSize);
+    
+    /**
+     * Format a list.
+     * @param list The list to format.
+     * @return The formatted list.
+     */
+    String formatList(final Iterable<String> list);
 
 }

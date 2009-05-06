@@ -24,6 +24,9 @@ public class TextReportFormatter implements IReportFormatter {
     /** The format for the entries.*/
     private String entryFormat = "   %1$-38s : %2$s";
     
+    /** The list items. */
+    private String listItem = "-";
+    
     /** Separation. */
     private String separation = "---"; 
     
@@ -186,6 +189,50 @@ public class TextReportFormatter implements IReportFormatter {
      */
     public void setDateFormat(final String dateFormat) {
         this.dateFormat = new SimpleDateFormat(dateFormat);
+    }
+
+    /**
+     * Format a list.
+     * @param list The list to format.
+     * @return The formatted list.
+     * @see org.esco.dynamicgroups.domain.reporting.IReportFormatter#formatList(java.lang.Iterable)
+     */
+    public String formatList(final Iterable<String> list) {
+        String formattedList = "";
+        for (String listEntry : list ) {
+            formattedList += getListItem() + listEntry + getNewLine();
+        }
+        return formattedList;
+    }
+    /**
+     * Adds spaces before a text.
+     * @param text The text to padd.
+     * @param paddSize The number of spaces to add.
+     * @return The formatted text.
+     * @see org.esco.dynamicgroups.domain.reporting.IReportFormatter#padd(java.lang.String, int)
+     */
+    public String padd(final String text, final int paddSize) {
+        String padd = "";
+        for (int i = 0; i < paddSize; i++) {
+            padd += " ";
+        }
+        return padd + text;
+    }
+
+    /**
+     * Getter for listItem.
+     * @return listItem.
+     */
+    public String getListItem() {
+        return listItem;
+    }
+
+    /**
+     * Setter for listItem.
+     * @param listItem the new value for listItem.
+     */
+    public void setListItem(final String listItem) {
+        this.listItem = listItem;
     }
 
 }

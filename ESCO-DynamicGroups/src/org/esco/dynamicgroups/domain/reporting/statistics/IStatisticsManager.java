@@ -53,5 +53,19 @@ public interface IStatisticsManager extends Serializable {
      * @param groupName The name of the group.
      */
     void handleDeletedGroup(final String groupName);
+    
+    /**
+     * Handles the add of a memebr in a group.
+     * @param groupName The name of the group.
+     * @param userId The id of the user.
+     */
+    void handleMemberAdded(final String groupName, final String userId);
+    
+    /**
+     * Handles the action of removing a member in a group.
+     * @param groupName The name of the group.
+     * @param userId The id of the user.
+     */
+    void handleMemberRemoved(final String groupName, final String userId);
 
 }
