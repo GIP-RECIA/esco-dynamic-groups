@@ -18,5 +18,11 @@ public interface IUndefinedGroupStatsEntry extends IStatisticsEntry {
      * @return The list of the group names.
      */
     Set<String> getUndefinedGroupNames();
+    
+    /**
+     * Gives the label for the undefined groups names list.
+     * @return The label for the list of undefined groups.
+     */
+    String getUndefGroupNamesLabel();
 
 }

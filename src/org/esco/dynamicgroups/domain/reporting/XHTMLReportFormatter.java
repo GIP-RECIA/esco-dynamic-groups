@@ -54,12 +54,17 @@ public class XHTMLReportFormatter implements IReportFormatter {
     /** The separation tag. */
     private String separationTag = "<hr/>";
     
-    
     /** The opening tag used to highligh text. */
     private String highlightOpeningTag = "<b>";
 
     /** The closing tag used to highligh text. */
     private String highlightClosingTag = "</b>";
+    
+    /** The opening tag for the lists. */
+    private String listOpeningTag = "<ul>";
+
+    /** The closing tag for the lists. */
+    private String listClosingTag = "</ul>";
     
     /** Header. */
     private String header = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\""
@@ -189,6 +194,36 @@ public class XHTMLReportFormatter implements IReportFormatter {
         return newLine;
     }
 
+    
+    /**
+     * Adds spaces before a text.
+     * @param text The text to padd.
+     * @param paddSize The number of spaces to add.
+     * @return The formatted text.
+     * @see org.esco.dynamicgroups.domain.reporting.IReportFormatter#padd(java.lang.String, int)
+     */
+    public String padd(final String text, final int paddSize) {
+        String padd = "";
+        for (int i = 0; i < paddSize; i++) {
+            padd += "&nbsp;";
+        }
+        return padd + text;
+    }
+
+    /**
+     * Format a list.
+     * @param list The list to format.
+     * @return The formatted list.
+     * @see org.esco.dynamicgroups.domain.reporting.IReportFormatter#formatList(java.lang.Iterable)
+     */
+    public String formatList(final Iterable<String> list) {
+        String formattedList = listOpeningTag;
+        for (String listEntry : list ) {
+            formattedList += "<li>" + listEntry + "</li>";
+        }
+        formattedList += listClosingTag;
+        return formattedList;
+    }
     /**
      * Getter for labelOpeningTag.
      * @return labelOpeningTag.
@@ -436,5 +471,39 @@ public class XHTMLReportFormatter implements IReportFormatter {
     public void setHighlightOpeningTag(final String highlightOpeningTag) {
         this.highlightOpeningTag = highlightOpeningTag;
     }
+
+    /**
+     * Getter for listOpeningTag.
+     * @return listOpeningTag.
+     */
+    public String getListOpeningTag() {
+        return listOpeningTag;
+    }
+
+    /**
+     * Setter for listOpeningTag.
+     * @param listOpeningTag the new value for listOpeningTag.
+     */
+    public void setListOpeningTag(final String listOpeningTag) {
+        this.listOpeningTag = listOpeningTag;
+    }
+
+    /**
+     * Getter for listClosingTag.
+     * @return listClosingTag.
+     */
+    public String getListClosingTag() {
+        return listClosingTag;
+    }
+
+    /**
+     * Setter for listClosingTag.
+     * @param listClosingTag the new value for listClosingTag.
+     */
+    public void setListClosingTag(final String listClosingTag) {
+        this.listClosingTag = listClosingTag;
+    }
+    
+
 
 }

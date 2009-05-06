@@ -9,6 +9,7 @@
 	</bean>
 	<bean id="groupsService" class="org.esco.dynamicgroups.dao.grouper.GrouperDAOServiceImpl" depends-on="parameters">
 		<property name="initializer" ref="dynamicGroupInitializer"/>
+		<property name="statisticsManager" ref="statisticsManager"/>
 	</bean>
 	
 	<!-- LDAP SyncRepl client -->

@@ -39,6 +39,7 @@ import org.esco.dynamicgroups.domain.IDynamicGroupInitializer;
 import org.esco.dynamicgroups.domain.beans.DynGroup;
 import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
 import org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition;
+import org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager;
 import org.esco.dynamicgroups.exceptions.DynamicGroupsException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationEvent;
@@ -80,6 +81,9 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
 
     /** Initialization flag. */
     private boolean initialized;
+    
+    /** The statistics manager service. */
+    private IStatisticsManager statisticsManager;
 
     /**
      * Builds an instance of GrouperDAOServiceImpl.
@@ -108,6 +112,9 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
 
         Assert.notNull(this.initializer, 
                 "The property initializer in the class " + this.getClass().getName() 
+                + " can't be null.");
+        Assert.notNull(this.statisticsManager, 
+                "The property statisticsManager in the class " + this.getClass().getName() 
                 + " can't be null.");
     }
 
@@ -513,7 +520,8 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
 
                 if (!newGroups.containsKey(previousGroup)) {
                     previousGroups.get(previousGroup).deleteMember(subject);
-
+                    statisticsManager.handleMemberRemoved(previousGroup, userId);
+                    
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("Update memberships user: " + userId 
                                 + " removed from the group: " + previousGroup);
@@ -533,6 +541,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
                         }
 
                         group.addMember(subject);
+                        statisticsManager.handleMemberAdded(newGroup, userId);
                     }
                 }
             }
@@ -599,6 +608,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
                     }
                     if (!group.hasImmediateMember(subject)) {
                         group.addMember(subject);
+                        statisticsManager.handleMemberAdded(newGroup, userId);
                     }
                 }
             }
@@ -661,6 +671,24 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
      */
     public void setInitializer(final IDynamicGroupInitializer initializer) {
         this.initializer = initializer;
+    }
+
+
+    /**
+     * Getter for statisticsManager.
+     * @return statisticsManager.
+     */
+    public IStatisticsManager getStatisticsManager() {
+        return statisticsManager;
+    }
+
+
+    /**
+     * Setter for statisticsManager.
+     * @param statisticsManager the new value for statisticsManager.
+     */
+    public void setStatisticsManager(final IStatisticsManager statisticsManager) {
+        this.statisticsManager = statisticsManager;
     }
 
 }

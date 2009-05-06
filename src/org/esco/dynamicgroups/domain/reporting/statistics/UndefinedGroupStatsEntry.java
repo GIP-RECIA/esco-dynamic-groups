@@ -22,6 +22,9 @@ public class UndefinedGroupStatsEntry implements IUndefinedGroupStatsEntry {
     /** Key for the label of this entry. */
     private static final String UNDEF_GROUPS_KEY = "stats.groups.undefined";
 
+    /** Key for the label for the list of undefined groups. */
+    private static final String UNDEF_GROUPS_LIST_KEY = "stats.groups.undefined.list";
+
     /** The group service. */
     private IGroupsDAOService groupsService;
     
@@ -73,6 +76,16 @@ public class UndefinedGroupStatsEntry implements IUndefinedGroupStatsEntry {
     @Override
     public String getLabel() {
         return i18n.getI18nMessage(UNDEF_GROUPS_KEY);
+    }
+    
+
+    /**
+     * Gives the label for the undefined groups names list.
+     * @return The label for the list of undefined groups.
+     * @see org.esco.dynamicgroups.domain.reporting.statistics.IUndefinedGroupStatsEntry#getUndefGroupNamesLabel()
+     */
+    public String getUndefGroupNamesLabel() {
+      return i18n.getI18nMessage(UNDEF_GROUPS_LIST_KEY);  
     }
 
     /**

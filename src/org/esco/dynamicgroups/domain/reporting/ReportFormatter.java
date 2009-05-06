@@ -154,6 +154,27 @@ public class ReportFormatter implements IReportFormatter, InitializingBean {
     }
 
     /**
+     * Adds spaces before a text.
+     * @param text The text to padd.
+     * @param paddSize The number of spaces to add.
+     * @return The formatted text.
+     * @see org.esco.dynamicgroups.domain.reporting.IReportFormatter#padd(java.lang.String, int)
+     */
+    public String padd(final String text, final int paddSize) {
+       return selectFormatter().padd(text, paddSize);
+    }
+    
+    /**
+     * Format a list.
+     * @param list The list to format.
+     * @return The formatted list.
+     * @see org.esco.dynamicgroups.domain.reporting.IReportFormatter#formatList(java.lang.Iterable)
+     */
+    public String formatList(final Iterable<String> list) {
+        return selectFormatter().formatList(list);
+    }
+    
+    /**
      * Getter for textFormatter.
      * @return textFormatter.
      */
@@ -218,5 +239,7 @@ public class ReportFormatter implements IReportFormatter, InitializingBean {
     public void setXhtmlFormatter(final IReportFormatter xhtmlFormatter) {
         this.xhtmlFormatter = xhtmlFormatter;
     }
+    
+    
 
 }

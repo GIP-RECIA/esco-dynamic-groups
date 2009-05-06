@@ -3,6 +3,9 @@
  */
 package org.esco.dynamicgroups.domain.reporting.statistics;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.esco.dynamicgroups.domain.beans.I18NManager;
 
 /**
@@ -99,6 +102,20 @@ public class SyncReplNotificationsStats implements ISyncReplNotificationsStats {
         + " - " + i18n.getI18nMessage(DELETE_KEY) + deleteCount 
         + " - " + i18n.getI18nMessage(MODIFY_KEY) + modifyCount 
         + " - " + i18n.getI18nMessage(PRESENT_KEY) + presentCount;
+    }
+    
+    /**
+     * Gives the notifications.
+     * @return The list of the notifications.
+     * @see org.esco.dynamicgroups.domain.reporting.statistics.ISyncReplNotificationsStats#getNotifications()
+     */
+    public List<String> getNotifications() {
+        final List<String> notifications = new ArrayList<String>();
+        notifications.add(i18n.getI18nMessage(ADD_KEY) + addCount);
+        notifications.add(i18n.getI18nMessage(DELETE_KEY) + deleteCount);
+        notifications.add(i18n.getI18nMessage(MODIFY_KEY) + modifyCount);
+        notifications.add(i18n.getI18nMessage(PRESENT_KEY) + presentCount);
+        return notifications;
     }
 
     /**

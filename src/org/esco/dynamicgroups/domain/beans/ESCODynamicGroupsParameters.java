@@ -149,6 +149,12 @@ public class ESCODynamicGroupsParameters implements Serializable {
     /** Flag for statistics about the group creation or deletion. */
     private boolean countGroupCreationDeletion;
 
+    /** Flag to count the undefined groups. */
+    private boolean countUndefiedGroups;
+    
+    /** Flag for the stats on the groups activities. */
+    private boolean countGroupsActivity;
+    
     /** SMTP server.*/
     private String smtpHost;
 
@@ -262,6 +268,8 @@ public class ESCODynamicGroupsParameters implements Serializable {
         final String countDefModKey = PROPERTIES_PREFIX + "stats.handle.definition.modifications";
         final String countSyncReplKey = PROPERTIES_PREFIX + "stats.handle.syncrepl.notifications";
         final String countGroupKey = PROPERTIES_PREFIX + "stats.handle.groups";
+        final String countUndefGroupKey = PROPERTIES_PREFIX + "stats.handle.groups.undefined";
+        final String countGroupActivityKey = PROPERTIES_PREFIX + "stats.handle.groups.activity";
         
         final String mailDisabledKey = PROPERTIES_PREFIX + "mail.disabled";
         final String mailSMTPKey = PROPERTIES_PREFIX + "mail.smtp";
@@ -305,6 +313,8 @@ public class ESCODynamicGroupsParameters implements Serializable {
         setCountDefinitionModifications(parseBooleanFromProperty(params, countDefModKey));
         setCountSyncReplNotifications(parseBooleanFromProperty(params, countSyncReplKey));
         setCountGroupCreationDeletion(parseBooleanFromProperty(params, countGroupKey));
+        setCountUndefiedGroups(parseBooleanFromProperty(params, countUndefGroupKey));
+        setCountGroupsActivity(parseBooleanFromProperty(params, countGroupActivityKey));
         
         setMailDisabled(parseBooleanFromProperty(params, mailDisabledKey));
         if (!isMailDisabled()) {
@@ -1174,6 +1184,38 @@ public class ESCODynamicGroupsParameters implements Serializable {
      */
     public void setCountGroupCreationDeletion(final boolean countGroupCreationDeletion) {
         this.countGroupCreationDeletion = countGroupCreationDeletion;
+    }
+
+    /**
+     * Getter for countUndefiedGroups.
+     * @return countUndefiedGroups.
+     */
+    public boolean getCountUndefiedGroups() {
+        return countUndefiedGroups;
+    }
+
+    /**
+     * Setter for countUndefiedGroups.
+     * @param countUndefiedGroups the new value for countUndefiedGroups.
+     */
+    public void setCountUndefiedGroups(final boolean countUndefiedGroups) {
+        this.countUndefiedGroups = countUndefiedGroups;
+    }
+
+    /**
+     * Getter for countGroupsActivity.
+     * @return countGroupsActivity.
+     */
+    public boolean getCountGroupsActivity() {
+        return countGroupsActivity;
+    }
+
+    /**
+     * Setter for countGroupsActivity.
+     * @param countGroupsActivity the new value for countGroupsActivity.
+     */
+    public void setCountGroupsActivity(final boolean countGroupsActivity) {
+        this.countGroupsActivity = countGroupsActivity;
     }
 
 }
