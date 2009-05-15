@@ -29,7 +29,7 @@ public class AbstractHibernateDAOSupport  extends HibernateDaoSupport {
 
     /** Where constant. */
     protected static final String WHERE = " where ";
-
+    
     /** Escape sequence. */
     protected static final String ESCAPE = "\\";
     
@@ -112,7 +112,7 @@ public class AbstractHibernateDAOSupport  extends HibernateDaoSupport {
         }
         
     }
-    
+        
     /**
      * Retrieves an unique instance on the value of an attribute.
      * The transation is started at the begining and the session is closed at the end.
@@ -131,6 +131,8 @@ public class AbstractHibernateDAOSupport  extends HibernateDaoSupport {
         closeSessionForThread();
         return result;
     }
+    
+    
     
     /**
      * Retrieves an unique instance on the value of an attribute.

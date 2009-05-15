@@ -3,13 +3,7 @@
 		"-//Hibernate/Hibernate Configuration DTD 3.0//EN"
 		"http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
 <hibernate-configuration>
-	<!-- 
-		/properties/dao/hibernate/hibernate.cfg.xml
-		The main Hibernate configuration file.
-		It is referenced from /properties/dao/dao.xml
-		and the database mapping is in folder 
-		/properties/dao/hibernate/mapping.
-	-->
+	
 	<session-factory>
 		<property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
 		<property name="hibernate.connection.url">jdbc:mysql://localhost/dyngroups</property>

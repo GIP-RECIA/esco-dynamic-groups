@@ -5,9 +5,9 @@
 
 <hibernate-mapping package="org.esco.dynamicgroups.domain.beans">
     <class name="DynAttribute" table="DYN_ATTRIBUTES">
-        <id name="attributeId" column="ATT_ID">
+        <id name="attributeId" column="ATT_ID" >
         	<generator class="native"/>
         </id>
-        <property name="attributeName" column="ATT_NAME"/>
+        <property name="attributeName" column="ATT_NAME" index="INDEX_ATT_NAME"/>
     </class>
 </hibernate-mapping>

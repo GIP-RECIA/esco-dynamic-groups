@@ -43,6 +43,9 @@ public class DynGroup implements Serializable {
     
     /** Number of attributes in the definition. */
     private int attributesNb;
+    
+    /** The id of the group that contains this group as a cunjunctive component. */
+    private Long indirectedGroupId;
    
     /**
      * Builds an instance of DynGroup.
@@ -72,11 +75,14 @@ public class DynGroup implements Serializable {
      * @param conjonctiveComponentNumber The number of the consjunctive component.
      * @param groupName The name of the group.
      * @param groupDefinition The definition of the group.
+     * @param indirectedGroupId The id of the group that contains this group
+     * as a conjunctive component.
      */
     protected DynGroup(final int conjonctiveComponentNumber,
-            final String groupName, final String groupDefinition) {
+            final String groupName, final String groupDefinition, final Long indirectedGroupId) {
        this(CONJ_COMP_INDIRECTION + OPEN_CURLY_BRACKET + conjonctiveComponentNumber 
                + CLOSE_CURLY_BRACKET + groupName, groupDefinition);
+       this.indirectedGroupId = indirectedGroupId;
     }
     
     /**
@@ -98,13 +104,7 @@ public class DynGroup implements Serializable {
      *  
      */
     public boolean isConjunctiveComponentIndirection() {
-        if (groupName == null) {
-            return false;
-        }
-        if (groupName.length() == 0) {
-            return false;
-        }
-        return groupName.charAt(0) == CONJ_COMP_INDIRECTION;
+       return getIndirectedGroupId() != null;
     }
     
     /**
@@ -124,7 +124,9 @@ public class DynGroup implements Serializable {
                     int componentIndex = 0;
                     for (IProposition conjunction : conjunctions) {
                         conjunctiveComponents.add(new DynGroup(componentIndex++, 
-                                getGroupName(), PropositionCodec.instance().code(conjunction)));
+                                getGroupName(), 
+                                PropositionCodec.instance().code(conjunction), 
+                                getGroupId()));
                     }
                 }
             }
@@ -254,5 +256,21 @@ public class DynGroup implements Serializable {
     public String toString() {
         return "DynGroup#{" + groupId + ", " + groupName + ", " 
             + groupDefinition + ", " + attributesNb + "}";
+    }
+
+    /**
+     * Getter for indirectedGroupId.
+     * @return indirectedGroupId.
+     */
+    public Long getIndirectedGroupId() {
+        return indirectedGroupId;
+    }
+
+    /**
+     * Setter for indirectedGroupId.
+     * @param indirectedGroupId the new value for indirectedGroupId.
+     */
+    public void setIndirectedGroupId(final Long indirectedGroupId) {
+        this.indirectedGroupId = indirectedGroupId;
     }
 }

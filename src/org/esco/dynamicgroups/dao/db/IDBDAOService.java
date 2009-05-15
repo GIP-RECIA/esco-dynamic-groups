@@ -77,23 +77,12 @@ public interface IDBDAOService {
      */
     void storeOrModifyDynGroup(final DynamicGroupDefinition definition);
     
-    //void deleteDynGroupIfExists()
-    
     /**
      * Retrieves the groups associated to a given attribute.
      * @param attributeName The considered attribute.
      * @return The set of groups which use the attribute in their definition.
      */
     Set<DynGroup> getGroupsForAttribute(final String attributeName);
-
-    /**
-     * Retrieves the groups associated to a given value of a specified attribute.
-     * @param attributeName The considered attribute.
-     * @param attributeValue The value of the attribute.
-     * @return The set of groups which use the value of the attribute in their definition.
-     */
-//    Set<DynGroup> getGroupsForAttributeValue(final String attributeName,
-//            final String attributeValue);
 
     /**
      * Retrieves the groups associated to a given value of a specified attribute.

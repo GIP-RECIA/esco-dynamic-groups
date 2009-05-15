@@ -1,6 +1,5 @@
 package org.esco.dynamicgroups.domain.reporting.statistics;
 
-import java.util.List;
 import java.util.Set;
 
 /**
