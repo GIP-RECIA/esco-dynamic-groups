@@ -16,6 +16,7 @@ import java.util.Date;
 
 import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
+import org.springframework.core.io.FileSystemResource;
 
 /**
  * Cookie manager for the LdapSync Protocol.
@@ -24,6 +25,9 @@ import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
  *
  */
 public class CookieManager implements Serializable {
+
+    /** Name of the file to use for the ldap sync cookie. */
+    public static final String DEF_COOKIE_FILE = "esco_dg.cookie";
 
     /** Serial version UID.*/
     private static final long serialVersionUID = 7772446526416999140L;
@@ -54,13 +58,15 @@ public class CookieManager implements Serializable {
 
     /** Suffix for the date field in the entry csn. */
     private static final String TIMEZONE_SUFFIX = "Z";
-
-    
+   
     /** Singleton. */
     private static final CookieManager INSTANCE = new CookieManager();
 
     /** The name of the file to use for the cookie. */
     private String cookieFileName;
+    
+    /** The cookie file. */
+    private File cookieFile;
 
     /** Replicat id. */
     private int rid;
@@ -79,11 +85,14 @@ public class CookieManager implements Serializable {
      */
     private CookieManager() {
         cookieFileName = ESCODynamicGroupsParameters.instance().getSyncReplCookieFile();
+        
+        
+        
         rid = ESCODynamicGroupsParameters.instance().getSyncReplRID();
         saveModulo = ESCODynamicGroupsParameters.instance().getSyncReplCookieSaveModulo();
         initializeCookie();
     }
-
+    
     /**
      * Gives the singleton.
      * @return The available instance of CookieManager;
@@ -108,11 +117,13 @@ public class CookieManager implements Serializable {
      */
     private void write(final byte[] cookie) {
         try {
+            
+            
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Writing the cookie into the file: " + new File(cookieFileName).getCanonicalPath());
+                LOGGER.debug("Writing the cookie into the file: " + getCookieFile().getCanonicalPath());
             }
 
-            final PrintWriter writer = new PrintWriter(cookieFileName);
+            final PrintWriter writer = new PrintWriter(getCookieFile());
             writer.println(new String(cookie));
             writer.close();
         } catch (IOException e) {
@@ -127,9 +138,9 @@ public class CookieManager implements Serializable {
     private byte[] read() {
         try {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Loading the cookie from the file: " + new File(cookieFileName).getCanonicalPath());
+                LOGGER.debug("Loading the cookie from the file: " + getCookieFile().getCanonicalPath());
             }
-            final BufferedReader reader = new BufferedReader(new FileReader(cookieFileName));
+            final BufferedReader reader = new BufferedReader(new FileReader(getCookieFile()));
             final String line = reader.readLine();
             reader.close();
             if (line != null) {
@@ -238,5 +249,17 @@ public class CookieManager implements Serializable {
      */
     public synchronized byte[] getCurrentCookie() {
         return currentCookie;
+    }
+
+    /**
+     * Getter for cookieFile.
+     * @return cookieFile.
+     */
+    public File getCookieFile() {
+        if (cookieFile == null) {
+            final FileSystemResource fsr = new FileSystemResource(cookieFileName);
+            cookieFile = fsr.getFile();
+        }
+        return cookieFile;
     }
 }

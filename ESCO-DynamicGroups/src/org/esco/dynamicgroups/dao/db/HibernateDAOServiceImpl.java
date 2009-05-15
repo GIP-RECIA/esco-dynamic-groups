@@ -44,6 +44,9 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
 
     /** Constant for the group name. */
     private static final String GROUP_NAME = "groupName";
+    
+    /** Constant for the group id. */
+    private static final String GROUP_ID = "groupId";
 
     /** Constant for the attribute. */
     private static final String ATTRIBUTE = "attribute";
@@ -210,24 +213,38 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
     protected List<DynGroup> retrieveConjunctiveComponents(final Session session, 
             final DynGroup dynGroup) {
 
+//        final StringBuilder queryString = new StringBuilder(FROM);
+//        queryString.append(DynGroup.class.getName());
+//        queryString.append(WHERE);
+//        queryString.append(GROUP_NAME);
+//        queryString.append(" like '");
+//        queryString.append(DynGroup.CONJ_COMP_INDIRECTION);
+//        queryString.append(ESCAPE);
+//        queryString.append(DynGroup.OPEN_CURLY_BRACKET);
+//        queryString.append(SQL_JOCKER);
+//        queryString.append(ESCAPE);
+//        queryString.append(DynGroup.CLOSE_CURLY_BRACKET);
+//        queryString.append(dynGroup.getGroupName());
+//        queryString.append("'");
+//        Query query = session.createQuery(queryString.toString());
+//        query.setReadOnly(true);
+//        query.setCacheable(true);
+//        @SuppressWarnings("unchecked")
+//        List<DynGroup> result =  query.list();
+//        
         final StringBuilder queryString = new StringBuilder(FROM);
         queryString.append(DynGroup.class.getName());
+        queryString.append(" g ");
         queryString.append(WHERE);
-        queryString.append(GROUP_NAME);
-        queryString.append(" like '");
-        queryString.append(DynGroup.CONJ_COMP_INDIRECTION);
-        queryString.append(ESCAPE);
-        queryString.append(DynGroup.OPEN_CURLY_BRACKET);
-        queryString.append(SQL_JOCKER);
-        queryString.append(ESCAPE);
-        queryString.append(DynGroup.CLOSE_CURLY_BRACKET);
-        queryString.append(dynGroup.getGroupName());
-        queryString.append("'");
+        queryString.append(" g.indirectedGroupId = ");
+        queryString.append(dynGroup.getGroupId());
         Query query = session.createQuery(queryString.toString());
         query.setReadOnly(true);
         query.setCacheable(true);
         @SuppressWarnings("unchecked")
         List<DynGroup> result =  query.list();
+        
+        
         return result;
     }
 
@@ -294,9 +311,9 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
         for (DynGroup dynGroup : dynGroups) {
             if (dynGroup.isConjunctiveComponentIndirection()) {
                 final DynGroup resolvedGroup = (DynGroup) retrieveUniqueInstanceByAttributeInternal(session, 
-                        DynGroup.class, GROUP_NAME, dynGroup.getIndirectedGroupName());
+                        DynGroup.class, GROUP_ID, String.valueOf(dynGroup.getIndirectedGroupId()));
                 if (resolvedGroup != null) {
-                    result.add(resolvedGroup);
+                    result.add(resolvedGroup); 
                 } else {
                     LOGGER.error("Unable to retrieve the group associated to the conjunction component: " + dynGroup);
                 }

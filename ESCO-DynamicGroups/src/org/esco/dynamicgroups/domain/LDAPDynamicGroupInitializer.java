@@ -6,6 +6,7 @@ package org.esco.dynamicgroups.domain;
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
+import com.novell.ldap.LDAPSearchConstraints;
 import com.novell.ldap.LDAPSearchResults;
 
 import java.io.Serializable;
@@ -74,6 +75,9 @@ public class LDAPDynamicGroupInitializer implements IDynamicGroupInitializer, In
     
     /** The LDAP Connection. */
     private LDAPConnection connection;
+    
+    /** The LDAP search constaints. */
+    private LDAPSearchConstraints constraints;
 
     /**
      * Builds an instance of LDAPDynamicGroupInitializer.
@@ -93,6 +97,8 @@ public class LDAPDynamicGroupInitializer implements IDynamicGroupInitializer, In
             uidAttribute = ESCODynamicGroupsParameters.instance().getLdapUidAttribute();
             uidAttributeArray = new String[] {uidAttribute};
             connection = LDAPConnectionManager.instance().connect();
+            constraints = new LDAPSearchConstraints();
+            constraints.setMaxResults(0);
         }
     }
     
@@ -134,7 +140,9 @@ public class LDAPDynamicGroupInitializer implements IDynamicGroupInitializer, In
                         LDAPConnection.SCOPE_SUB, 
                         filter, 
                         uidAttributeArray, 
-                        false);
+                        false, 
+                        constraints);
+                
                 final Set<String> userIds = new HashSet<String>();
                 while (result.hasMore()) {
                     final LDAPEntry entry = result.next();

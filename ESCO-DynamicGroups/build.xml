@@ -1,7 +1,5 @@
 <?xml version="1.0"?>
-
-
-<project name="ESCO-DynammicGroups" default="esco-dg.weaving" basedir=".">
+<project name="ESCO-DynammicGroups" default="esco-dg.deploy" basedir=".">
     <description>PAGS Groups for Grouper</description>
 	
 	<!-- Properties Section -->
@@ -10,16 +8,26 @@
 	<property name="esco-dg.build.dir" value="build/"/>
 	<property name="esco-dg.classes.dir" value="${esco-dg.build.dir}classes/"/>
 	<property name="esco-dg.dist.dir" value="dist/"/>
-	<property name="esco-dg.tmp.dir" value="tmp/"/>
 	<property name="esco-dg.prop.dir" value="resources/"/>
 	
 	<property name="esco-dg.src.dir" value="src/"/>
-	<property name="esco-dg.aspectwerkz.aop.def" value="META-INF/esco-dynamic-groups.aop.xml"/>
 	<property name="esco-dg.version" value="0.1.0-alpha0"/>
-	<property name="esco-dg.grouper-dg.lib" value="grouper-esco-dg-${esco-dg.version}.jar"/>
-	<property name="esco-dg.grouper-dg-hooks.lib" value="grouper-esco-dg-hooks-${esco-dg.version}.jar"/>
-	<property name="esco-dg.grouper-dg.3rdPart.lib" value="grouper-esco-dg-3rdPart.jar"/>
+	<property name="esco-dg.grouper-dg.lib" value="${esco-dg.dist.dir}grouper-esco-dg-hooks-${esco-dg.version}.jar"/>
+	<property name="esco-dg.schema.file" value="${esco-dg.build.dir}schema.ddl"/>
 		
+	
+	<property name="esco-dg.3part.spring.lib" value="${esco-dg.lib.dir}spring-2.5.5.jar"/>
+	<property name="esco-dg.3part.ldap.lib" value="${esco-dg.lib.dir}ldap.jar"/>
+	
+	<property name="esco-dg.grouper.custom.ui.lib.dir" value="${esco-dg.grouper.custom.ui.dir}/WEB-INF/lib/"/>
+	<property name="esco-dg.grouper.custom.ui.prop.dir" value="${esco-dg.grouper.custom.ui.dir}/resources/"/>
+	<property name="esco-dg.grouper.custom.ui.classes.dir" value="${esco-dg.grouper.custom.ui.dir}/WEB-INF/classes/"/>
+	<property name="esco-dg.grouper.custom.ui.build.file" value="additional-build.xml"/>
+	<property name="esco-dg.grouper.custom.ui.web.file" value="web.spring.xml"/>
+	
+	<property name="esco-dg.conf.hibernate.file" value="${esco-dg.prop.dir}hibernate.cfg.xml"/>
+	<property name="esco-dg.conf.grouper-dg.file" value="${esco-dg.prop.dir}esco-dynamic-groups.properties"/>
+	<property name="esco-dg.conf.logging.file" value="${esco-dg.prop.dir}log4j.properties"/>
 	
 	<!-- Path Section -->
 	<path id="esco-dg.classpath">
@@ -27,27 +35,42 @@
 		<pathelement location="${esco-dg.prop.dir}"/>
 		<fileset dir="${esco-dg.lib.dir}" includes="**/*.jar" />
 	</path>
+		
+	<taskdef resource="net/sf/antcontrib/antlib.xml" classpath="${esco-dg.grouper-dg.lib}/ant-contrib-1.0b3.jar"/>
+			
 	
-	<!-- Target Section -->
+	<!-- Displays tsome properties. -->	
 	<target name="esco-dg.display" description="Displays the user properties">
-		 <property name = "esco-dg.classpath.value" refid="esco-dg.classpath"/>
+		<property name = "esco-dg.classpath.value" refid="esco-dg.classpath"/>
 		<echo >
-			esco-dg.lib.dir                    = ${esco-dg.lib.dir}
-			esco-dg.classes.dir                = ${esco-dg.classes.dir}
-			esco-dg.build.dir                  = ${esco-dg.build.dir}
-			esco-dg.dist.dir                   = ${esco-dg.dist.dir}
-			esco-dg.src.dir                    = ${esco-dg.src.dir}
-			esco-dg.prop.dir                    = ${esco-dg.prop.dir}
-			sco-dg.tmp.dir                     = ${esco-dg.tmp.dir}
-			esco-dg.classpath                  = ${esco-dg.classpath.value}
-			esco-dg.grouper.lib                = ${grouper.lib}
-			esco-dg.aspectwerkz.aop.def        = ${esco-dg.aspectwerkz.aop.def}
-			esco-db.version                    = ${esco-dg.version}
-			esco-dg.grouper-dg.lib             = ${esco-dg.grouper-dg.lib}
-			esco-dg.grouper-dg.3rdPart.lib     = ${esco-dg.grouper-dg.3rdPart.lib}
+			esco-dg.lib.dir                        = ${esco-dg.lib.dir}
+			esco-dg.classes.dir                    = ${esco-dg.classes.dir}
+			esco-dg.build.dir                      = ${esco-dg.build.dir}
+			esco-dg.dist.dir                       = ${esco-dg.dist.dir}
+			esco-dg.src.dir                        = ${esco-dg.src.dir}
+			esco-dg.prop.dir                       = ${esco-dg.prop.dir}
+			esco-dg.classpath                      = ${esco-dg.classpath.value}
+			
+			esco-db.version                        = ${esco-dg.version}
+			esco-dg.grouper-dg.lib                 = ${esco-dg.grouper-dg.lib}
+			
+			esco-dg.grouper.custom.ui.dir          = ${esco-dg.grouper.custom.ui.dir}
+			esco-dg.grouper.custom.ui.lib.dir      = ${esco-dg.grouper.custom.ui.lib.dir}
+			esco-dg.grouper.custom.ui.classes.dir  = ${esco-dg.grouper.custom.ui.classes.dir}
+			esco-dg.grouper.custom.ui.prop.dir     = ${esco-dg.grouper.custom.ui.prop.dir}
+			esco-dg.grouper.custom.ui.build.file   = ${esco-dg.grouper.custom.ui.build.file}
+			esco-dg.grouper.custom.ui.web.file     = ${esco-dg.grouper.custom.ui.web.file}
+			
+			esco-dg.3part.spring.lib               = ${esco-dg.3part.spring.lib}
+			esco-dg.3part.ldap.lib                 = ${esco-dg.3part.ldap.lib}
+			
+			esco-dg.conf.hibernate.file            = ${esco-dg.conf.hibernate.file}
+			esco-dg.conf.grouper-dg.file           = ${esco-dg.conf.grouper-dg.file}
+			esco-dg.conf.logging.file              = ${esco-dg.conf.logging.file}
 		</echo>
 	</target>
 	
+	<!-- Compilation and packaging targets -->
 	<target name="esco-dg.create.build.dir">
 		<mkdir dir="${esco-dg.build.dir}"/>
 	</target>
@@ -56,102 +79,126 @@
 		<mkdir dir="${esco-dg.dist.dir}"/>
 	</target>
 	
-	<target name="esco-dg.create.tmp.dir" description="Creates the tmp directory.">
-		<delete quiet="true" dir="${esco-dg.tmp.dir}"/>
-		<mkdir dir="${esco-dg.tmp.dir}"/>
-	</target>
-	
-	<target name="esco-dg.grouper.unzip" description="Unzip the grouper jar" depends="esco-dg.create.build.dir">
-		 <unzip dest="${esco-dg.build.dir}" src="${esco-dg.grouper.lib}"/>
-	</target>
-	  
-	<target name="esco-dg.weaving" 
-		description="Weaving the aspects into the grouper classes."
-		depends="esco-dg.grouper.unzip, esco-dg.compile">
-		<taskdef name="awc" classname="org.codehaus.aspectwerkz.compiler.AspectWerkzCTask" classpathref="esco-dg.classpath"/>
-		<awc verbose="true" taskverbose="true" details="true" definition="${esco-dg.aspectwerkz.aop.def}" classpathref="esco-dg.classpath">
-			<target path="${esco-dg.build.dir}"/>
-		</awc>
-	</target>
-
 	<target name="esco-dg.compile" description="Compilation of the aspects.">
 		<mkdir dir="${esco-dg.build.dir}"/>
 		<javac  srcdir="${esco-dg.src.dir}"
-						 includes="org/esco/dynamicgroups/**"
-				         excludes="org/esco/dynamicgroups/ldap/**"
-						 destdir="${esco-dg.build.dir}"
-				         debug="true"
-				         deprecation="true"
-				         optimize="true"
-				 		 classpathref="esco-dg.classpath">
+				includes="org/esco/dynamicgroups/**"
+				excludes="org/esco/dynamicgroups/ldap/**"
+				destdir="${esco-dg.build.dir}"
+				debug="true"
+				deprecation="true"
+				optimize="true"
+				classpathref="esco-dg.classpath">
 		 </javac>
 	</target>
 	
-	<target name="esco-dg.grouper-dg.3rd.part.jar" 
-			depends="esco-dg.create.tmp.dir"
-			description="Groups all the third part library into a single jar (mainly for test purpose)">
-		 <unzip dest="${esco-dg.tmp.dir}">
-		      <fileset dir="${esco-dg.lib.dir}">
-		        <include name="*.jar"/>
-		      	<exclude name="grouper*.jar"/>
-		      </fileset>
-	     </unzip>
-		 <jar  jarfile="${esco-dg.dist.dir}${esco-dg.grouper-dg.3rdPart.lib}" 
-		          basedir="${esco-dg.tmp.dir}"/>
-	</target>
-	
-	<target name="esco-dg.grouper-dg.jar" 
-		description="Creates the jar for grouper with dynamic groups support." 
-		depends="esco-dg.weaving, esco-dg.create.dist.dir" >
-	 	<jar destfile="${esco-dg.dist.dir}${esco-dg.grouper-dg.lib}" basedir="${esco-dg.build.dir}">
-	  	   		<manifest>
-	  	   			<attribute name="Built-By"                value="A. Deman - GIP RECIA"/>
-			        <attribute name="Implementation-Vendor"   value="Internet2 for all the grouper part and esco for the dynamic groups add on."/>
-			        <attribute name="Implementation-Title"    value="grouper with dynamic groups support"/>
-			        <attribute name="Implementation-Version"  value="${esco-dg.version}"/>
-			        <attribute name="Implementation-URL"      value="http://middleware.internet2.edu/dir/groups/grouper/"/>
-			    </manifest>
-			</jar>
-	</target>
-	
-	<target name="esco-dg.grouper-dg-hooks.jar" 
+	<target name="esco-dg.grouper-dg.build" 
 			description="Creates the jar for grouper with dynamic groups support." 
 			depends="esco-dg.create.dist.dir, esco-dg.compile" >
-			<!--javac  srcdir="${esco-dg.src.dir}"
-								 includes="org/esco/dynamicgroups/**"
-						         excludes="org/esco/dynamicgroups/aop/**"
-								 destdir="${esco-dg.build.dir}"
-						         debug="true"
-						         deprecation="true"
-						         optimize="true"
-						 		 classpathref="esco-dg.classpath">
-				 </javac-->
-		 	<jar destfile="${esco-dg.dist.dir}${esco-dg.grouper-dg-hooks.lib}" basedir="${esco-dg.build.dir}" excludes="**/aop/*">
+			<jar destfile="${esco-dg.grouper-dg.lib}" basedir="${esco-dg.build.dir}" excludes="**/aop/*">
 		  	   		<manifest>
 		  	   			<attribute name="Built-By"                value="A. Deman - GIP RECIA"/>
 				        <attribute name="Implementation-Vendor"   value="ESCO/GIP RECIA for the dynamic groups add on."/>
-				        <attribute name="Implementation-Title"    value="grouper with dynamic groups support"/>
+				        <attribute name="Implementation-Title"    value="Hooks for grouper with dynamic groups support."/>
 				        <attribute name="Implementation-Version"  value="${esco-dg.version}"/>
 				    </manifest>
 			</jar>
 	</target>
 	
-	<target name="schemaexport">
-		<taskdef name="schemaexport" 
-				 classname="org.hibernate.tool.hbm2ddl.SchemaExportTask"
-			classpathref="esco-dg.classpath"/>
-	 
-	 	<schemaexport
-	  		properties="properties/hibernate.cfg.xml"
-	  		quiet="no"
-	  		text="yes"
-	  		drop="yes"
-	  		delimiter=";"
-	  		output="schema-export.sql">
-	  		<fileset dir="properties/">
-	   			<include name="**/*.hbm.xml"/>
-	  		</fileset>
-	 	</schemaexport>
+	<!-- Database initialisation -->
+	<target name="esco-dg.init-db">
+		<taskdef name="hibernatetool" 
+		         classname="org.hibernate.tool.ant.HibernateToolTask" 
+		         classpathref="esco-dg.classpath" />
+		
+		<input
+			message="Database inititalization - everything in the database will be lost - Proceed [y/N]?"
+			validargs="Y,N"
+			addproperty="do.dbinit"
+			defaultvalue="N"/>
+		<if>
+			<or>
+				<equals arg1="${do.dbinit}" arg2="y" />
+				<equals arg1="${do.dbinit}" arg2="Y" />
+			</or>
+			<then>
+				<hibernatetool destdir=".">
+					<configuration configurationfile="resources/hibernate.cfg.xml">
+						<fileset dir="resources" includes="mapping/*.hbm.xml"/>
+					</configuration>
+		  			<hbm2ddl
+						export="true"
+		  				update="false"
+		  				drop="true"
+		  				create="true"
+		  				outputfilename="${esco-dg.schema.file}"
+		  				delimiter=";" 
+		  				format="true"
+		  				haltonerror="true"/>
+		  		</hibernatetool>
+			</then>
+			<else>
+				<fail>Operation aborted.</fail>
+			</else>
+		</if>
+	</target>
+	
+	<!-- deploy targets -->
+	<target name="esco-dg.check-config" description="Checks that the example config files have been copied" >
+		<if>
+			<not>
+				<available file="${esco-dg.conf.hibernate.file}"/>
+			</not>
+			<then>
+				<fail message="${esco-dg.conf.hibernate.file} not found." />	
+			</then>
+		</if>
+		<if>
+			<not>
+				<available file="${esco-dg.conf.grouper-dg.file}"/>
+			</not>
+			<then>
+				<fail message="${esco-dg.conf.grouper-dg.file} not found." />	
+			</then>
+		</if>
+		<if>
+			<not>
+				<available file="${esco-dg.conf.logging.file}"/>
+			</not>
+			<then>
+				<fail message="${esco-dg.conf.logging.file} not found." />	
+			</then>
+		</if>
+	</target>
+	
+	<target name="esco-dg.deploy" 
+		depends="esco-dg.check-config, esco-dg.grouper-dg.build" 
+		description="Deploys the files in custom grouper ui directory.">
+		<mkdir dir="${esco-dg.grouper.custom.ui.dir}"/>
+		<copy todir="${esco-dg.grouper.custom.ui.prop.dir}">
+			<fileset dir="${esco-dg.prop.dir}">
+				<exclude name="grouper.*"/>
+				<exclude name="log4j.*"/>
+				<exclude name="*.example"/>
+				<exclude name="${esco-dg.grouper.custom.ui.web.file}"/>
+				<exclude name="${esco-dg.grouper.custom.ui.build.file}"/>
+			</fileset>
+		</copy>
+		<copy file="${esco-dg.conf.logging.file}" todir="${esco-dg.grouper.custom.ui.classes.dir}" />
+		<copy todir="${esco-dg.grouper.custom.ui.dir}">
+			<fileset dir="${esco-dg.prop.dir}">
+				<include name="${esco-dg.grouper.custom.ui.build.file}"/> 			
+				<include name="${esco-dg.grouper.custom.ui.web.file}"/> 
+			</fileset>
+		</copy>
+		<copy file="${esco-dg.3part.ldap.lib}" todir="${esco-dg.grouper.custom.ui.lib.dir}" />
+		<copy file="${esco-dg.3part.spring.lib}" todir="${esco-dg.grouper.custom.ui.lib.dir}" />
+		<copy file="${esco-dg.grouper-dg.lib}" todir="${esco-dg.grouper.custom.ui.lib.dir}" />
+ 	</target>
+	
+	<target name="esco-dg.clean"> 
+			<delete quiet="true" dir="${esco-dg.build.dir}"/>
+			<delete quiet="true" dir="${esco-dg.dist.dir}"/>
 	</target>
 	
 </project>

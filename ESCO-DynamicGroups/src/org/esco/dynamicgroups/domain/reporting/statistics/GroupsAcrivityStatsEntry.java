@@ -90,7 +90,7 @@ public class GroupsAcrivityStatsEntry implements IGroupsActivityStatsEntry {
     private static final String ADDED_KEY = "stats.groups.activity.groups.members.added";
     
     /** */
-    private static final String REMOVED_KEY = "stats.groups.activity.groups.members.added";
+    private static final String REMOVED_KEY = "stats.groups.activity.groups.members.removed";
     
     /** Activities for the groups. */
     private Map<String, GroupActivity> activities = new HashMap<String, GroupActivity>();
@@ -148,6 +148,7 @@ public class GroupsAcrivityStatsEntry implements IGroupsActivityStatsEntry {
         GroupActivity activity = activities.get(groupName);
         if (activity == null) {
             activity = new GroupActivity();
+            activities.put(groupName, activity);
         }
         activity.incrementAddedMembersCount();
     }
@@ -163,6 +164,7 @@ public class GroupsAcrivityStatsEntry implements IGroupsActivityStatsEntry {
         GroupActivity activity = activities.get(groupName);
         if (activity == null) {
             activity = new GroupActivity();
+            activities.put(groupName, activity);
         }
         activity.incrementRemovedMembersCount();
 

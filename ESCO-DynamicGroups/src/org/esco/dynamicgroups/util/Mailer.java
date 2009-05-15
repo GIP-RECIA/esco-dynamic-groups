@@ -112,9 +112,9 @@ public class Mailer implements InitializingBean, IMailer {
     /**
      * Notification of an exception.
      * @param exception The exception.
-     * @see org.esco.dynamicgroups.util.IMailer#sendExeceptionNotification(java.lang.Exception)
+     * @see org.esco.dynamicgroups.util.IMailer#sendExeceptionNotification(Throwable)
      */
-    public void sendExeceptionNotification(final Exception exception) {
+    public void sendExeceptionNotification(final Throwable exception) {
 
 
         final StringBuilder sb = new StringBuilder();

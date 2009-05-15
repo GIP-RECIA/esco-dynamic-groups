@@ -12,7 +12,7 @@ public interface IMailer {
      * Sends the message associated to an exception.
      * @param e The exception.
      */
-    void sendExeceptionNotification(final Exception e);
+    void sendExeceptionNotification(final Throwable e);
 
     /**
      * Sends a mail.

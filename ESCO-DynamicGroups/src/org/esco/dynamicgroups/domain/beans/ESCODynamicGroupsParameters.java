@@ -14,6 +14,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.CookieManager;
 import org.esco.dynamicgroups.util.PropertyParser;
 
 
@@ -25,6 +26,9 @@ import org.esco.dynamicgroups.util.PropertyParser;
  */
 public class ESCODynamicGroupsParameters implements Serializable {
 
+    /** Name of the file to use for the ldap sync cookie. */
+    public static final String DEF_COOKIE_FILE = "esco_dg.cookie";
+    
     /** Default cahrset value. */
     private static final String DEFAULT_CHARSET = "utf-8";
 
@@ -33,9 +37,6 @@ public class ESCODynamicGroupsParameters implements Serializable {
 
     /** Prefix for the properties. */
     private static final String PROPERTIES_PREFIX = "esco.dynamic.groups.";
-
-    /** Name of the file to use for the ldap sync cookie. */
-    private static final String DEF_SYNCREPL_COOKIE_FILE = "esco_dg.cookie";
 
     /** Default modulo for saving the cookie. */
     private static final int DEF_SYNCREPL_MODULO = 100;
@@ -296,7 +297,7 @@ public class ESCODynamicGroupsParameters implements Serializable {
         setLdapUidAttribute(parseStringFromProperty(params, ldapUidAttributeKey));
         setSyncReplRID(parsePositiveIntegerSafeFromProperty(params, synreplRIDKey, 0));
         setSyncreplClientIdle(parseIntegerFromProperty(params, synreplClientIDLEKey) * MILLIS_TO_SECONDS_FACTOR);
-        setSyncReplCookieFile(parseStringSafeFromProperty(params, synreplCookieFileKey, DEF_SYNCREPL_COOKIE_FILE));
+        setSyncReplCookieFile(parseStringSafeFromProperty(params, synreplCookieFileKey, CookieManager.DEF_COOKIE_FILE));
         setSyncReplCookieSaveModulo(parseStrictPositiveIntegerSafeFromProperty(params, synreplCookieSaveModuloKey, 
                 DEF_SYNCREPL_MODULO));
         setGrouperSubjectsSourceId(parseStringFromProperty(params, grouperSubjSourceKey));
