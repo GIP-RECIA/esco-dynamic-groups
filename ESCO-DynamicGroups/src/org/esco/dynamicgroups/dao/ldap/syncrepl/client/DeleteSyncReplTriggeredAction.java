@@ -57,12 +57,12 @@ public class DeleteSyncReplTriggeredAction extends AbstractSyncReplsTriggeredAct
        
         final IEntryDTO entry = getEntryDTOFactory().createEntryDTO(ldapEntry);
         
-        if (LOGGER.isTraceEnabled()) {
+        if (LOGGER.isDebugEnabled()) {
             
             if (entry == null) {
-                LOGGER.trace("Delete action - id of the entry cannot be retrieved.");    
+                LOGGER.debug("Delete action - id of the entry cannot be retrieved.");    
             } else {
-                LOGGER.trace("Delete action - id of the entry:" + entry.getId());
+                LOGGER.debug("Delete action - id of the entry:" + entry.getId());
             }
             
         }

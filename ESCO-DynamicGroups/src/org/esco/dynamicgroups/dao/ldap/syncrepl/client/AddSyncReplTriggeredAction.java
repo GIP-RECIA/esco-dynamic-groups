@@ -57,12 +57,12 @@ public class AddSyncReplTriggeredAction extends AbstractSyncReplsTriggeredAction
     public void trigger(final LDAPEntry ldapEntry) {
         final IEntryDTO entry = getEntryDTOFactory().createEntryDTO(ldapEntry);
         
-        if (LOGGER.isTraceEnabled()) {
+        if (LOGGER.isDebugEnabled()) {
             
             if (entry == null) {
-                LOGGER.trace("Add action - id of the entry cannot be retrieved.");    
+                LOGGER.debug("Add action - id of the entry cannot be retrieved.");    
             } else {
-                LOGGER.trace("Add action - id of the entry:" + entry.getId());
+                LOGGER.debug("Add action - id of the entry:" + entry.getId());
             }
             
         }

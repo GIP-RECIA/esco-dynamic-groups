@@ -19,13 +19,13 @@ public class PropositionCodec {
     private static final char COMMA = ',';
     
     /** And constant. */
-    private static final String AND = "And";
+    private static final String AND = "AND";
     
     /** Or constant. */
-    private static final String OR = "Or";
+    private static final String OR = "OR";
     
     /** Not constant. */
-    private static final String NOT = "Not";
+    private static final String NOT = "NOT";
     
     /** Open bracket constant. */
     private static final char OPEN_BRACKET = '(';
@@ -73,19 +73,52 @@ public class PropositionCodec {
         return "";
     }
     
+    /**
+     * Count the number of open bracket in astring.
+     * @param source The considered string.
+     * @return The number of open bracket in the string.
+     */
+    private int countOpenBacket(final String source) {
+        int nbOb = 0;
+        for (int i = 0; i < source.length(); i++) {
+            if (source.charAt(i) == OPEN_BRACKET) {
+                nbOb++;
+            }
+        }
+        return nbOb;
+    }
+    
+    /**
+     * Count the number of close bracket in astring.
+     * @param source The considered string.
+     * @return The number of close bracket in the string.
+     */
+    private int countCloseBacket(final String source) {
+        int nbCb = 0;
+        for (int i = 0; i < source.length(); i++) {
+            if (source.charAt(i) == CLOSE_BRACKET) {
+                nbCb++;
+            }
+        }
+        return nbCb;
+    }
     
     /**
      * Extracts the content of a coded string (i.e. between ( and  ))
      * @param source The source string.
-     * @return The string that can be decoded in a Ipropositionn if the
+     * @return The string that can be decoded in a IProposition if the
      * coded string is valid, the source String otherwise.
      */
     private String extractContentSafe(final String source) {
+        if (countOpenBacket(source) != countCloseBacket(source)) {
+            return "";
+        }
         final int start = source.indexOf(OPEN_BRACKET);
         final int stop = source.lastIndexOf(CLOSE_BRACKET);
         if (start >= 0 &&  stop > 0 && start < stop) {
             return source.substring(start + 1, stop).trim();
         } 
+        
         return source;
     }
     
@@ -119,26 +152,26 @@ public class PropositionCodec {
     /**
      * Decodes a disjunction.
      * @param coded The coded string.
-     * @return The proposition that corresponds to the disjunctionn if the
-     * coded string is valid, null otherwise.
+     * @return A Result instance that contains the proposition
+     * if the coded string is valid, otherwise the result contains the invalid string.
      */
-    private IProposition decodeDisjunction(final String coded) {
+    private DecodedPropositionResult decodeDisjunction(final String coded) {
         final String content = extractContent(coded);
         int pos = getSplitPosition(content);
         if (pos == 0) {
-            return null;
+            return new DecodedPropositionResult(coded);
         }
         final String firstPart = content.substring(0, pos).trim();
         final String secondPart = content.substring(pos + 1).trim();
-        final IProposition first = decode(firstPart);
-        if (first == null) {
-            return null;
+        final DecodedPropositionResult first = decode(firstPart);
+        if (!first.isValid()) {
+            return first;
         }
-        final IProposition second = decode(secondPart);
-        if (second == null) {
-            return null;
+        final DecodedPropositionResult second = decode(secondPart);
+        if (!second.isValid()) {
+            return second;
         }
-        return new Disjunction(first, second);
+        return new DecodedPropositionResult(new Disjunction(first.getProposition(), second.getProposition()));
     }
     
     /**
@@ -147,7 +180,7 @@ public class PropositionCodec {
      * @return The proposition that corresponds to the conjunctionn if the
      * coded string is valid, null otherwise.
      */    
-    private IProposition decodeConjunction(final String coded) {
+    private DecodedPropositionResult decodeConjunction(final String coded) {
         final String content = extractContent(coded);
         int pos = getSplitPosition(content);
         if (pos == 0) {
@@ -155,15 +188,15 @@ public class PropositionCodec {
         }
         final String firstPart = content.substring(0, pos).trim();
         final String secondPart = content.substring(pos + 1).trim();
-        final IProposition first = decode(firstPart);
-        if (first == null) {
-            return null;
+        final DecodedPropositionResult first = decode(firstPart);
+        if (!first.isValid()) {
+            return first;
         }
-        final IProposition second = decode(secondPart);
-        if (second == null) {
-            return null;
+        final DecodedPropositionResult second = decode(secondPart);
+        if (!second.isValid()) {
+            return second;
         }
-        return new Conjunction(first, second);
+        return new DecodedPropositionResult(new Conjunction(first.getProposition(), second.getProposition()));
     }
     
     /**
@@ -172,13 +205,13 @@ public class PropositionCodec {
      * @return The proposition that corresponds to the negation if the
      * coded string is valid, null otherwise.
      */
-    private IProposition decodeNegation(final String coded) {
+    private DecodedPropositionResult decodeNegation(final String coded) {
         final String content = extractContent(coded);
-        final IProposition proposition = decode(content);
-        if (proposition == null) {
-            return null;
+        final DecodedPropositionResult decodedSubProp = decode(content);
+        if (!decodedSubProp.isValid()) {
+            return decodedSubProp;
         }
-        return new Negation(proposition);
+        return new DecodedPropositionResult(new Negation(decodedSubProp.getProposition()));
     }
     
     /**
@@ -186,23 +219,25 @@ public class PropositionCodec {
      * @param coded The string to decode.
      * @return The proposition if the coded string is valid, null otherwise.
      */
-    private IProposition decodeAtomicProposition(final String coded) {
+    private DecodedPropositionResult decodeAtomicProposition(final String coded) {
         final String content = extractContentSafe(coded);
-        
+        if ("".equals(content)) {
+            return new DecodedPropositionResult(coded);
+        }
         int pos = content.indexOf(NOT_EQUAL);
         int sepLength = NOT_EQUAL.length();
         boolean negative = true;
         if (pos < 1  || pos == content.length() - 2) {
            pos = content.indexOf(EQUAL);
            if (pos < 1  || pos == content.length() - 1) {
-               return null;
+               return new DecodedPropositionResult(coded);
            }
            negative = false;
            sepLength = EQUAL.length();
         }
         final String attribute = content.substring(0, pos).trim();
         final String value = content.substring(pos + sepLength).trim();
-        return new AtomicProposition(attribute, value, negative);
+        return new DecodedPropositionResult(new AtomicProposition(attribute, value, negative));
     }
     
     /**
@@ -211,12 +246,12 @@ public class PropositionCodec {
      * @return The proposition if the coded string is valid,
      * null otherwise.
      */
-    public IProposition decodeToDisjunctiveNormalForm(final String coded) {
-        final IProposition prop = decode(coded);
-        if (prop == null) {
-            return prop;
+    public DecodedPropositionResult decodeToDisjunctiveNormalForm(final String coded) {
+        final DecodedPropositionResult decodedPropRes = decode(coded);
+        if (!decodedPropRes.isValid()) {
+            return decodedPropRes;
         }
-        return prop.toDisjunctiveNormalForm();
+        return new DecodedPropositionResult(decodedPropRes.getProposition().toDisjunctiveNormalForm());
     }
     
     /**
@@ -225,26 +260,27 @@ public class PropositionCodec {
      * @return The proposition if the coded string is valid,
      * null otherwise.
      */
-    public IProposition decode(final String coded) {
+    public DecodedPropositionResult decode(final String coded) {
         if (coded == null) {
-            return null;
+            return new DecodedPropositionResult("null");
         }
         
         final String trimed = coded.trim();
+        final String trimedUC = trimed.toUpperCase();
         
         if ("".equals(trimed)) {
-            return null;
+            return new DecodedPropositionResult("Empty string");
         }
         
-        if (trimed.startsWith(OR)) {
+        if (trimedUC.startsWith(OR)) {
             return decodeDisjunction(trimed);
         }
         
-        if (trimed.startsWith(AND)) {
+        if (trimedUC.startsWith(AND)) {
             return decodeConjunction(trimed);
         }
         
-        if (trimed.startsWith(NOT)) {
+        if (trimedUC.startsWith(NOT)) {
             return decodeNegation(trimed);
         }
         

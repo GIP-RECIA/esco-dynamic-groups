@@ -75,6 +75,9 @@ public class Mailer implements InitializingBean, IMailer {
     /** The charset to use for the mails. */
     private String charset;
     
+    /** Flag to determine if the messages should be send in xhtml.*/
+    private boolean xhtml;
+    
     
 
     /** Flag to disable the mails. */
@@ -102,6 +105,7 @@ public class Mailer implements InitializingBean, IMailer {
         setToField(parameters.getToField());
         setSubjectPrefix(parameters.getSubjectPrefix());
         setCharset(parameters.getMailCharset());
+        setXhtml(parameters.getXHTMLReport());
         if (parameters.isAuthenticatedSMTPHost()) {
             LOGGER.debug("Authenticated SMTP.");
             setSmtpUser(parameters.getSmtpUser());
@@ -153,7 +157,7 @@ public class Mailer implements InitializingBean, IMailer {
 
 
 
-        sendMail(exception.getClass().getSimpleName(), sb.toString());
+        sendMailInternal(exception.getClass().getSimpleName(), sb.toString(), false);
     }
 
     /**
@@ -163,7 +167,18 @@ public class Mailer implements InitializingBean, IMailer {
      * @see org.esco.dynamicgroups.util.IMailer#sendMail(java.lang.String, java.lang.String)
      */
     public void sendMail(final String subjectField, final String messageContent) {
-
+        sendMailInternal(subjectField, messageContent, xhtml);
+    }
+    
+    /**
+     * Sends a mail.
+     * @param subjectField The subject of the mail.
+     * @param messageContent The content of the message.
+     * @param xhtmlFlag flag to determine if the message contains whtml tags.
+     * @see org.esco.dynamicgroups.util.IMailer#sendMail(java.lang.String, java.lang.String)
+     */
+    public void sendMailInternal(final String subjectField, final String messageContent, final boolean xhtmlFlag) {
+        
         if (isDisabled()) {
             LOGGER.info("Mails are disabled.");
         } else {
@@ -171,16 +186,20 @@ public class Mailer implements InitializingBean, IMailer {
                 Properties properties = System.getProperties();
                 properties.put(MAIL_SMTP_HOST, smtpHost);
                 Session session = Session.getDefaultInstance(properties, null);
-
+                
                 Message message = new MimeMessage(session);
                 
                 message.setFrom(new InternetAddress(fromField));
                 message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toField, false));
                 message.setSubject(getSubjectPrefix() + subjectField);
-                message.setContent(messageContent, TEXT_HTML_CONTENT_TYPE + CHARSET_SEP + getCharset());
+                if (xhtmlFlag) {
+                    message.setContent(messageContent, TEXT_HTML_CONTENT_TYPE + CHARSET_SEP + getCharset());
+                } else {
+                    message.setText(messageContent);
+                }
                 message.setHeader(X_MAILER, MAILER_FIELD);
                 message.setSentDate(new Date());
-
+                
                 if (smtpUser != null) {
                     Transport transport = session.getTransport(SMTP_PROTOCOL);
                     transport.connect(smtpHost, 
@@ -348,6 +367,24 @@ public class Mailer implements InitializingBean, IMailer {
         if (!this.charset.toLowerCase().startsWith(CHARSET_FIELD)) {
             this.charset = CHARSET_FIELD + charset;
         }
+    }
+
+
+    /**
+     * Getter for xhtml.
+     * @return xhtml.
+     */
+    public boolean isXhtml() {
+        return xhtml;
+    }
+
+
+    /**
+     * Setter for xhtml.
+     * @param xhtml the new value for xhtml.
+     */
+    public void setXhtml(final boolean xhtml) {
+        this.xhtml = xhtml;
     }
     
 //    public static void main(final String args[]) {

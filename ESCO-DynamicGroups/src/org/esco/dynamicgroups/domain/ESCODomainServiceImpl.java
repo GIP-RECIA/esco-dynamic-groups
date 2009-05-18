@@ -216,11 +216,11 @@ public class ESCODomainServiceImpl
         }
 
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Number of candidat groups: " + candidatGroups.size());
-            LOGGER.trace("Number of retained candidat groups: " + retainedCandidatGroups.size());
-            LOGGER.trace("All the candidat Groups:" + candidatGroups);
-            LOGGER.trace("Retained candidat Groups:" + retainedCandidatGroups);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Number of candidat groups: " + candidatGroups.size());
+            LOGGER.debug("Number of retained candidat groups: " + retainedCandidatGroups.size());
+            LOGGER.debug("All the candidat Groups:" + candidatGroups);
+            LOGGER.debug("Retained candidat Groups:" + retainedCandidatGroups);
         }
 
         return retainedCandidatGroups;

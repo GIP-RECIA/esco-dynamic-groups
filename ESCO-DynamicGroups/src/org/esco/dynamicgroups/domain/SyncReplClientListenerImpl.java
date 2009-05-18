@@ -8,6 +8,7 @@ import java.io.Serializable;
 
 import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.client.ESCOSyncReplClient;
+import org.esco.dynamicgroups.exceptions.IUncaughtExceptionHandlerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
@@ -30,50 +31,13 @@ public class SyncReplClientListenerImpl implements IRepositoryListener, Initiali
     /** The ldap replication client. */
     private ESCOSyncReplClient syncReplClient;
     
+    /** The handler for the exception. */
+    private IUncaughtExceptionHandlerFactory exceptionHandlerFactory;
+    
     /** The thread for the listener. */
     private Thread thread;
     
-    /**
-     * Exception handler.
-     * @author GIP RECIA - A. Deman
-     * 9 févr. 2009
-     *
-     */
-    private static class ExceptionHandler implements Thread.UncaughtExceptionHandler, Serializable {
-        
-        /** Serial veriosn uid.*/
-        private static final long serialVersionUID = 1776039245072654844L;
-        
-        /** The logger to use. */
-        private Logger logger;
-        
-        /** The listener. */
-        private IRepositoryListener listener;
-        
-        /**
-         * Builds an instance of ExceptionHandler.
-         * @param listener The listener to use.
-         * @param logger The logger to use.
-         */
-        public ExceptionHandler(final IRepositoryListener listener, 
-                final Logger logger) {
-            this.logger = logger;
-            this.listener = listener;
-        }
-
-        /**
-         * Handles an uncaught exception.
-         * @param thread The thread where the exception has to be caught.
-         * @param exception The exception to handle.
-         * @see java.lang.Thread.UncaughtExceptionHandler#uncaughtException(java.lang.Thread, java.lang.Throwable)
-         */
-        public void uncaughtException(final Thread thread, final Throwable exception) {
-                logger.fatal("Uncaught exception in the thread. The handler is trying to stop the listener." 
-                        + " See below for the traces.");
-                logger.fatal(exception, exception);
-                listener.stop();
-        }
-    }
+    
 
     /**
      * Builds an instance of SyncReplClientListenerImpl.
@@ -90,6 +54,10 @@ public class SyncReplClientListenerImpl implements IRepositoryListener, Initiali
     public void afterPropertiesSet() throws Exception {
         Assert.notNull(this.syncReplClient, 
                 "The property syncReplClient in the class " + this.getClass().getName() 
+                + " can't be null.");
+        
+        Assert.notNull(this.exceptionHandlerFactory,
+                "The property exceptionHandlerFactory in the class " + this.getClass().getName() 
                 + " can't be null.");
     }
 
@@ -116,7 +84,7 @@ public class SyncReplClientListenerImpl implements IRepositoryListener, Initiali
                 }
             }
         };
-        thread.setUncaughtExceptionHandler(new ExceptionHandler(this, LOGGER));
+        thread.setUncaughtExceptionHandler(exceptionHandlerFactory.createExceptionHandler());
         
         thread.start();
         
@@ -172,6 +140,22 @@ public class SyncReplClientListenerImpl implements IRepositoryListener, Initiali
      */
     public void setSyncReplClient(final ESCOSyncReplClient syncReplClient) {
         this.syncReplClient = syncReplClient;
+    }
+
+    /**
+     * Getter for exceptionHandlerFactory.
+     * @return exceptionHandlerFactory.
+     */
+    public IUncaughtExceptionHandlerFactory getExceptionHandlerFactory() {
+        return exceptionHandlerFactory;
+    }
+
+    /**
+     * Setter for exceptionHandlerFactory.
+     * @param exceptionHandlerFactory the new value for exceptionHandlerFactory.
+     */
+    public void setExceptionHandlerFactory(final IUncaughtExceptionHandlerFactory exceptionHandlerFactory) {
+        this.exceptionHandlerFactory = exceptionHandlerFactory;
     }
 
 }

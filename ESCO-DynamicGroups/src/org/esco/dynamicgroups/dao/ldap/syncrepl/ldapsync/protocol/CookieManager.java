@@ -224,9 +224,9 @@ public class CookieManager implements Serializable {
         if (newCookie != null) {
             this.currentCookie = newCookie;
             changesCount++;
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Number of changes: " + changesCount + " Cookie updated: " + new String(currentCookie) );
-                LOGGER.trace("Cookie updated: " + new String(currentCookie));
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Number of changes: " + changesCount + " Cookie updated: " + new String(currentCookie) );
+                LOGGER.debug("Cookie updated: " + new String(currentCookie));
             }
             
             if (changesCount % saveModulo == 0) {

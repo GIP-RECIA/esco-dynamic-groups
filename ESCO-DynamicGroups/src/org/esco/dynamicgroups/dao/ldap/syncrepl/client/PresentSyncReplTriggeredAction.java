@@ -57,12 +57,12 @@ public class PresentSyncReplTriggeredAction extends AbstractSyncReplsTriggeredAc
        
         final IEntryDTO entry = getEntryDTOFactory().createEntryDTO(ldapEntry);
         
-        if (LOGGER.isTraceEnabled()) {
+        if (LOGGER.isDebugEnabled()) {
             
             if (entry == null) {
-                LOGGER.trace("Present action - id of the entry cannot be retrieved.");    
+                LOGGER.debug("Present action - id of the entry cannot be retrieved.");    
             } else {
-                LOGGER.trace("Present action - id of the entry:" + entry.getId());
+                LOGGER.debug("Present action - id of the entry:" + entry.getId());
             }
             
         }

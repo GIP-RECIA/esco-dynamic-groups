@@ -21,6 +21,8 @@ import org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager;
 import org.esco.dynamicgroups.domain.reporting.statistics.StatisticsManagerProviderForHooks;
 
 /**
+ * Dynamic groups hook.
+ * This hook managed the creation of the dynamic groups.
  * @author GIP RECIA - A. Deman
  * 9 févr. 2009
  *
@@ -73,8 +75,9 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
     }
 
     /**
-     * @param hooksContext
-     * @param postDeleteBean
+     * Post delete hook point.
+     * @param hooksContext The hook context.
+     * @param postDeleteBean The available Grouper informations.
      * @see edu.internet2.middleware.grouper.hooks.GroupHooks#groupPostDelete(HooksContext, HooksGroupBean)
      */
     @Override
@@ -87,9 +90,10 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
     }
 
     /**
-     * 
-     * @param hooksContext
-     * @param postCommitInsertBean
+     * Post commit insert hook point.
+     * @param hooksContext The hook context.
+     * @param postCommitInsertBean The available Grouper information.
+     * @see edu.internet2.middleware.grouper.hooks.GroupHooks#groupPostCommitInsert(HooksContext, HooksGroupBean)
      */
     @Override
     public void groupPostCommitInsert(final HooksContext hooksContext, 
@@ -103,9 +107,10 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
     }
     
     /**
-     * 
-     * @param hooksContext
-     * @param postCommitDeleteBean
+     * Post commit Delete hook point.
+     * @param hooksContext The hook context.
+     * @param postCommitDeleteBean The availbale Grouper information.
+     * @see edu.internet2.middleware.grouper.hooks.GroupHooks#groupPostCommitDelete(HooksContext, HooksGroupBean)
      */
     @Override
     public void groupPostCommitDelete(final HooksContext hooksContext, 
@@ -120,8 +125,9 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
     }
 
     /**
-     * @param hooksContext
-     * @param postUpdateBean
+     * Post update hook point.
+     * @param hooksContext The hook context.
+     * @param postUpdateBean The available Grouper information.
      * @see edu.internet2.middleware.grouper.hooks.GroupHooks#groupPostUpdate(HooksContext, HooksGroupBean)
      */
     @Override
@@ -179,7 +185,7 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
     }
 
     /**
-     * Test if the definiton field associated to a dynamic group is changed.
+     * Tests if the definiton field associated to a dynamic group is changed.
      * @param group The group.
      * @return true if the fied that contains the defintion of the group is changed.
      */
