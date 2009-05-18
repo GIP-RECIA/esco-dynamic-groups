@@ -75,6 +75,12 @@
 	
 	<bean id="repositoryListener" class="org.esco.dynamicgroups.domain.SyncReplClientListenerImpl">
 		<property name="syncReplClient" ref="synReplClient" />
+		<property name="exceptionHandlerFactory" ref="uncaughtExceptionHandlerFactory" />
+	</bean>
+	
+	<bean id="uncaughtExceptionHandlerFactory" class="org.esco.dynamicgroups.exceptions.UncaughtExceptionHandlerFactoryImpl">
+		<property name="listener" ref="repositoryListener"/>
+		<property name="mailer" ref="mailer"/>
 	</bean>
 	
 	<bean id="domainService" class="org.esco.dynamicgroups.domain.ESCODomainServiceImpl"
@@ -83,6 +89,7 @@
 		<property name="groupsService" ref="groupsService" />
 		<property name="repositoryListener" ref="repositoryListener" />
 	</bean>
+	
 	
 	
 

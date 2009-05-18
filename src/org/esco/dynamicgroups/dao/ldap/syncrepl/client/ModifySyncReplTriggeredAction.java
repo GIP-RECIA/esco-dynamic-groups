@@ -57,12 +57,12 @@ public class ModifySyncReplTriggeredAction extends AbstractSyncReplsTriggeredAct
         
         final IEntryDTO entry = getEntryDTOFactory().createEntryDTO(ldapEntry);
         
-        if (LOGGER.isTraceEnabled()) {
+        if (LOGGER.isDebugEnabled()) {
             
             if (entry == null) {
-                LOGGER.trace("Modify action - id of the entry cannot be retrieved.");    
+                LOGGER.debug("Modify action - id of the entry cannot be retrieved.");    
             } else {
-                LOGGER.trace("Modify action - id of the entry:" + entry.getId());
+                LOGGER.debug("Modify action - id of the entry:" + entry.getId());
             }
             
         }

@@ -105,8 +105,8 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
      * #processLDAPMessage(com.novell.ldap.LDAPMessage)
      */
     public void processLDAPMessage(final LDAPMessage message) {
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Handling the message tag: " + message.getTag());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Handling the message tag: " + message.getTag());
         }
         if (message instanceof LDAPSearchResult) {
             handleLDAPSearchResult((LDAPSearchResult) message);
@@ -123,7 +123,7 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
         final SyncStateControl control = retrieveSyncStateControl(searchResultMessage);
         
         if (control != null) {
-            LOGGER.trace("A SyncStateControl is present in the message.");
+            LOGGER.debug("A SyncStateControl is present in the message.");
             CookieManager.instance().updateCurrentCookie(control.getCookie());
             final LDAPEntry entry = searchResultMessage.getEntry();
             if (control.isAdd()) {
@@ -137,7 +137,7 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
             }
             statisticsManager.handleSyncReplNotifications(control);
         } else {
-            LOGGER.trace("No SyncStateControl in the message.");
+            LOGGER.debug("No SyncStateControl in the message.");
         }
         
     }

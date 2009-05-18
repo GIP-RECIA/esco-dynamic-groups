@@ -17,6 +17,7 @@ import org.esco.dynamicgroups.domain.beans.DynGroup;
 import org.esco.dynamicgroups.domain.beans.GroupAttributeValueAssoc;
 import org.esco.dynamicgroups.domain.beans.IStringCleaner;
 import org.esco.dynamicgroups.domain.definition.AtomicProposition;
+import org.esco.dynamicgroups.domain.definition.DecodedPropositionResult;
 import org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition;
 import org.esco.dynamicgroups.domain.definition.IProposition;
 import org.esco.dynamicgroups.domain.definition.PropositionCodec;
@@ -182,8 +183,9 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
         // Stores the attribute/value contribution for this group if it is not
         // composed of several conjunctions.
         if (conjGroups.size() == 0) {
-            final IProposition prop = 
+            final DecodedPropositionResult decRes = 
                 PropositionCodec.instance().decodeToDisjunctiveNormalForm(dynGroup.getGroupDefinition());
+            final IProposition prop = decRes.getProposition();
             if (prop == null) {
                 LOGGER.error("Unable to decode (to a normal disjunctive form) the logical proposition in the group: " 
                         + dynGroup + ".");

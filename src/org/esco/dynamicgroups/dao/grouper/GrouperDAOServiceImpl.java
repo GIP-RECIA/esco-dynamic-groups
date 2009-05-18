@@ -159,8 +159,8 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
                     if (!group.hasImmediateMember(subject)) {
                         group.addMember(subject);
 
-                        if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace("The user: " + userId + " has been added to the group: " 
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug("The user: " + userId + " has been added to the group: " 
                                     + groupName  + ".");
                         }
                     } else {
@@ -450,8 +450,8 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
 
             for (Group group : groups) {
                 group.deleteMember(subject);
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace(" Removing user: " + userId + " from the group: " + group.getName());
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug(" Removing user: " + userId + " from the group: " + group.getName());
                 }
             }
 

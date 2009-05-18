@@ -37,7 +37,7 @@ public class DynamicGroupDefinition implements Serializable {
      * associated to the definition.
      */
     public DynamicGroupDefinition(final String groupName, final String proposition) {
-       this(groupName, PropositionCodec.instance().decode(proposition));
+       this(groupName, PropositionCodec.instance().decode(proposition).getProposition());
     }
     
     /**
@@ -50,10 +50,6 @@ public class DynamicGroupDefinition implements Serializable {
         this.proposition = proposition;
         if (this.proposition != null) {
             this.proposition = proposition.toDisjunctiveNormalForm();
-        }
-        
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Creates a dynamic group definition: " + this);
         }
     }
     

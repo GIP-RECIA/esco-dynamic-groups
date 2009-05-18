@@ -5,8 +5,11 @@
  
 * And et Or non binaires.
 
+* Repartir ESCOParameters dans plusieurs classes pour facliliter les
+  implementations vers d'autres backends.
+
 * tâche ant pour la verification de propositions logiques
-* tâche ant pour l'installation.
+OK * tâche ant pour l'installation.
 
 * Reflechir aux problèmes de synchronization lors de la modification ou lors de la creation.
 
@@ -24,11 +27,11 @@
 
 * Suppression du domainregistry dans le hook
 
-* Revoir le schema de la base pour être en FN.
+OK * Revoir le schema de la base pour être en FN.
 
-* Voir la creation de la base.
+OK * Voir la creation de la base.
 
-* Statistiques + rapport:
+OK * Statistiques + rapport:
 
  - i18n
 

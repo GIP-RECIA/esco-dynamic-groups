@@ -41,7 +41,7 @@ public class ReportFormatter implements IReportFormatter, InitializingBean {
      * @return The formatter corresponding the the user paramters.
      */
     protected IReportFormatter selectFormatter() {
-        if (parameters.isXHTMLReport()) {
+        if (parameters.getXHTMLReport()) {
             return xhtmlFormatter;
         }
         return textFormatter;

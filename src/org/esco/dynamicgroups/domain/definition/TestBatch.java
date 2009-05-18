@@ -63,10 +63,16 @@ public class TestBatch {
         System.out.println("=>" + ldapProp); 
         // And(objectClass=ENTAuxEnseignant, ENTPersonSexe=M)
 
-        IProposition prop = PropositionCodec.instance()
-            .decode("And (Or(objectClass =ENTAuxEnseignant, ENTPersonSexe=M), (ENTPersonSexe=F))");
-        System.out.println("=>" + prop);
-        System.out.println("==>" + prop.toDisjunctiveNormalForm());
+        DecodedPropositionResult prop = PropositionCodec.instance()
+            .decode("And (Or(objectClass =ENTAuxEnseignant, ENTPersonSexe=M), ENTPersonSexe=F))");
+        if (prop.isValid()) {
+            System.out.println("=> The proposition is valid.");
+            System.out.println("=>" + prop);
+            System.out.println("==>" + prop.getProposition().toDisjunctiveNormalForm());
+        } else {
+            System.out.println("=> The proposition is invalid.");
+            System.out.println("Invalid String: " + prop.getInvalidEncodedString());
+        }
         
         
     }

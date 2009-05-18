@@ -466,7 +466,7 @@ public class ESCODynamicGroupsParameters implements Serializable {
 
 
         sb.append("; xhtml report: ");
-        sb.append(isXHTMLReport());
+        sb.append(getXHTMLReport());
         sb.append("; report cron expression: ");
         sb.append(getReportCronExpression());
         sb.append("; count def mods: ");
@@ -975,7 +975,7 @@ public class ESCODynamicGroupsParameters implements Serializable {
      * Getter for xHTMLReport.
      * @return xHTMLReport.
      */
-    public boolean isXHTMLReport() {
+    public boolean getXHTMLReport() {
         return xHTMLReport;
     }
 

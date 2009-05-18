@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.esco.dynamicgroups.domain.definition.DecodedPropositionResult;
 import org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition;
 import org.esco.dynamicgroups.domain.definition.IProposition;
 import org.esco.dynamicgroups.domain.definition.PropositionCodec;
@@ -18,42 +19,42 @@ import org.esco.dynamicgroups.domain.definition.PropositionCodec;
  * 12 janv. 2009
  */
 public class DynGroup implements Serializable {
-    
-   
+
+
     /** Constant for the conjunctive components of a group. */ 
     public static final char CONJ_COMP_INDIRECTION = '@';
-    
+
     /** Constant used for the name of the conjunctive component groups. */
     public static final String OPEN_CURLY_BRACKET = "{";
 
     /** Constant used for the name of the conjunctive component groups. */
     public static final String CLOSE_CURLY_BRACKET = "}";
-    
+
     /** Serial Version UID.*/
     private static final long serialVersionUID = -6454699802772880028L;
-    
+
     /** Dynamic group identifier. */
     private long groupId;
 
     /** The name associated to the group. */
     private String groupName;
-    
+
     /** The definition associated to the group. */
     private String groupDefinition;
-    
+
     /** Number of attributes in the definition. */
     private int attributesNb;
-    
+
     /** The id of the group that contains this group as a cunjunctive component. */
     private Long indirectedGroupId;
-   
+
     /**
      * Builds an instance of DynGroup.
      */
     public DynGroup() {
         super();
     }
-    
+
     /**
      * Builds an instance of DynGroup.
      * @param groupName The name of the group.
@@ -61,7 +62,7 @@ public class DynGroup implements Serializable {
     public DynGroup(final String groupName) {
         this(groupName, "");
     }
-    
+
     /**
      * Builds an instance of DynGroup.
      * @param definition The definition of the group to buikd.
@@ -69,7 +70,7 @@ public class DynGroup implements Serializable {
     public DynGroup(final DynamicGroupDefinition definition) {
         this(definition.getGroupName(), PropositionCodec.instance().code(definition.getProposition()));
     }
-   
+
     /**
      * Builds an instance of DynGroup as the conjunctive component of another group.
      * @param conjonctiveComponentNumber The number of the consjunctive component.
@@ -80,21 +81,21 @@ public class DynGroup implements Serializable {
      */
     protected DynGroup(final int conjonctiveComponentNumber,
             final String groupName, final String groupDefinition, final Long indirectedGroupId) {
-       this(CONJ_COMP_INDIRECTION + OPEN_CURLY_BRACKET + conjonctiveComponentNumber 
-               + CLOSE_CURLY_BRACKET + groupName, groupDefinition);
-       this.indirectedGroupId = indirectedGroupId;
+        this(CONJ_COMP_INDIRECTION + OPEN_CURLY_BRACKET + conjonctiveComponentNumber 
+                + CLOSE_CURLY_BRACKET + groupName, groupDefinition);
+        this.indirectedGroupId = indirectedGroupId;
     }
-    
+
     /**
      * Builds an instance of DynGroup.
      * @param groupName The name of the group.
      * @param groupDefinition The definition of the group.
      */
     public DynGroup(final String groupName, final String groupDefinition) {
-       this.groupName = groupName;
-       setGroupDefinition(groupDefinition);
+        this.groupName = groupName;
+        setGroupDefinition(groupDefinition);
     }
-    
+
     /**
      * Tests if the group is a conjunctive component of a group.
      * For instance, if a group called myGroup is defined with (A and B) or (D and C)
@@ -104,20 +105,23 @@ public class DynGroup implements Serializable {
      *  
      */
     public boolean isConjunctiveComponentIndirection() {
-       return getIndirectedGroupId() != null;
+        return getIndirectedGroupId() != null;
     }
-    
+
     /**
      * Gives the groups associated to each conjunctive component of the definition.
      * @return The groups that correspond to the conjunctions in the group definition.
      */
     public Set<DynGroup> getConjunctiveComponents() {
-        
+
         final Set<DynGroup> conjunctiveComponents = new HashSet<DynGroup>();
-        
+
         if (!isConjunctiveComponentIndirection()) {
-            final IProposition proposition = PropositionCodec.instance().decodeToDisjunctiveNormalForm(groupDefinition);
-        
+            final DecodedPropositionResult decRes =  
+                PropositionCodec.instance().decodeToDisjunctiveNormalForm(groupDefinition);
+
+            final IProposition proposition = decRes.getProposition();
+
             if (proposition != null) {
                 final List<IProposition> conjunctions = proposition.getConjunctivePropositions();
                 if (conjunctions.size() > 1) {
@@ -130,10 +134,11 @@ public class DynGroup implements Serializable {
                     }
                 }
             }
+
         }
         return conjunctiveComponents;
     }
-    
+
     /**
      * Getter for groupId.
      * @return groupId.
@@ -164,8 +169,8 @@ public class DynGroup implements Serializable {
      */
     public void setGroupDefinition(final String groupDefinition) {
         this.groupDefinition = groupDefinition;
-        
-        final IProposition prop = PropositionCodec.instance().decode(groupDefinition);
+
+        final IProposition prop = PropositionCodec.instance().decode(groupDefinition).getProposition();
         if (prop != null) {
             attributesNb = prop.toDisjunctiveNormalForm().getAtomicPropositions().size();
         }
@@ -194,7 +199,7 @@ public class DynGroup implements Serializable {
     public String getGroupName() {
         return groupName;
     }
-    
+
     /**
      * If this group is a conjunctive component of another one, gives the name of
      * the full group, otherwise gives the name of this group. 
@@ -246,7 +251,7 @@ public class DynGroup implements Serializable {
         final DynGroup other = (DynGroup) obj;
         return other.getGroupDefinition().equals(groupDefinition) && other.getGroupName().equals(groupName);
     }
-    
+
     /**
      * Gives the String representation of this instance.
      * @return The string that represents this instance.
@@ -255,7 +260,7 @@ public class DynGroup implements Serializable {
     @Override
     public String toString() {
         return "DynGroup#{" + groupId + ", " + groupName + ", " 
-            + groupDefinition + ", " + attributesNb + "}";
+        + groupDefinition + ", " + attributesNb + "}";
     }
 
     /**
