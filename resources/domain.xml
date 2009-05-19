@@ -22,6 +22,15 @@
 		<property name="parameters" ref="parameters"/>
 		<property name="messageSource" ref="i18nService"/>
 	</bean>
+	<bean id="atomValidator" class="org.esco.dynamicgroups.domain.definition.AtomicPropositionValidatorFromList">
+		<property name="parameters" ref="parameters"/>
+	</bean>
+	
+	<bean id="PropositionCodec" class="org.esco.dynamicgroups.domain.definition.PropositionCodec">
+		<property name="i18n" ref= "i18n"/>
+		<property name="atomValidator" ref="atomValidator"/>
+	</bean>
+	
 	<bean id="xhtmlReportFormatter" class="org.esco.dynamicgroups.domain.reporting.XHTMLReportFormatter"/>
 	<bean id="textReportFormatter" class="org.esco.dynamicgroups.domain.reporting.TextReportFormatter"/>
 	<bean id="reportFormatter" class="org.esco.dynamicgroups.domain.reporting.ReportFormatter">

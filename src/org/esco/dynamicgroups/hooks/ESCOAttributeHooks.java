@@ -3,12 +3,15 @@
  */
 package org.esco.dynamicgroups.hooks;
 
+import edu.internet2.middleware.grouper.Attribute;
 import edu.internet2.middleware.grouper.hooks.AttributeHooks;
 import edu.internet2.middleware.grouper.hooks.beans.HooksAttributeBean;
 import edu.internet2.middleware.grouper.hooks.beans.HooksContext;
 import edu.internet2.middleware.grouper.hooks.logic.HookVeto;
 
-import org.apache.log4j.Logger;
+import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
+import org.esco.dynamicgroups.domain.definition.DecodedPropositionResult;
+import org.esco.dynamicgroups.domain.definition.PropositionCodec;
 
 /**
  * @author GIP RECIA - A. Deman
@@ -16,44 +19,53 @@ import org.apache.log4j.Logger;
  *
  */
 public class ESCOAttributeHooks extends AttributeHooks {
-    
-    private static final Logger LOGGER = Logger.getLogger(ESCOAttributeHooks.class);
+
+    /** The definition field. */
+    private String definitionField;
 
     /**
      * Builds an instance of ESCOAttributeHooks.
      */
     public ESCOAttributeHooks() {
-        // TODO Auto-generated constructor stub
-    }
-    public void attributePreUpdate(final HooksContext hooksContext, final HooksAttributeBean preUpdateBean) {
-       LOGGER.info("==> attributePreUpdate");
-       LOGGER.info("==> preUpdateBean.getAttribute().getAttrName() " 
-                + preUpdateBean.getAttribute().getAttrName());
-       LOGGER.info("==> preUpdateBean.getAttribute().getValue() " 
-                + preUpdateBean.getAttribute().getValue());
-       throw new HookVeto("toto tutu trallalal", "Yeeeeaaaahhaaahha çaaa maaaaaaarche !!!!!");
-        
-        
+        definitionField = ESCODynamicGroupsParameters.instance().getGrouperDefinitionField();
     }
 
     /**
-     * called right after a attribute update
-     * @param hooksContext
-     * @param postUpdateBean
+     * Tests an veto if needed a modification of an attribute that contains the logic definition of a group.
+     * @param hooksContext The hook context.
+     * @param preUpdateBean The available Grouper informations.
+     * @see edu.internet2.middleware.grouper.hooks.AttributeHooks#attributePreUpdate(HooksContext, HooksAttributeBean)
      */
-    public void attributePostUpdate(HooksContext hooksContext, HooksAttributeBean postUpdateBean) {
-        LOGGER.info("==> attributePostUpdate");
+    @Override
+    public void attributePreUpdate(final HooksContext hooksContext, final HooksAttributeBean preUpdateBean) {
+        checkAttribute(preUpdateBean.getAttribute());
     }
-    
-    public void attributePreInsert(HooksContext hooksContext, HooksAttributeBean preInsertBean) {
-        LOGGER.info("==> attributePreInsert");
-        LOGGER.info("==> preInsertBean.getAttribute().getAttrName() " 
-                + preInsertBean.getAttribute().getAttrName());
-        LOGGER.info("==> preInsertBean.getAttribute().getValue() " 
-                + preInsertBean.getAttribute().getValue());
-        
+
+
+
+    /**
+     * Tests if the coded proposition is valid.
+     * @param attribute The attribute that contains the coded definition.
+     */
+    private void checkAttribute(final Attribute attribute) {
+        if (definitionField.equals(attribute.getAttrName())) {
+            final DecodedPropositionResult result = PropositionCodec.instance().decode(attribute.getValue());
+            if (!result.isValid()) {
+                throw new HookVeto("", result.getErrorMessage());
+            }
+
+        }
     }
-    public void attributePostInsert(HooksContext hooksContext, HooksAttributeBean postInsertBean) {
-        LOGGER.info("==> attributePostInsert");
+
+    /**
+     * 
+     * @param hooksContext
+     * @param preInsertBean
+     * @see edu.internet2.middleware.grouper.hooks.AttributeHooks#attributePreInsert(HooksContext, HooksAttributeBean)
+     */
+    @Override
+    public void attributePreInsert(final HooksContext hooksContext, final HooksAttributeBean preInsertBean) {
+        checkAttribute(preInsertBean.getAttribute());
     }
+   
 }

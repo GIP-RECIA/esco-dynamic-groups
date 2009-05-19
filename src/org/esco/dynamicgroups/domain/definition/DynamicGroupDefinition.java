@@ -6,7 +6,6 @@ package org.esco.dynamicgroups.domain.definition;
 import java.io.Serializable;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 
 /**
  * Definition of a dynamic group.
@@ -18,9 +17,6 @@ public class DynamicGroupDefinition implements Serializable {
 
     /** Serial version UID.*/
     private static final long serialVersionUID = -6054188705662382538L;
-    
-    /** Logger. */
-    private static final Logger LOGGER = Logger.getLogger(DynamicGroupDefinition.class);
     
     /** The name of the group. */
     private String groupName;

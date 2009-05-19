@@ -201,4 +201,19 @@
 			<delete quiet="true" dir="${esco-dg.dist.dir}"/>
 	</target>
 	
+	<!-- Test a logic definition -->
+	<target name="esco-dg.test-definition"
+	   	description="Test a logic definition">
+	    <property name="definition" value=" "/>
+	    <java dir="${basedir}" 
+	    	classname="org.esco.dynamicgroups.domain.DefinitionToLDAPFilterTesterBatch" 
+	    	fork="true" 
+    		classpathref="esco-dg.classpath">
+	      <arg value="${definition}"/>
+	    </java>
+	
+			
+	</target>
+
+	
 </project>
