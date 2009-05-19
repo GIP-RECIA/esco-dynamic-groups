@@ -7,7 +7,10 @@
 
 * Repartir ESCOParameters dans plusieurs classes pour facliliter les
   implementations vers d'autres backends.
-
+ 
+ * Separer LDAPDynamicGroupInitializer en domain et DAO.
+ 
+* Cassification
 * tâche ant pour la verification de propositions logiques
 OK * tâche ant pour l'installation.
 
@@ -25,7 +28,8 @@ OK * tâche ant pour l'installation.
     - récupérer les groupes via le type.
     - effectuer une comparaison plutôt qu'un vidage/remplissage.
 
-* Suppression du domainregistry dans le hook
+* Suppression du domainregistry dans le hook -> utiliser un provider.
+* Utiliser un provider egalement pour les parametres utilisateurs.
 
 OK * Revoir le schema de la base pour être en FN.
 

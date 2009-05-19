@@ -655,6 +655,15 @@ public class ESCODynamicGroupsParameters implements Serializable {
     public Set<String> getLdapSearchAttributes() {
         return ldapSearchAttributes;
     }
+    
+    /**
+     * Gives the attributes considered in the dynamic defininitions.
+     * @return the attributes.
+     */
+    public Set<String> getAttributesForDynamicDefinition() {
+        return getLdapSearchAttributes();
+    }
+    
 
     /**
      * Gives the LDAP search attributes as an array.

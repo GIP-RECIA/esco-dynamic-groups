@@ -3,6 +3,9 @@
  */
 package org.esco.dynamicgroups.domain.definition;
 
+import org.esco.dynamicgroups.domain.beans.I18NManager;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.util.Assert;
 
 /**
  * Used to decode a String that represents an IProposition.
@@ -10,7 +13,10 @@ package org.esco.dynamicgroups.domain.definition;
  * 16 janv. 2009
  *
  */
-public class PropositionCodec {
+public class PropositionCodec implements InitializingBean {
+    
+    /** Singleton. */
+    private static PropositionCodec instance;
     
     /** Space constant. */
     private static final String SPACE = " ";
@@ -38,16 +44,50 @@ public class PropositionCodec {
     
     /** The different constant. */
     private static final String NOT_EQUAL = "!=";
-
-
-    /** Singleton. */
-    private static final PropositionCodec INSTANCE = new PropositionCodec();
     
+    /** I18n entry for the bracket errors. */
+    private static final String BRACKET_ERROR = "proposition.decoding.error";
+
+    /** I18n entry for an empty string atom. */
+    private static final String EMPTY_STRING_ATOM_ERROR = "proposition.decoding.error.empty.atom";
+
+    /** I18n entry for an empty string atom. */
+    private static final String EMPTY_STRING_ERROR = "proposition.decoding.error.empty.string";
+    
+    /** I18n entry for the = not found. */
+    private static final String EQUAL_NOT_FOUND = "proposition.decoding.error.equalnotfound";
+    
+    /** I18n entry for the = not found. */
+    private static final String INVALID_PROP = "proposition.decoding.error.invalidproposition";
+   
+    
+    /** The atom validator to use. */
+    private IAtomicPropositionValidator atomValidator;
+    
+    /** I18N manager. */
+    private I18NManager i18n;
+   
     /**
      * Builds an instance of PropositionCodec.
      */
     protected PropositionCodec() {
-        super();
+        instance = this;
+    }
+    
+
+    /**
+     * Checks the bean injection.
+     * @throws Exception
+     * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
+     */
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        Assert.notNull(atomValidator, 
+                "The property atomValidator in the class " + getClass().getName()
+                + " can't be null.");
+        Assert.notNull(i18n, 
+                "The property i18n in the class " + getClass().getName()
+                + " can't be null.");
     }
     
     /**
@@ -55,7 +95,7 @@ public class PropositionCodec {
      * @return The singleton.
      */
     public static PropositionCodec instance() {
-        return INSTANCE;
+        return instance;
     }
     
     /**
@@ -74,7 +114,7 @@ public class PropositionCodec {
     }
     
     /**
-     * Count the number of open bracket in astring.
+     * Count the number of open bracket in a string.
      * @param source The considered string.
      * @return The number of open bracket in the string.
      */
@@ -101,25 +141,6 @@ public class PropositionCodec {
             }
         }
         return nbCb;
-    }
-    
-    /**
-     * Extracts the content of a coded string (i.e. between ( and  ))
-     * @param source The source string.
-     * @return The string that can be decoded in a IProposition if the
-     * coded string is valid, the source String otherwise.
-     */
-    private String extractContentSafe(final String source) {
-        if (countOpenBacket(source) != countCloseBacket(source)) {
-            return "";
-        }
-        final int start = source.indexOf(OPEN_BRACKET);
-        final int stop = source.lastIndexOf(CLOSE_BRACKET);
-        if (start >= 0 &&  stop > 0 && start < stop) {
-            return source.substring(start + 1, stop).trim();
-        } 
-        
-        return source;
     }
     
     /**
@@ -159,7 +180,7 @@ public class PropositionCodec {
         final String content = extractContent(coded);
         int pos = getSplitPosition(content);
         if (pos == 0) {
-            return new DecodedPropositionResult(coded);
+            return new DecodedPropositionResult(coded, i18n.getI18nMessage(INVALID_PROP) + coded);
         }
         final String firstPart = content.substring(0, pos).trim();
         final String secondPart = content.substring(pos + 1).trim();
@@ -220,9 +241,21 @@ public class PropositionCodec {
      * @return The proposition if the coded string is valid, null otherwise.
      */
     private DecodedPropositionResult decodeAtomicProposition(final String coded) {
-        final String content = extractContentSafe(coded);
+        
+        if (countOpenBacket(coded) != countCloseBacket(coded)) {
+            return new DecodedPropositionResult(coded, 
+                    i18n.getI18nMessage(BRACKET_ERROR));
+        }
+        String content = coded;
+        final int start = coded.indexOf(OPEN_BRACKET);
+        final int stop = coded.lastIndexOf(CLOSE_BRACKET);
+        if (start >= 0 &&  stop > 0 && start < stop) {
+            content =  coded.substring(start + 1, stop).trim();
+        } 
+        
         if ("".equals(content)) {
-            return new DecodedPropositionResult(coded);
+            return new DecodedPropositionResult(i18n.getI18nMessage(EMPTY_STRING_ERROR), 
+                    i18n.getI18nMessage(EMPTY_STRING_ATOM_ERROR));
         }
         int pos = content.indexOf(NOT_EQUAL);
         int sepLength = NOT_EQUAL.length();
@@ -230,7 +263,7 @@ public class PropositionCodec {
         if (pos < 1  || pos == content.length() - 2) {
            pos = content.indexOf(EQUAL);
            if (pos < 1  || pos == content.length() - 1) {
-               return new DecodedPropositionResult(coded);
+               return new DecodedPropositionResult(coded, i18n.getI18nMessage(EQUAL_NOT_FOUND));
            }
            negative = false;
            sepLength = EQUAL.length();
@@ -262,14 +295,15 @@ public class PropositionCodec {
      */
     public DecodedPropositionResult decode(final String coded) {
         if (coded == null) {
-            return new DecodedPropositionResult("null");
+            return new DecodedPropositionResult("null", i18n.getI18nMessage(INVALID_PROP) + "null");
         }
         
         final String trimed = coded.trim();
         final String trimedUC = trimed.toUpperCase();
         
         if ("".equals(trimed)) {
-            return new DecodedPropositionResult("Empty string");
+            return new DecodedPropositionResult("", i18n.getI18nMessage(INVALID_PROP) 
+                    + i18n.getI18nMessage(EMPTY_STRING_ERROR));
         }
         
         if (trimedUC.startsWith(OR)) {
@@ -351,5 +385,42 @@ public class PropositionCodec {
         }
         return "";
     }
+
+
+    /**
+     * Getter for atomValidator.
+     * @return atomValidator.
+     */
+    public IAtomicPropositionValidator getAtomValidator() {
+        return atomValidator;
+    }
+
+
+    /**
+     * Setter for atomValidator.
+     * @param atomValidator the new value for atomValidator.
+     */
+    public void setAtomValidator(final IAtomicPropositionValidator atomValidator) {
+        this.atomValidator = atomValidator;
+    }
+
+
+    /**
+     * Getter for i18n.
+     * @return i18n.
+     */
+    public I18NManager getI18n() {
+        return i18n;
+    }
+
+
+    /**
+     * Setter for i18n.
+     * @param i18n the new value for i18n.
+     */
+    public void setI18n(final I18NManager i18n) {
+        this.i18n = i18n;
+    }
+
     
 }

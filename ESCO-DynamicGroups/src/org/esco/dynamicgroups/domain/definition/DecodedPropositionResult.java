@@ -23,6 +23,9 @@ public class DecodedPropositionResult implements Serializable {
     /** The source of the error if the result is invalid. */
     private String invalidEncodedString;
     
+    /** Error message. */
+    private String errorMessage;
+    
     /**
      * Builds a valid instance of DecodedPropositionResult.
      * @param proposition The decoded proposition.
@@ -35,8 +38,19 @@ public class DecodedPropositionResult implements Serializable {
      * Builds an invalid instance of DecodedPropositionResult.
      * @param invalidEncodedString The source of the error.
      */
-    public DecodedPropositionResult(final String invalidEncodedString) {
+//    public DecodedPropositionResult(final String invalidEncodedString) {
+//        this.invalidEncodedString = invalidEncodedString;
+//    }
+
+    /**
+     * Builds an invalid instance of DecodedPropositionResult.
+     * @param invalidEncodedString The source of the error.
+     * @param errorMessage The error message.
+     */
+    public DecodedPropositionResult(final String invalidEncodedString,
+            final String errorMessage) {
         this.invalidEncodedString = invalidEncodedString;
+        this.errorMessage = errorMessage;
     }
     
     /**
@@ -119,4 +133,19 @@ public class DecodedPropositionResult implements Serializable {
         return invalidEncodedString;
     }
     
+    /**
+     * Tests if there is an error message.
+     * @return The error message.
+     */
+    public boolean hasErrorMessage() {
+        return errorMessage != null;
+    }
+
+    /**
+     * Getter for errorMessage.
+     * @return errorMessage.
+     */
+    public String getErrorMessage() {
+        return errorMessage;
+    }
 }
