@@ -3,7 +3,6 @@
  */
 package org.esco.dynamicgroups.hooks;
 
-import edu.internet2.middleware.grouper.Attribute;
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupType;
 import edu.internet2.middleware.grouper.exception.AttributeNotFoundException;

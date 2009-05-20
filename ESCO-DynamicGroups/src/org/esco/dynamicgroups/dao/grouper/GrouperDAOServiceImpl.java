@@ -313,7 +313,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
             if (type == null) {
                 if (create) {
                     type = GroupType.createType(session, grouperDynamicType);
-                    type.addAttribute(session, definitionField, Privilege.getInstance("admin"), 
+                    type.addAttribute(session, definitionField, Privilege.getInstance("read"), 
                             Privilege.getInstance("admin"), true);
                     LOGGER.info("Group type " + grouperDynamicType + " created.");
                 } else {
