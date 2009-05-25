@@ -48,9 +48,9 @@ public class ESCOHooksInstaller implements Serializable, ApplicationListener {
             if (!initialized) {
                 LOGGER.info("Installing the group hooks " + ESCOGroupHooks.class);
                 GrouperHooksUtils.addHookManual(GrouperHookType.GROUP.getPropertyFileKey(), ESCOGroupHooks.class);
-//                LOGGER.info("Installing the attributes hooks " + ESCOAttributeHooks.class);
-//                GrouperHooksUtils.addHookManual(GrouperHookType.ATTRIBUTE.getPropertyFileKey(), 
-//                        ESCOAttributeHooks.class);
+                LOGGER.info("Installing the attributes hooks " + ESCOAttributeHooks.class);
+                GrouperHooksUtils.addHookManual(GrouperHookType.ATTRIBUTE.getPropertyFileKey(), 
+                        ESCOAttributeHooks.class);
                 initialized = true;
             }
         }

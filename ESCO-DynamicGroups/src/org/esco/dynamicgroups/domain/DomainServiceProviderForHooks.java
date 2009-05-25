@@ -11,30 +11,30 @@ import java.io.Serializable;
  * 10 févr. 2009
  *
  */
-public class DomainRegistry implements Serializable {
+public class DomainServiceProviderForHooks implements Serializable {
 
     /** Serial version UID.*/
     private static final long serialVersionUID = -7272809773686150716L;
-    
-    /** Singleton. */
-    private static final DomainRegistry INSTANCE = new DomainRegistry();
-    
+   
+    /** The available instance for the hooks. */ 
+    private static DomainServiceProviderForHooks instance;
+   
     /** The domain service. */
     private IDomainService domainService;
     
     /**
      * Builds an instance of DomainRegistry.
      */
-    protected DomainRegistry() {
-        super();
+    protected DomainServiceProviderForHooks() {
+        instance = this;
     }
     
     /**
-     * Gives the singleton.
-     * @return The available instance of DomainRegistry.
+     * Gives the provider instnace.
+     * @return The available instance of DomainServiceProviderForHooks.
      */
-    public static DomainRegistry instance() {
-        return INSTANCE;
+    public static DomainServiceProviderForHooks instance() {
+        return instance;
     }
 
     /**

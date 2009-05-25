@@ -63,7 +63,6 @@ public class ESCODomainServiceImpl
             LOGGER.debug("Creates an instance of ESCODomainServiceImpl - Attributes: " 
                     + Arrays.toString(dynamicAttributes) + ".");
         }
-        DomainRegistry.instance().setDomainService(this);
     }
 
     /**
