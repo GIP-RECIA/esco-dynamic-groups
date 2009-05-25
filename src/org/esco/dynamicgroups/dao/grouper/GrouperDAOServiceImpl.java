@@ -303,7 +303,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
     private void checkDynamicType() {
 
         final boolean create = ESCODynamicGroupsParameters.instance().getCreateGrouperType();
-        LOGGER.info("Checking the dynamic types.");
+        LOGGER.info("Checking the dynamic type: " + grouperDynamicType);
         final String definitionField = ESCODynamicGroupsParameters.instance().getGrouperDefinitionField();
         // Checks the group types.
         final GrouperSession session = sessionUtil.createSession();
@@ -314,8 +314,9 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
                 if (create) {
                     type = GroupType.createType(session, grouperDynamicType);
                     type.addAttribute(session, definitionField, Privilege.getInstance("read"), 
-                            Privilege.getInstance("admin"), true);
-                    LOGGER.info("Group type " + grouperDynamicType + " created.");
+                            Privilege.getInstance("admin"), false);
+                    LOGGER.info("Group type " + grouperDynamicType 
+                            + " created with the field: " + definitionField + ".");
                 } else {
                     LOGGER.error("The group type: " + grouperDynamicType 
                             + " can't be found and the configuration "
@@ -330,9 +331,11 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
                 }
                 if (!defFieldFound) {
                     LOGGER.error("The group type " + grouperDynamicType 
-                            + " does not contain the definition field: " + definitionField);
+                            + " does not contain the definition field: " 
+                            + definitionField
+                            + ".");
                 } else {
-                    LOGGER.info("Group type " + grouperDynamicType + " is valid.");
+                    LOGGER.info("Group type " + grouperDynamicType + " with field " + definitionField + " is valid.");
                 }
 
             }
