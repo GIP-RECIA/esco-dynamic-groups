@@ -6,7 +6,7 @@ package org.esco.dynamicgroups.domain.reporting;
 
 import java.text.ParseException;
 
-import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
+import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
 import org.springframework.scheduling.quartz.CronTriggerBean;
 
 /**
@@ -22,11 +22,11 @@ public class ReportingTrigger extends CronTriggerBean {
     
     /**
      * Builds an instance of ReportingTrigger.
-     * @param parameters The instance of parameters that contains the cron expression.
+     * @param parametersProvider The instance of parameters that contains the cron expression.
      * @throws ParseException If the cron expression is not valid.
      */
-    public ReportingTrigger(final ESCODynamicGroupsParameters parameters) throws ParseException { 
-       setCronExpression(parameters.getReportCronExpression()); 
+    public ReportingTrigger(final ParametersProvider parametersProvider) throws ParseException { 
+       setCronExpression(parametersProvider.getReportCronExpression()); 
     }
     
   

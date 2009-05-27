@@ -4,9 +4,12 @@
 package org.esco.dynamicgroups.domain.definition;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Set;
 
-import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
+import org.esco.dynamicgroups.domain.beans.I18NManager;
+import org.esco.dynamicgroups.domain.parameters.IDynamicAttributesProvider;
+import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
@@ -23,8 +26,14 @@ public class AtomicPropositionValidatorFromList
     /** Serial version UID.*/
     private static final long serialVersionUID = -3715339692875717955L;
     
-    /** The user parameters. */
-    private ESCODynamicGroupsParameters parameters;
+    /** Key for an invalid attribute. */
+    private static final String ATTRIBUTE_NOT_IN_LIST = "proposition.decoding.error.attribute.notinlist";
+    
+    /** The user parameters provider. */
+    private ParametersProvider parametersProvider;
+    
+    /** The i18n manager. */
+    private I18NManager i18n;
     
     /** The LDAP search attributes to use. */
     private String[] ldapAttributes;
@@ -60,27 +69,57 @@ public class AtomicPropositionValidatorFromList
      */
     @Override
     public void afterPropertiesSet() throws Exception {
-        Assert.notNull(parameters, "The property parameters in the class " 
+        Assert.notNull(parametersProvider, "The property parametersProvider in the class " 
                 + getClass().getName() + " can't be null.");
         
-        final Set<String> ldapAttributesSet = parameters.getAttributesForDynamicDefinition(); 
+        Assert.notNull(i18n, "The property i18n in the class " 
+                + getClass().getName() + " can't be null.");
+        
+        final Set<String> ldapAttributesSet = 
+            ((IDynamicAttributesProvider) parametersProvider.getPersonsParametersSection()).getDynamicAttributes(); 
         ldapAttributes = ldapAttributesSet.toArray(new String[ldapAttributesSet.size()]);
     }
 
     /**
-     * Getter for parameters.
-     * @return parameters.
+     * Getter for parametersProvider.
+     * @return parametersProvider.
      */
-    public ESCODynamicGroupsParameters getParameters() {
-        return parameters;
+    public ParametersProvider getParametersProvider() {
+        return parametersProvider;
     }
 
     /**
-     * Setter for parameters.
-     * @param parameters the new value for parameters.
+     * Setter for parametersProvider.
+     * @param parametersProvider the new value for parametersProvider.
      */
-    public void setParameters(final ESCODynamicGroupsParameters parameters) {
-        this.parameters = parameters;
+    public void setParametersProvider(final ParametersProvider parametersProvider) {
+        this.parametersProvider = parametersProvider;
+    }
+    
+    /**
+     * Explains why an atom is invalid.
+     * @param invalidAtom The invalid atom.
+     * @return The explanation.
+     * @see org.esco.dynamicgroups.domain.definition.IAtomicPropositionValidator#explainInvalidAtom(AtomicProposition)
+     */
+    public String explainInvalidAtom(final AtomicProposition invalidAtom) {
+        return i18n.getI18nMessage(ATTRIBUTE_NOT_IN_LIST, invalidAtom.getAttribute(), Arrays.toString(ldapAttributes));
+    }
+
+    /**
+     * Getter for i18n.
+     * @return i18n.
+     */
+    public I18NManager getI18n() {
+        return i18n;
+    }
+
+    /**
+     * Setter for i18n.
+     * @param i18n the new value for i18n.
+     */
+    public void setI18n(final I18NManager i18n) {
+        this.i18n = i18n;
     }
 
 }

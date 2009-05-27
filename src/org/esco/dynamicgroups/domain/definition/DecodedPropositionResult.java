@@ -34,14 +34,7 @@ public class DecodedPropositionResult implements Serializable {
         this.proposition = proposition;
     }
     
-    /**
-     * Builds an invalid instance of DecodedPropositionResult.
-     * @param invalidEncodedString The source of the error.
-     */
-//    public DecodedPropositionResult(final String invalidEncodedString) {
-//        this.invalidEncodedString = invalidEncodedString;
-//    }
-
+   
     /**
      * Builds an invalid instance of DecodedPropositionResult.
      * @param invalidEncodedString The source of the error.

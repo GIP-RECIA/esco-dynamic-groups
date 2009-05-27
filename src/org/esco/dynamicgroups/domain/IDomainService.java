@@ -40,6 +40,13 @@ public interface IDomainService {
     void handleNewOrModifiedDynamicGroup(final DynamicGroupDefinition definition);
     
     /**
+     * Gives the members definition for a dynamic group.
+     * @param groupUUID The uuid of the dynamic group.
+     * @return The definition if it exists, null oterwise.
+     */
+    String getMembershipExpression(final String groupUUID);
+    
+    /**
      * Deletes a group.
      * @param groupName The name of the group to delete.
      */

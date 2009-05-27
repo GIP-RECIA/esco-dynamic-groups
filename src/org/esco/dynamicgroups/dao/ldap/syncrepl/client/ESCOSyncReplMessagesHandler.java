@@ -43,6 +43,9 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
     /** The statistics manager. */
     private IStatisticsManager statisticsManager;
     
+    /** The cookie manager. */
+    private CookieManager cookieManager;
+    
     /** The string representation of the message handler. */
     private String stringRepresentation;
   
@@ -60,25 +63,30 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
      */
     public void afterPropertiesSet() throws Exception {
         
+        final String cantBeNull = " can't be null.";
         Assert.notNull(this.addAction, 
                 "The property addAction in the class " + this.getClass().getName() 
-                + " can't be null.");
+                + cantBeNull);
         
         Assert.notNull(this.modifyAction, 
                 "The property modifyAction in the class " + this.getClass().getName() 
-                + " can't be null.");
+                + cantBeNull);
 
         Assert.notNull(this.deleteAction, 
                 "The property deleteAction in the class " + this.getClass().getName() 
-                + " can't be null.");
+                + cantBeNull);
 
         Assert.notNull(this.presentAction, 
                 "The property presentAction in the class " + this.getClass().getName() 
-                + " can't be null.");
+                + cantBeNull);
         
         Assert.notNull(this.statisticsManager, 
                 "The property statisticsManager in the class " + this.getClass().getName() 
-                + " can't be null.");
+                + cantBeNull);
+
+        Assert.notNull(this.cookieManager, 
+                "The property cookieManager in the class " + this.getClass().getName() 
+                + cantBeNull);
         
     }
     
@@ -111,7 +119,7 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
         if (message instanceof LDAPSearchResult) {
             handleLDAPSearchResult((LDAPSearchResult) message);
         } else if (message instanceof SyncInfoMessage) {
-            CookieManager.instance().updateCurrentCookie(((SyncInfoMessage) message).getCookie());
+            cookieManager.updateCurrentCookie(((SyncInfoMessage) message).getCookie());
         }
     }
     
@@ -124,7 +132,7 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
         
         if (control != null) {
             LOGGER.debug("A SyncStateControl is present in the message.");
-            CookieManager.instance().updateCurrentCookie(control.getCookie());
+            cookieManager.updateCurrentCookie(control.getCookie());
             final LDAPEntry entry = searchResultMessage.getEntry();
             if (control.isAdd()) {
                 addAction.trigger(entry);
@@ -236,5 +244,21 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
      */
     public void setStatisticsManager(final IStatisticsManager statisticsManager) {
         this.statisticsManager = statisticsManager;
+    }
+
+    /**
+     * Getter for cookieManager.
+     * @return cookieManager.
+     */
+    public CookieManager getCookieManager() {
+        return cookieManager;
+    }
+
+    /**
+     * Setter for cookieManager.
+     * @param cookieManager the new value for cookieManager.
+     */
+    public void setCookieManager(final CookieManager cookieManager) {
+        this.cookieManager = cookieManager;
     }
 }

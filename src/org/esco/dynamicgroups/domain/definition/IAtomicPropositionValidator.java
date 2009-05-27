@@ -19,4 +19,10 @@ public interface IAtomicPropositionValidator {
      */
     boolean isValid(final AtomicProposition atom);
     
+    /**
+     * Explains why an atom is invalid.
+     * @param invalidAtom The invalid atom.
+     * @return The explanation.
+     */
+    String explainInvalidAtom(final AtomicProposition invalidAtom);
 }

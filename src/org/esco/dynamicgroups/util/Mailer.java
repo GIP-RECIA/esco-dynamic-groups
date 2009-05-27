@@ -15,7 +15,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 import org.apache.log4j.Logger;
-import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
+import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
@@ -51,8 +51,8 @@ public class Mailer implements InitializingBean, IMailer {
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(Mailer.class);
     
-    /** The user parameters. */
-    private ESCODynamicGroupsParameters parameters;
+    /** The user parameters provider. */
+    private ParametersProvider parametersProvider;
 
     /** SMTP server.*/
     private String smtpHost;
@@ -97,19 +97,19 @@ public class Mailer implements InitializingBean, IMailer {
      * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
      */
     public void afterPropertiesSet() throws Exception {
-        Assert.notNull(this.parameters, 
-                "The property parameters in the class " + this.getClass().getName() 
+        Assert.notNull(this.parametersProvider, 
+                "The property parametersProvider in the class " + this.getClass().getName() 
                 + " can't be null.");
-        setSmtpHost(parameters.getSmtpHost());
-        setFromField(parameters.getFromField());
-        setToField(parameters.getToField());
-        setSubjectPrefix(parameters.getSubjectPrefix());
-        setCharset(parameters.getMailCharset());
-        setXhtml(parameters.getXHTMLReport());
-        if (parameters.isAuthenticatedSMTPHost()) {
+        setSmtpHost(parametersProvider.getSmtpHost());
+        setFromField(parametersProvider.getFromField());
+        setToField(parametersProvider.getToField());
+        setSubjectPrefix(parametersProvider.getSubjectPrefix());
+        setCharset(parametersProvider.getMailCharset());
+        setXhtml(parametersProvider.getXHTMLReport());
+        if (parametersProvider.isAuthenticatedSMTPHost()) {
             LOGGER.debug("Authenticated SMTP.");
-            setSmtpUser(parameters.getSmtpUser());
-            setSmtpPassword(parameters.getSmtpPassword());
+            setSmtpUser(parametersProvider.getSmtpUser());
+            setSmtpPassword(parametersProvider.getSmtpPassword());
         }
     }
 
@@ -334,20 +334,20 @@ public class Mailer implements InitializingBean, IMailer {
 
 
     /**
-     * Getter for parameters.
-     * @return parameters.
+     * Getter for parametersProvider.
+     * @return parametersProvider.
      */
-    public ESCODynamicGroupsParameters getParameters() {
-        return parameters;
+    public ParametersProvider getParametersProvider() {
+        return parametersProvider;
     }
 
 
     /**
-     * Setter for parameters.
-     * @param parameters the new value for parameters.
+     * Setter for parametersProvider.
+     * @param parametersProvider the new value for parametersProvider.
      */
-    public void setParameters(final ESCODynamicGroupsParameters parameters) {
-        this.parameters = parameters;
+    public void setParametersProvider(final ParametersProvider parametersProvider) {
+        this.parametersProvider = parametersProvider;
     }
     /**
      * Getter for charset.

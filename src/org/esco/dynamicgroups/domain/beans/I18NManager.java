@@ -5,6 +5,7 @@ package org.esco.dynamicgroups.domain.beans;
 
 import java.io.Serializable;
 
+import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.MessageSource;
 import org.springframework.util.Assert;
@@ -23,8 +24,8 @@ public class I18NManager implements Serializable, InitializingBean {
     /** Used to build the default values. */
     private static final String UNDEF_I18N =  "Undefined I18n entry for the key: ";
     
-    /** The user parameters. */
-    private ESCODynamicGroupsParameters parameters;
+    /** The user parameters provider. */
+    private ParametersProvider parametersProvider;
     
     /** The message source instance. */
     private MessageSource messageSource;
@@ -42,8 +43,8 @@ public class I18NManager implements Serializable, InitializingBean {
      * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
      */
     public void afterPropertiesSet() throws Exception {
-        Assert.notNull(this.parameters, 
-                "The property parameters in the class " + this.getClass().getName() 
+        Assert.notNull(this.parametersProvider, 
+                "The property parametersProvider in the class " + this.getClass().getName() 
                 + " can't be null.");
         Assert.notNull(this.messageSource, 
                 "The property messageSource in the class " + this.getClass().getName() 
@@ -58,21 +59,30 @@ public class I18NManager implements Serializable, InitializingBean {
      * @return The message.
      */
     public String getI18nMessage(final String key) {
-        return messageSource.getMessage(key, null, UNDEF_I18N + key, parameters.getLocale());
+        return getI18nMessage(key, (String[]) null);
     }
     /**
-     * Getter for parameters.
-     * @return parameters.
+     * Gives the messge that corresponds to an i18n key.
+     * @param key The i18n key.
+     * @param args The arguments to include in the message.
+     * @return The message.
      */
-    public ESCODynamicGroupsParameters getParameters() {
-        return parameters;
+    public String getI18nMessage(final String key, final String...args) {
+        return messageSource.getMessage(key, args, UNDEF_I18N + key, parametersProvider.getLocale());
     }
     /**
-     * Setter for parameters.
-     * @param parameters the new value for parameters.
+     * Getter for parametersProvider.
+     * @return parametersProvider.
      */
-    public void setParameters(final ESCODynamicGroupsParameters parameters) {
-        this.parameters = parameters;
+    public ParametersProvider getParametersProvider() {
+        return parametersProvider;
+    }
+    /**
+     * Setter for parametersProvider.
+     * @param parametersProvider the new value for parametersProvider.
+     */
+    public void setParametersProvider(final ParametersProvider parametersProvider) {
+        this.parametersProvider = parametersProvider;
     }
     /**
      * Getter for messageSource.

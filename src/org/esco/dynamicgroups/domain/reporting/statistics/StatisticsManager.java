@@ -7,8 +7,8 @@ package org.esco.dynamicgroups.domain.reporting.statistics;
 import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.dao.grouper.IGroupsDAOService;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncStateControl;
-import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
 import org.esco.dynamicgroups.domain.beans.I18NManager;
+import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
 import org.esco.dynamicgroups.domain.reporting.IReportFormatter;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
@@ -28,8 +28,8 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
     /** LOGGER. */
     private static final Logger LOGGER = Logger.getLogger(StatisticsManager.class);
 
-    /** The user parameters instance. */
-    private ESCODynamicGroupsParameters parameters;
+    /** The user parameters provider instance. */
+    private ParametersProvider parametersProvider;
 
     /** The I18N Manager. */
     private I18NManager i18n;
@@ -71,8 +71,8 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
      */
     public void afterPropertiesSet() throws Exception {
 
-        Assert.notNull(this.parameters, 
-                "The property parameters in the class " + this.getClass().getName() 
+        Assert.notNull(this.parametersProvider, 
+                "The property parametersProvider in the class " + this.getClass().getName() 
                 + " can't be null.");
 
         Assert.notNull(this.i18n, 
@@ -83,44 +83,44 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
                 "The property reportFormatter in the class " + this.getClass().getName() 
                 + " can't be null.");
         
-        if (parameters.getCountUndefiedGroups()) {
+        if (parametersProvider.getCountUndefiedGroups()) {
             Assert.notNull(this.groupsService, 
                 "The property groupsService in the class " + this.getClass().getName() 
                 + " can't be null.");
             undefGroupsStats = new UndefinedGroupStatsEntry(groupsService, i18n);
         }
 
-        if (parameters.getCountDefinitionModifications()) {
+        if (parametersProvider.getCountDefinitionModifications()) {
             definitionModifications = new DefinitionModificationsStats(i18n);
         }
 
-        if (parameters.getCountSyncReplNotifications()) {
+        if (parametersProvider.getCountSyncReplNotifications()) {
             syncReplNotifications = new SyncReplNotificationsStats(i18n);
         }
 
-        if (parameters.getCountGroupCreationDeletion()) {
+        if (parametersProvider.getCountGroupCreationDeletion()) {
             groupsStats = new GroupsAddOrDeletedStatsEntry(i18n);
         }
         
-        if (parameters.getCountGroupsActivity()) {
+        if (parametersProvider.getCountGroupsActivity()) {
             groupsActivityStats = new GroupsAcrivityStatsEntry(i18n);
         }
     }
 
     /**
-     * Getter for parameters.
-     * @return parameters.
+     * Getter for parametersProvider.
+     * @return parametersProvider.
      */
-    public ESCODynamicGroupsParameters getParameters() {
-        return parameters;
+    public ParametersProvider getParametersProvider() {
+        return parametersProvider;
     }
 
     /**
-     * Setter for parameters.
-     * @param parameters the new value for parameters.
+     * Setter for parametersProvider.
+     * @param parametersProvider the new value for parametersProvider.
      */
-    public void setParameters(final ESCODynamicGroupsParameters parameters) {
-        this.parameters = parameters;
+    public void setParametersProvider(final ParametersProvider parametersProvider) {
+        this.parametersProvider = parametersProvider;
     }
 
     /**

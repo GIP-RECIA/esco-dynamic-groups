@@ -1,17 +1,21 @@
 * Supprimer l'uid de la liste des attributs dynamiques.
 
-* Gérer les erreurs lors de la saisie des definitions dynamiques :
-    - +fois le même attribut e.g. And(att=1, And (att1=1,...)
+- [* Gérer les erreurs lors de la saisie des definitions dynamiques :
+    - +fois le même attribut e.g. And(att=1, And (att1=1,...)]
  
 * And et Or non binaires.
 
-* Repartir ESCOParameters dans plusieurs classes pour facliliter les
-  implementations vers d'autres backends.
+* Repartir ESCOParameters dans plusieurs classes pour faciliter les
+  implementations vers d'autres backends. 
+  
+ * Passer les différentes sections au niveua du constructeur et supprimer les depends on dans
+ les xml spring.
  
  * Separer LDAPDynamicGroupInitializer en domain et DAO.
  
 * Cassification
-* tâche ant pour la verification de propositions logiques
+
+OK * tâche ant pour la verification de propositions logiques
 OK * tâche ant pour l'installation.
 
 * Reflechir aux problèmes de synchronization lors de la modification ou lors de la creation.
@@ -28,8 +32,13 @@ OK * tâche ant pour l'installation.
     - récupérer les groupes via le type.
     - effectuer une comparaison plutôt qu'un vidage/remplissage.
 
-* Suppression du domainregistry dans le hook -> utiliser un provider.
+OK * Suppression du domainregistry dans le hook -> utiliser un provider.
+
 * Utiliser un provider egalement pour les parametres utilisateurs.
+
+* Utilisation de ldaps
+
+* recuperation du timezone suffix dans le cookieManager (i18n ou pas de creation de cookie).
 
 OK * Revoir le schema de la base pour être en FN.
 

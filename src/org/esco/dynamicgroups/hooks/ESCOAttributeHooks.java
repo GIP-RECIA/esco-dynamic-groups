@@ -10,9 +10,9 @@ import edu.internet2.middleware.grouper.hooks.beans.HooksContext;
 import edu.internet2.middleware.grouper.hooks.logic.HookVeto;
 
 import org.apache.log4j.Logger;
-import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
 import org.esco.dynamicgroups.domain.definition.DecodedPropositionResult;
 import org.esco.dynamicgroups.domain.definition.PropositionCodec;
+import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
 
 /**
  * Hooks to handle the field associated to the dynamic group type.
@@ -32,7 +32,7 @@ public class ESCOAttributeHooks extends AttributeHooks {
      * Builds an instance of ESCOAttributeHooks.
      */
     public ESCOAttributeHooks() {
-        definitionField = ESCODynamicGroupsParameters.instance().getGrouperDefinitionField();
+        definitionField = ParametersProvider.instance().getGrouperDefinitionField();
     }
 
     /**
@@ -43,11 +43,6 @@ public class ESCOAttributeHooks extends AttributeHooks {
      */
     @Override
     public void attributePreUpdate(final HooksContext hooksContext, final HooksAttributeBean preUpdateBean) {
-        final Attribute attribute = preUpdateBean.getAttribute();
-        final Attribute previous = (Attribute) attribute.dbVersion();
-        LOGGER.debug("att =>  " + attribute);
-        LOGGER.debug("prev =>  " + previous);
-        
         checkAttribute(preUpdateBean.getAttribute());
     }
     
@@ -60,6 +55,7 @@ public class ESCOAttributeHooks extends AttributeHooks {
         if (definitionField.equals(attribute.getAttrName())) {
             final DecodedPropositionResult result = PropositionCodec.instance().decode(attribute.getValue());
             if (!result.isValid()) {
+                LOGGER.debug("Check Attribute: " + result.getErrorMessage());
                 throw new HookVeto("", result.getErrorMessage());
             }
 

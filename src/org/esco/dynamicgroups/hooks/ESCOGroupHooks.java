@@ -16,8 +16,9 @@ import java.util.Iterator;
 import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.domain.DomainServiceProviderForHooks;
 import org.esco.dynamicgroups.domain.IDomainService;
-import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
 import org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition;
+import org.esco.dynamicgroups.domain.definition.PropositionCodec;
+import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
 import org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager;
 import org.esco.dynamicgroups.domain.reporting.statistics.StatisticsManagerProviderForHooks;
 
@@ -53,7 +54,7 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
 
     /** The statistics manager.*/
     private IStatisticsManager statisticsManager;
-    
+
     /** The domain service to use to handle thy operations associated to the dynamic groups. */
     private IDomainService domainService;
 
@@ -61,12 +62,12 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
      * Builds an instance of ESCOGroupHooks.
      */
     public ESCOGroupHooks() {
-        dynamicType = ESCODynamicGroupsParameters.instance().getGrouperType();
-        definitionField = ESCODynamicGroupsParameters.instance().getGrouperDefinitionField();
+        dynamicType = ParametersProvider.instance().getGrouperType();
+        definitionField = ParametersProvider.instance().getGrouperDefinitionField();
         definitionFieldInternal = ATTRIBUTE_PREFIX + definitionField;
         statisticsManager = StatisticsManagerProviderForHooks.instance().getStatisticsManager();
         domainService = DomainServiceProviderForHooks.instance().getDomainService();
-        
+
         if (LOGGER.isInfoEnabled()) {
             final StringBuilder sb = new StringBuilder("Creation of an hooks of class: ");
             sb.append(getClass().getSimpleName());
@@ -126,33 +127,26 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
     public void groupPreUpdate(final HooksContext hooksContext, final HooksGroupBean preUpdateBean) {
         final Group group = preUpdateBean.getGroup();
         if (isDynamicGroup(group)) {
-            if (isExtensionUpdate(group)) {
-                final String previousName = group.dbVersion().getName();
-
-                // The extension of the group is modified.
-                if (LOGGER.isDebugEnabled()) {
-                    final String newName = group.getName();
-                    final StringBuilder sb = new StringBuilder("Modification of the extension - Previous name: ");
-                    sb.append(previousName);
-                    sb.append(" - New name: ");
-                    sb.append(newName);
-                    LOGGER.debug(sb.toString());
+            if (isDefinitionUpdate(group)) {
+                final String newDefinitionAtt = PropositionCodec.instance().nomalize(getDefinitionAttribute(group));
+                if (newDefinitionAtt != null) {
+                    final String prevDefinitionAtt = domainService.getMembershipExpression(group.getUuid());
+                    
+                    if (newDefinitionAtt.equalsIgnoreCase(prevDefinitionAtt)) {
+                        LOGGER.debug("Nothing to do, previous definion is equal to the new one. Previous: " 
+                                + prevDefinitionAtt + " new: " + newDefinitionAtt + ".");
+                    } else {
+                        // The defition field of the dynamic group is modified.
+                        LOGGER.debug("Modification of the definition field.");
+                        final DynamicGroupDefinition def = buildDefinition(group.getUuid(), newDefinitionAtt);
+                        domainService.handleNewOrModifiedDynamicGroup(def);
+                    }
                 }
-
-                domainService.handleDeletedGroup(previousName);
-                domainService.handleNewOrModifiedDynamicGroup(buildDefinition(group));
-
-            } else if (isDefinitionUpdate(group)) {
-
-                // The defition field of the dynamic group is modified.
-                LOGGER.debug("Modification of the definition field.");
-                domainService.handleNewOrModifiedDynamicGroup(buildDefinition(group));
-
             }
         }
     }
-    
-  
+
+
     /**
      * Tests if the extension of a group is modified.
      * @param group the group to test.
@@ -211,20 +205,37 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
     }
 
     /**
+     * Retrieves the definition attribute for a given dynamic group.
+     * @param group The considered group.
+     * @return The definition attribute.
+     */
+    protected String getDefinitionAttribute(final Group group) {
+        try {
+            return group.getAttribute(definitionField);
+        } catch (AttributeNotFoundException e) {
+            LOGGER.error("Unable to retrieve the attribute " + definitionField 
+                    + " for the group: " + group.getName() + ".");
+        }
+        return null;
+    }
+
+    /**
      * Builds the definition of a dynamic group.
      * @param group The group associated to the dynamic group definition. 
      * @return The Dynamic group definition.
      */
     protected DynamicGroupDefinition buildDefinition(final Group group) {
+        return buildDefinition(group.getUuid(), getDefinitionAttribute(group));
+    }
 
-        String membersDef = null;
-        try {
-            membersDef = group.getAttribute(definitionField);
-        } catch (AttributeNotFoundException e) {
-            LOGGER.error("Unable to retrieve the attribute " + definitionField 
-                    + " for the group: " + group.getName() + ".");
-        }
-        final DynamicGroupDefinition groupDef = new DynamicGroupDefinition(group.getName(), membersDef);
+    /**
+     * Builds the definition of a dynamic group.
+     * @param groupUUID The uuid of the group.
+     * @param definition The logic expresion of the memberships.
+     * @return The dynamic group definition.
+     */
+    protected DynamicGroupDefinition buildDefinition(final String groupUUID, final String definition) {
+        final DynamicGroupDefinition groupDef = new DynamicGroupDefinition(groupUUID, definition);
 
         if (LOGGER.isDebugEnabled()) {
             final StringBuilder sb = new StringBuilder("Dynamic group definition built: ");

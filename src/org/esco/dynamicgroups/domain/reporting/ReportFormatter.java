@@ -5,7 +5,7 @@ package org.esco.dynamicgroups.domain.reporting;
 
 import java.util.Date;
 
-import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
+import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
@@ -26,8 +26,8 @@ public class ReportFormatter implements IReportFormatter, InitializingBean {
     /** Text formatter. */
     private IReportFormatter textFormatter;
     
-    /** The user paramters. */
-    private ESCODynamicGroupsParameters parameters;
+    /** The user paramters provider. */
+    private ParametersProvider parametersProvider;
     
     /**
      * Builds an instance of TextReportFormatter.
@@ -41,7 +41,7 @@ public class ReportFormatter implements IReportFormatter, InitializingBean {
      * @return The formatter corresponding the the user paramters.
      */
     protected IReportFormatter selectFormatter() {
-        if (parameters.getXHTMLReport()) {
+        if (parametersProvider.getXHTMLReport()) {
             return xhtmlFormatter;
         }
         return textFormatter;
@@ -191,19 +191,19 @@ public class ReportFormatter implements IReportFormatter, InitializingBean {
     }
 
     /**
-     * Getter for parameters.
-     * @return parameters.
+     * Getter for parametersProvider.
+     * @return parametersProvider.
      */
-    public ESCODynamicGroupsParameters getParameters() {
-        return parameters;
+    public ParametersProvider getParametersProvider() {
+        return parametersProvider;
     }
 
     /**
-     * Setter for parameters.
-     * @param parameters the new value for parameters.
+     * Setter for parametersProvider.
+     * @param parametersProvider the new value for parametersProvider.
      */
-    public void setParameters(final ESCODynamicGroupsParameters parameters) {
-        this.parameters = parameters;
+    public void setParametersProvider(final ParametersProvider parametersProvider) {
+        this.parametersProvider = parametersProvider;
     }
 
     /**
@@ -212,8 +212,8 @@ public class ReportFormatter implements IReportFormatter, InitializingBean {
      * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
      */
     public void afterPropertiesSet() throws Exception {
-        Assert.notNull(parameters, 
-                "The property parameters int the class " 
+        Assert.notNull(parametersProvider, 
+                "The property parametersProvider int the class " 
                 + getClass().getSimpleName() + " can't be null.");
         Assert.notNull(xhtmlFormatter, 
                 "The property xhtmlFormatter int the class " 

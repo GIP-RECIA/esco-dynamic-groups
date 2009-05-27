@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
+import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
 
 
 /**
@@ -30,7 +30,7 @@ public class ESCODeletedSubjectImpl implements Subject {
     private static final Logger LOGGER = Logger.getLogger(ESCODeletedSubjectImpl.class);
     
     /** Subjects source id. */
-    private static final String SOURCE_ID = ESCODynamicGroupsParameters.instance().getGrouperSubjectsSourceId();
+    private static final String SOURCE_ID = ParametersProvider.instance().getGrouperSubjectsSourceId();
     
     /** Id if a subject. */
     private  String id;

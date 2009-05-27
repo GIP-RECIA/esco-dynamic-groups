@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.esco.dynamicgroups.domain;
+package org.esco.dynamicgroups.dao.ldap;
 
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPEntry;
@@ -15,33 +15,28 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.esco.dynamicgroups.dao.grouper.IGroupsDAOService;
-import org.esco.dynamicgroups.dao.ldap.LDAPConnectionManager;
-import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
 import org.esco.dynamicgroups.domain.definition.AtomicProposition;
 import org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition;
 import org.esco.dynamicgroups.domain.definition.IProposition;
+import org.esco.dynamicgroups.domain.parameters.LDAPPersonsParametersSection;
+import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
 
 /**
- * Initializer for the new created dynamic groups. 
- * The group definition is translated into an LDAP filter in order
- * to retrieve the initial members in the LDAP.
- * This initializer is also responsible to register or not the group in the base,
- * depending if their definition is valid.
+ * DAO for the LDAP. Used for the initialization of the dynamic groups.
  * @author GIP RECIA - A. Deman
  * 19 janv. 2009
  *
  */
-public class LDAPDynamicGroupInitializer implements IDynamicGroupInitializer, InitializingBean, Serializable {
+public class LDAPMembersFromDefinitionDAO implements IMembersFromDefinitionDAO, InitializingBean, Serializable {
 
     /** Serial version UID.*/
     private static final long serialVersionUID = 3555266918663719714L;
 
     /** Logger. */
-    private static final Logger LOGGER = Logger.getLogger(LDAPDynamicGroupInitializer.class); 
+    private static final Logger LOGGER = Logger.getLogger(LDAPMembersFromDefinitionDAO.class); 
 
     /** And constant fot the LDAP filters. */
     private static final String AND = "&";
@@ -60,104 +55,98 @@ public class LDAPDynamicGroupInitializer implements IDynamicGroupInitializer, In
 
     /** Close bracket constant. */
     private static final char CLOSE_BRACKET = ')';
-
-    /** The group service to use. */
-    private IGroupsDAOService groupsService;
-
-    /** The LDAP search base. */
-    private String ldapSearchBase;
-
-    /** The name of the uid attribute. */
-    private String uidAttribute;
     
+    /** The user parameters. */
+    private ParametersProvider parametersProvider;
+    
+    /** The user parameters for the LDAP. */
+    private LDAPPersonsParametersSection ldapParameters;
+
     /** The uidAttribute as a String array. */
     private String[] uidAttributeArray;
     
+    /** The ldap connection manager. */
+    private LDAPConnectionManager connectionManager;
+
     /** The LDAP Connection. */
     private LDAPConnection connection;
-    
+
     /** The LDAP search constaints. */
     private LDAPSearchConstraints constraints;
 
     /**
-     * Builds an instance of LDAPDynamicGroupInitializer.
+     * Builds an instance of DynamicGroupInitializer.
      */
-    public LDAPDynamicGroupInitializer() {
-        this(false);
+    public LDAPMembersFromDefinitionDAO() {
+       super();
     }
 
-    /**
-     * Builds an instance of LDAPDynamicGroupInitializer.
-     * @param offline Flag to determine if a connection to the LDAP should be established.
-     */
-    public LDAPDynamicGroupInitializer(final boolean offline) {
-        if (!offline) {
-            
-            ldapSearchBase = ESCODynamicGroupsParameters.instance().getLdapSearchBase();
-            uidAttribute = ESCODynamicGroupsParameters.instance().getLdapUidAttribute();
-            uidAttributeArray = new String[] {uidAttribute};
-            connection = LDAPConnectionManager.instance().connect();
-            constraints = new LDAPSearchConstraints();
-            constraints.setMaxResults(0);
-        }
-    }
-    
     /**
      * Checks the connection and tries to reconnect if needed.
      */
     private void checkConnection() {
         synchronized (connection) {
-            if (!LDAPConnectionManager.instance().isActiveConnection(connection)) {
-                connection = LDAPConnectionManager.instance().connect();
+            if (!connectionManager.isActiveConnection(connection)) {
+                connection = connectionManager.connect();
             }
         }
     } 
+    
     /**
      * Checks the bean injection.
      * @throws Exception
      * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
      */
     public void afterPropertiesSet() throws Exception {
-        Assert.notNull(this.groupsService, 
-                "The property groupService in the class " + this.getClass().getName() 
+        
+        Assert.notNull(this.parametersProvider, 
+                "The property parametersProvider in the class " + this.getClass().getName() 
                 + " can't be null.");
+        
+        Assert.notNull(this.connectionManager, 
+                "The property connectionManager in the class " + this.getClass().getName() 
+                + " can't be null.");
+        
+        ldapParameters = (LDAPPersonsParametersSection) parametersProvider.getPersonsParametersSection();
+        uidAttributeArray = new String[] {ldapParameters.getLdapUidAttribute()};
+        connection = connectionManager.connect();
+        constraints = new LDAPSearchConstraints();
+        constraints.setMaxResults(0);
     }
 
     /**
-     * Initializes the group : removes all the existing members and retrieves the 
-     * new members from the group definition.
-     * @param definition The dfinition associated to the group to initialize.
-     * @see org.esco.dynamicgroups.domain.IDynamicGroupInitializer#initialize(DynamicGroupDefinition)
+     * Gives the members, in the ldap, that are corresponding to the logic definition of a group.
+     * @param definition The logic definition of the members of the group.
+     * @return The set of the members ids.
+     * @see org.esco.dynamicgroups.dao.ldap.IMembersFromDefinitionDAO#getMembers(DynamicGroupDefinition)
      */
-    public void initialize(final DynamicGroupDefinition definition) {
+    public Set<String> getMembers(final DynamicGroupDefinition definition) {
+        final Set<String> userIds = new HashSet<String>();
         if (definition.isValid()) {
             checkConnection();
-            
+
             final String filter = translateToLdapFilter(definition);
-           
+
             try {
-                final LDAPSearchResults result = getConnection().search(ldapSearchBase, 
+                final LDAPSearchResults result = getConnection().search(ldapParameters.getLdapSearchBase(), 
                         LDAPConnection.SCOPE_SUB, 
                         filter, 
                         uidAttributeArray, 
                         false, 
                         constraints);
                 
-                final Set<String> userIds = new HashSet<String>();
                 while (result.hasMore()) {
                     final LDAPEntry entry = result.next();
-                    userIds.add(entry.getAttribute(uidAttribute).getStringValue());
+                    userIds.add(entry.getAttribute(ldapParameters.getLdapUidAttribute()).getStringValue());
                 }
-
-                // Adds the members to the list.
-                groupsService.addToGroup(definition.getGroupName(), userIds);
 
             } catch (LDAPException e) {
                 LOGGER.error(e, e);
             }
         }
+        return userIds;
     }
-   
+
     /**
      * Translates a conjunctive proposition into an ldap filter.
      * @param proposition The conjunctive proposition.
@@ -232,22 +221,6 @@ public class LDAPDynamicGroupInitializer implements IDynamicGroupInitializer, In
     }
 
     /**
-     * Getter for groupsService.
-     * @return groupsService.
-     */
-    public IGroupsDAOService getGroupsService() {
-        return groupsService;
-    }
-
-    /**
-     * Setter for groupsService.
-     * @param groupsService the new value for groupsService.
-     */
-    public void setGroupsService(final IGroupsDAOService groupsService) {
-        this.groupsService = groupsService;
-    }
-
-    /**
      * Getter for connection.
      * @return connection.
      */
@@ -255,6 +228,38 @@ public class LDAPDynamicGroupInitializer implements IDynamicGroupInitializer, In
         synchronized (connection) {
             return connection;
         }
+    }
+
+    /**
+     * Getter for parametersProvider.
+     * @return parametersProvider.
+     */
+    public ParametersProvider getParametersProvider() {
+        return parametersProvider;
+    }
+
+    /**
+     * Setter for parameters.
+     * @param parametersProvider the new value for parameters.
+     */
+    public void setParametersProvider(final ParametersProvider parametersProvider) {
+        this.parametersProvider = parametersProvider;
+    }
+
+    /**
+     * Getter for connectionManager.
+     * @return connectionManager.
+     */
+    public LDAPConnectionManager getConnectionManager() {
+        return connectionManager;
+    }
+
+    /**
+     * Setter for connectionManager.
+     * @param connectionManager the new value for connectionManager.
+     */
+    public void setConnectionManager(final LDAPConnectionManager connectionManager) {
+        this.connectionManager = connectionManager;
     }
 
 

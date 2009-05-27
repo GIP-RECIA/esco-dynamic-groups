@@ -9,6 +9,7 @@ import com.novell.ldap.LDAPSearchQueue;
 
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.dao.ldap.LDAPConnectionManager;
@@ -17,7 +18,8 @@ import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncDoneContro
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncInfoMessage;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncRequestControl;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncStateControl;
-import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
+import org.esco.dynamicgroups.domain.parameters.LDAPPersonsParametersSection;
+import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
@@ -43,9 +45,18 @@ public class ESCOSyncReplClient implements InitializingBean {
 
     /** Logger. */
     private  Logger logger = Logger.getLogger(ESCOSyncReplClient.class);
+    
+    /** The user parameters provider. */
+    private ParametersProvider parametersProvider;
+    
+    /** The LDAP Parameters. */
+    private LDAPPersonsParametersSection ldapParameters;
 
     /** Messages handler. */
     private ISyncReplMessagesHandler messagesHandler;
+    
+    /** The LDAP connection manager. */
+    private LDAPConnectionManager connectionManager;
 
     /** The connection to the LDAP. */
     private LDAPConnection lc;
@@ -61,6 +72,9 @@ public class ESCOSyncReplClient implements InitializingBean {
 
     /** Flag for a stop request. */
     private boolean stopRequest;
+    
+    /** The cookie manager. */
+    private CookieManager cookieManager;
 
     /**
      * Builds an instance of ESCOSyncReplClient.
@@ -84,6 +98,20 @@ public class ESCOSyncReplClient implements InitializingBean {
         Assert.notNull(this.messagesHandler, 
                 "The property messagesHandler in the class " + this.getClass().getName() 
                 + " can't be null.");
+        
+        Assert.notNull(this.connectionManager, 
+                "The property connectionManager in the class " + this.getClass().getName() 
+                + " can't be null.");
+        
+        Assert.notNull(this.parametersProvider, 
+                "The property parametersProvider in the class " + this.getClass().getName() 
+                + " can't be null.");
+        
+        Assert.notNull(this.cookieManager, 
+                "The property cookieManager in the class " + this.getClass().getName() 
+                + " can't be null.");
+        
+        ldapParameters = (LDAPPersonsParametersSection) parametersProvider.getPersonsParametersSection();
     }
 
     /**
@@ -113,23 +141,25 @@ public class ESCOSyncReplClient implements InitializingBean {
      */
     private void connect() {
 
-        lc = LDAPConnectionManager.instance().connect();
+        lc = connectionManager.connect();
 
-        if (!LDAPConnectionManager.instance().isActiveConnection(lc)) {
+        if (!connectionManager.isActiveConnection(lc)) {
             logger.fatal("Client requested to stop.");
             requestToStop();
         } else {
-            final ESCODynamicGroupsParameters parameters = ESCODynamicGroupsParameters.instance();
-            final String searchFilter = parameters.getLdapSearchFilter();
-            final String searchBase = parameters.getLdapSearchBase();
-            final String[] attributes = parameters.getLdapSearchAttributesAsArray();
+            final String searchFilter = ldapParameters.getLdapSearchFilter();
+            final String searchBase = ldapParameters.getLdapSearchBase();
+            final Set<String> attributesSet = ldapParameters.getLdapSearchAttributes();
+            final int nbAtt = attributesSet.size(); 
+            final String[] attributes = attributesSet.toArray(new String[nbAtt]);
 
             try {
 
                 // Creates the search constraint.
                 final LDAPSearchConstraints constraints =  new LDAPSearchConstraints();
                 final LDAPControl syncRequestCtrl = 
-                    new SyncRequestControl(SyncRequestControl.REFRESH_AND_PERSIST, false);
+                    new SyncRequestControl(SyncRequestControl.REFRESH_AND_PERSIST, 
+                            false, cookieManager.getCurrentCookie());
                 constraints.setControls(syncRequestCtrl);
                 constraints.setMaxResults(0);
 
@@ -156,7 +186,7 @@ public class ESCOSyncReplClient implements InitializingBean {
      * Checks the connection and tries to reconnect if needed.
      */
     private void checkConnection() {
-        if (!LDAPConnectionManager.instance().isActiveConnection(lc)) {
+        if (!connectionManager.isActiveConnection(lc)) {
             connect();
         }
     } 
@@ -172,7 +202,7 @@ public class ESCOSyncReplClient implements InitializingBean {
         setStopRequest(false);
         connect();
 
-        final int idle = ESCODynamicGroupsParameters.instance().getSyncreplClientIdle();
+        final int idle = ldapParameters.getSyncreplClientIdle();
 
         if (queue != null) {
             int contextualIdle = REFRESH_STAGE_IDLE;
@@ -206,7 +236,7 @@ public class ESCOSyncReplClient implements InitializingBean {
         }  catch (LDAPException e) {
             logger.error(e, e);
         }
-        CookieManager.instance().saveCurrentCookie();
+        cookieManager.saveCurrentCookie();
         logger.info("SyncRepl Client stopped.");
         setRunning(false);
 
@@ -275,6 +305,54 @@ public class ESCOSyncReplClient implements InitializingBean {
      */
     protected synchronized void setRunning(final boolean running) {
         this.running = running;
+    }
+
+    /**
+     * Getter for connectionManager.
+     * @return connectionManager.
+     */
+    public LDAPConnectionManager getConnectionManager() {
+        return connectionManager;
+    }
+
+    /**
+     * Setter for connectionManager.
+     * @param connectionManager the new value for connectionManager.
+     */
+    public void setConnectionManager(final LDAPConnectionManager connectionManager) {
+        this.connectionManager = connectionManager;
+    }
+
+    /**
+     * Getter for parametersProvider.
+     * @return parametersProvider.
+     */
+    public ParametersProvider getParametersProvider() {
+        return parametersProvider;
+    }
+
+    /**
+     * Setter for parametersProvider.
+     * @param parametersProvider the new value for parametersProvider.
+     */
+    public void setParametersProvider(final ParametersProvider parametersProvider) {
+        this.parametersProvider = parametersProvider;
+    }
+
+    /**
+     * Getter for cookieManager.
+     * @return cookieManager.
+     */
+    public CookieManager getCookieManager() {
+        return cookieManager;
+    }
+
+    /**
+     * Setter for cookieManager.
+     * @param cookieManager the new value for cookieManager.
+     */
+    public void setCookieManager(final CookieManager cookieManager) {
+        this.cookieManager = cookieManager;
     }
 }
 

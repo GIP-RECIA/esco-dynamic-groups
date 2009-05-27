@@ -7,7 +7,8 @@ import java.io.Serializable;
 
 import org.esco.dynamicgroups.ESCOEntryDTOFactory;
 import org.esco.dynamicgroups.domain.IDomainService;
-import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
+import org.esco.dynamicgroups.domain.parameters.LDAPPersonsParametersSection;
+import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
@@ -24,6 +25,9 @@ public abstract class AbstractSyncReplsTriggeredAction
 
     /** The domain service to use .*/
     private IDomainService domainService;
+    
+    /** User parameters provider. */
+    private ParametersProvider parametersProvider;
 
     /** The LDAP attribute for the id. */
     private String idAttribute;
@@ -35,8 +39,7 @@ public abstract class AbstractSyncReplsTriggeredAction
      * Builds an instance of AbstractSyncReplsTriggeredAction.
      */
     public AbstractSyncReplsTriggeredAction() {
-      idAttribute = ESCODynamicGroupsParameters.instance().getLdapUidAttribute();
-      entryDTOFactory = new ESCOEntryDTOFactory(idAttribute);
+      super();
     }
         
     /**
@@ -49,6 +52,16 @@ public abstract class AbstractSyncReplsTriggeredAction
         Assert.notNull(this.domainService, 
                 "The property domainService in the class " + this.getClass().getName() 
                 + " can't be null.");
+
+        Assert.notNull(this.parametersProvider, 
+                "The property parametersProvider in the class " + this.getClass().getName() 
+                + " can't be null.");
+        final LDAPPersonsParametersSection ldapParameters = 
+            (LDAPPersonsParametersSection) parametersProvider.getPersonsParametersSection();
+        idAttribute = ldapParameters.getLdapUidAttribute();
+        entryDTOFactory = new ESCOEntryDTOFactory(idAttribute);
+        
+        
     }
 
     /**
@@ -81,5 +94,21 @@ public abstract class AbstractSyncReplsTriggeredAction
      */
     public void setDomainService(final IDomainService domainService) {
         this.domainService = domainService;
+    }
+
+    /**
+     * Getter for parametersProvider.
+     * @return parametersProvider.
+     */
+    public ParametersProvider getParametersProvider() {
+        return parametersProvider;
+    }
+
+    /**
+     * Setter for parametersProvider.
+     * @param parametersProvider the new value for parametersProvider.
+     */
+    public void setParametersProvider(final ParametersProvider parametersProvider) {
+        this.parametersProvider = parametersProvider;
     }
 }
