@@ -18,8 +18,8 @@ public class DynamicGroupDefinition implements Serializable {
     /** Serial version UID.*/
     private static final long serialVersionUID = -6054188705662382538L;
     
-    /** The name of the group. */
-    private String groupName;
+    /** The uuid of the group. */
+    private String groupUUID;
     
     /** The logic proposition associated to
      * the dynamic group. */
@@ -28,21 +28,21 @@ public class DynamicGroupDefinition implements Serializable {
     
     /**
      * Builds an instance of DynamicGroupDefinition.
-     * @param groupName The name of the group.
+     * @param groupUUID The uuid of the group.
      * @param proposition The String to decode that represents the proposition
      * associated to the definition.
      */
-    public DynamicGroupDefinition(final String groupName, final String proposition) {
-       this(groupName, PropositionCodec.instance().decode(proposition).getProposition());
+    public DynamicGroupDefinition(final String groupUUID, final String proposition) {
+       this(groupUUID, PropositionCodec.instance().decode(proposition).getProposition());
     }
     
     /**
      * Builds an instance of DynamicGroupDefinition.
-     * @param groupName The name of the group.
+     * @param groupUUID The uuid of the group.
      * @param proposition The proposition associated to the group definition.
      */
-    public DynamicGroupDefinition(final String groupName, final IProposition proposition) {
-        this.groupName = groupName;
+    public DynamicGroupDefinition(final String groupUUID, final IProposition proposition) {
+        this.groupUUID = groupUUID;
         this.proposition = proposition;
         if (this.proposition != null) {
             this.proposition = proposition.toDisjunctiveNormalForm();
@@ -72,7 +72,7 @@ public class DynamicGroupDefinition implements Serializable {
      */
     @Override
     public String toString() {
-        return "DynamicGroupDefinition#{" + groupName + ", " + proposition + "}";
+        return "DynamicGroupDefinition#{" + groupUUID + ", " + proposition + "}";
     }
     
     /**
@@ -89,10 +89,10 @@ public class DynamicGroupDefinition implements Serializable {
     }
 
     /**
-     * Getter for groupName.
-     * @return groupName.
+     * Getter for groupUUID.
+     * @return groupUUID.
      */
-    public String getGroupName() {
-        return groupName;
+    public String getGroupUUID() {
+        return groupUUID;
     }
 }

@@ -3,9 +3,12 @@
  */
 package org.esco.dynamicgroups.domain;
 
+import org.esco.dynamicgroups.dao.ldap.LDAPMembersFromDefinitionDAO;
 import org.esco.dynamicgroups.domain.definition.DecodedPropositionResult;
 import org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition;
 import org.esco.dynamicgroups.domain.definition.PropositionCodec;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 /**
  * @author GIP RECIA - A. Deman 
@@ -14,7 +17,7 @@ import org.esco.dynamicgroups.domain.definition.PropositionCodec;
  */
 public class DefinitionToLDAPFilterTesterBatch {
     /** The LDAP initializer used to test the definition. */
-    private LDAPDynamicGroupInitializer initializer = new LDAPDynamicGroupInitializer(true);
+    private LDAPMembersFromDefinitionDAO ldapMembers = new LDAPMembersFromDefinitionDAO();
 
     /**
      * Builds an instance of DefinitionToLDAPFilterTesterBatch.
@@ -36,7 +39,7 @@ public class DefinitionToLDAPFilterTesterBatch {
         } else {
             final DynamicGroupDefinition def = new DynamicGroupDefinition("TEST GROUP", result.getProposition());
             System.out.println("The definition is valid: " + def.getProposition());
-            final String filter = initializer.translateToLdapFilter(def);
+            final String filter = ldapMembers.translateToLdapFilter(def);
             System.out.println("The associated filter is: " + filter);
         }
 
@@ -46,6 +49,11 @@ public class DefinitionToLDAPFilterTesterBatch {
      * @param args
      */
     public static void main(final String[] args) {
+        ThreadLocal<ApplicationContext> appCtx = new ThreadLocal<ApplicationContext>();
+        appCtx.set(new FileSystemXmlApplicationContext("classpath:applicationContext.xml"));
+//        BeanFactory beanFactory = appCtx.get();
+//        IDBDAOService hib3Support = (IDBDAOService) beanFactory.getBean("daoService");
+
         final DefinitionToLDAPFilterTesterBatch tester = new DefinitionToLDAPFilterTesterBatch();
         for (String defString : args) {
             tester.check(defString);

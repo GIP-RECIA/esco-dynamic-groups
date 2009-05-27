@@ -24,8 +24,7 @@ public interface IGroupsDAOService {
     void removeFromGroups(final String userId);
     
     /** 
-     * Creates a group if it does not exist, removes all its members otherwise and ther initializes
-     * the members.
+     * Creates a group if it does not exist, removes all its members otherwise.
      * @param definition The definition of the group.
      */
     void resetGroupMembers(final DynamicGroupDefinition definition);

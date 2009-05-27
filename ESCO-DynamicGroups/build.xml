@@ -106,7 +106,8 @@
 	</target>
 	
 	<!-- Database initialisation -->
-	<target name="esco-dg.init-db">
+	<target name="esco-dg.init-db" 
+		depends="esco-dg.compile" description="Initialization of the data base">
 		<taskdef name="hibernatetool" 
 		         classname="org.hibernate.tool.ant.HibernateToolTask" 
 		         classpathref="esco-dg.classpath" />

@@ -36,8 +36,8 @@ public class DynGroup implements Serializable {
     /** Dynamic group identifier. */
     private long groupId;
 
-    /** The name associated to the group. */
-    private String groupName;
+    /** The uuid of the group. */
+    private String groupUUID;
 
     /** The definition associated to the group. */
     private String groupDefinition;
@@ -57,10 +57,10 @@ public class DynGroup implements Serializable {
 
     /**
      * Builds an instance of DynGroup.
-     * @param groupName The name of the group.
+     * @param groupUUID The uuid of the group.
      */
-    public DynGroup(final String groupName) {
-        this(groupName, "");
+    public DynGroup(final String groupUUID) {
+        this(groupUUID, "");
     }
 
     /**
@@ -68,31 +68,31 @@ public class DynGroup implements Serializable {
      * @param definition The definition of the group to buikd.
      */
     public DynGroup(final DynamicGroupDefinition definition) {
-        this(definition.getGroupName(), PropositionCodec.instance().code(definition.getProposition()));
+        this(definition.getGroupUUID(), PropositionCodec.instance().code(definition.getProposition()));
     }
 
     /**
      * Builds an instance of DynGroup as the conjunctive component of another group.
      * @param conjonctiveComponentNumber The number of the consjunctive component.
-     * @param groupName The name of the group.
+     * @param groupUUID The uuid of the group.
      * @param groupDefinition The definition of the group.
      * @param indirectedGroupId The id of the group that contains this group
      * as a conjunctive component.
      */
     protected DynGroup(final int conjonctiveComponentNumber,
-            final String groupName, final String groupDefinition, final Long indirectedGroupId) {
+            final String groupUUID, final String groupDefinition, final Long indirectedGroupId) {
         this(CONJ_COMP_INDIRECTION + OPEN_CURLY_BRACKET + conjonctiveComponentNumber 
-                + CLOSE_CURLY_BRACKET + groupName, groupDefinition);
+                + CLOSE_CURLY_BRACKET + groupUUID, groupDefinition);
         this.indirectedGroupId = indirectedGroupId;
     }
 
     /**
      * Builds an instance of DynGroup.
-     * @param groupName The name of the group.
+     * @param groupUUID The uuid of the group.
      * @param groupDefinition The definition of the group.
      */
-    public DynGroup(final String groupName, final String groupDefinition) {
-        this.groupName = groupName;
+    public DynGroup(final String groupUUID, final String groupDefinition) {
+        this.groupUUID = groupUUID;
         setGroupDefinition(groupDefinition);
     }
 
@@ -128,7 +128,7 @@ public class DynGroup implements Serializable {
                     int componentIndex = 0;
                     for (IProposition conjunction : conjunctions) {
                         conjunctiveComponents.add(new DynGroup(componentIndex++, 
-                                getGroupName(), 
+                                getGroupUUID(), 
                                 PropositionCodec.instance().code(conjunction), 
                                 getGroupId()));
                     }
@@ -193,11 +193,11 @@ public class DynGroup implements Serializable {
     }
 
     /**
-     * Getter for groupName.
-     * @return groupName.
+     * Getter for groupUUID.
+     * @return groupUUID.
      */
-    public String getGroupName() {
-        return groupName;
+    public String getGroupUUID() {
+        return groupUUID;
     }
 
     /**
@@ -207,18 +207,18 @@ public class DynGroup implements Serializable {
      */
     public String getIndirectedGroupName() {
         if (isConjunctiveComponentIndirection()) {
-            final int pos = groupName.indexOf(CLOSE_CURLY_BRACKET);
-            return groupName.substring(pos + 1);
+            final int pos = groupUUID.indexOf(CLOSE_CURLY_BRACKET);
+            return groupUUID.substring(pos + 1);
         }
-        return groupName;
+        return groupUUID;
     }
 
     /**
-     * Setter for groupName.
-     * @param groupName the new value for groupName.
+     * Setter for groupUUID.
+     * @param groupUUID the new value for groupUUID.
      */
-    public void setGroupName(final String groupName) {
-        this.groupName = groupName;
+    public void setGroupUUID(final String groupUUID) {
+        this.groupUUID = groupUUID;
     }
 
     /**
@@ -228,7 +228,7 @@ public class DynGroup implements Serializable {
      */
     @Override
     public int hashCode() {
-        return groupDefinition.hashCode() + groupName.hashCode();
+        return groupDefinition.hashCode() + groupUUID.hashCode();
     }
 
     /**
@@ -249,7 +249,7 @@ public class DynGroup implements Serializable {
             return false;
         }
         final DynGroup other = (DynGroup) obj;
-        return other.getGroupDefinition().equals(groupDefinition) && other.getGroupName().equals(groupName);
+        return other.getGroupDefinition().equals(groupDefinition) && other.getGroupUUID().equals(groupUUID);
     }
 
     /**
@@ -259,7 +259,7 @@ public class DynGroup implements Serializable {
      */
     @Override
     public String toString() {
-        return "DynGroup#{" + groupId + ", " + groupName + ", " 
+        return "DynGroup#{" + groupId + ", " + groupUUID + ", " 
         + groupDefinition + ", " + attributesNb + "}";
     }
 

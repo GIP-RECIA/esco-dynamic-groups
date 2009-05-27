@@ -44,7 +44,7 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
     private static final String GROUP = "group";
 
     /** Constant for the group name. */
-    private static final String GROUP_NAME = "groupName";
+    private static final String GROUP_UUID = "groupUUID";
     
     /** Constant for the group id. */
     private static final String GROUP_ID = "groupId";
@@ -112,12 +112,12 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
 
     /**
      * Retrieves the attribute associated to a given name.
-     * @param name The name of the attribute.
+     * @param uuid The name of the attribute.
      * @return The attribute if found, null otherwise.
-     * @see org.esco.dynamicgroups.dao.db.IDBDAOService#getDynGroupByName(java.lang.String)
+     * @see org.esco.dynamicgroups.dao.db.IDBDAOService#getDynGroupByUUID(java.lang.String)
      */
-    public DynGroup getDynGroupByName(final String name) {
-        return (DynGroup) retrieveUniqueInstanceByAttribute(DynGroup.class, GROUP_NAME, name);
+    public DynGroup getDynGroupByUUID(final String uuid) {
+        return (DynGroup) retrieveUniqueInstanceByAttribute(DynGroup.class, GROUP_UUID, uuid);
     }
 
     /**
@@ -218,7 +218,7 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
 //        final StringBuilder queryString = new StringBuilder(FROM);
 //        queryString.append(DynGroup.class.getName());
 //        queryString.append(WHERE);
-//        queryString.append(GROUP_NAME);
+//        queryString.append(GROUP_UUID);
 //        queryString.append(" like '");
 //        queryString.append(DynGroup.CONJ_COMP_INDIRECTION);
 //        queryString.append(ESCAPE);
@@ -265,25 +265,25 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
     
     /**
      * Deletes a group.
-     * @param name The name of the group to delete.
+     * @param uuid The uuid of the group to delete.
      * @see org.esco.dynamicgroups.dao.db.IDBDAOService#deleteDynGroup(java.lang.String)
      */
-    public void deleteDynGroup(final String name) {
+    public void deleteDynGroup(final String uuid) {
         startTransaction();
         final Session session = openOrRetrieveSessionForThread();
         final DynGroup group = 
-            (DynGroup) retrieveUniqueInstanceByAttributeInternal(session, DynGroup.class, GROUP_NAME, name);
+            (DynGroup) retrieveUniqueInstanceByAttributeInternal(session, DynGroup.class, GROUP_UUID, uuid);
         if (group != null) {
             deleteDynGroupInternal(session, group);
             if (LOGGER.isDebugEnabled()) {
                 final StringBuilder sb = new StringBuilder("Deleting the group: " );
-                sb.append(name);
+                sb.append(uuid);
                 sb.append(".");
                 LOGGER.debug(sb.toString());
             }
         
         } else {
-            LOGGER.error("Unable to retrieve the group for deletion: " + name);
+            LOGGER.error("Unable to retrieve the group for deletion: " + uuid);
         }
 
         commit();
@@ -400,7 +400,7 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
 
 
         DynGroup group = (DynGroup) retrieveUniqueInstanceByAttributeInternal(session, 
-                DynGroup.class, GROUP_NAME, definition.getGroupName());
+                DynGroup.class, GROUP_UUID, definition.getGroupUUID());
 
         if (group == null) {
             if (definition.isValid()) {
@@ -559,11 +559,11 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
     
     /**
      * Retrieves the list of attributes values involved in a group definition.
-     * @param groupName The of the considered group.
+     * @param groupUUID The uuid of the considered group.
      * @return The set of attribute values.
      * @see org.esco.dynamicgroups.dao.db.IDBDAOService#getAttributeValuesForGroup(String)
      */
-    public Set<AttributeValue> getAttributeValuesForGroup(final String groupName) {
+    public Set<AttributeValue> getAttributeValuesForGroup(final String groupUUID) {
 
         final Set<AttributeValue> result = new HashSet<AttributeValue>();
 
@@ -573,7 +573,7 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
         final Criteria criteria = session.createCriteria(GroupAttributeValueAssoc.class);
         criteria.setFetchMode(GROUP, FetchMode.JOIN);
         criteria.setFetchMode(ATTRIBUTE, FetchMode.JOIN);
-        criteria.createCriteria(GROUP, GROUP).add(Restrictions.eq(GROUP_NAME, groupName));
+        criteria.createCriteria(GROUP, GROUP).add(Restrictions.eq(GROUP_UUID, groupUUID));
         criteria.setCacheable(true);
 
         @SuppressWarnings("unchecked")
@@ -612,9 +612,9 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
 
         for (Group group : groups) { 
             if (groupConj == null) {
-                groupConj = Restrictions.eq(GROUP_NAME, group.getName());
+                groupConj = Restrictions.eq(GROUP_UUID, group.getUuid());
             } else {
-                groupConj = Restrictions.or(groupConj, Restrictions.eq(GROUP_NAME, group.getName()));
+                groupConj = Restrictions.or(groupConj, Restrictions.eq(GROUP_UUID, group.getUuid()));
             }
         }
 
@@ -635,12 +635,12 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
     /**
      * Retrieves the values of a given attribute for a group.
      * @param attributeName The name of the attribute.
-     * @param groupName The name of the group.
+     * @param groupUUID The uuid of the group.
      * @return The values of the attribute in the group definition if the attribute
      * is present.
      * @see org.esco.dynamicgroups.dao.db.IDBDAOService#getAttributeValuesForGroup(String, String)
      */
-    public Set<String> getAttributeValuesForGroup(final String attributeName, final String groupName) {
+    public Set<String> getAttributeValuesForGroup(final String attributeName, final String groupUUID) {
         startTransaction();
         final Session session = openOrRetrieveSessionForThread();
         final Set<String> result = new HashSet<String>();
@@ -648,7 +648,7 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
         final Criteria criteria = session.createCriteria(GroupAttributeValueAssoc.class);
         criteria.setFetchMode(GROUP, FetchMode.JOIN);
         criteria.setFetchMode(ATTRIBUTE, FetchMode.JOIN);
-        criteria.createCriteria(GROUP, GROUP).add(Restrictions.eq(GROUP_NAME, groupName));
+        criteria.createCriteria(GROUP, GROUP).add(Restrictions.eq(GROUP_UUID, groupUUID));
         criteria.createCriteria(ATTRIBUTE, ATTRIBUTE).add(Restrictions.eq(ATTRIBUTE_NAME, attributeName));
         criteria.setCacheable(true);
 
@@ -674,7 +674,7 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
 
         final Criteria criteria = session.createCriteria(GroupAttributeValueAssoc.class);
         criteria.setFetchMode(GROUP, FetchMode.JOIN);
-        criteria.createCriteria(GROUP, GROUP).add(Restrictions.eq(GROUP_NAME, dynGroup.getGroupName()));
+        criteria.createCriteria(GROUP, GROUP).add(Restrictions.eq(GROUP_UUID, dynGroup.getGroupUUID()));
         criteria.setCacheable(true);
 
         @SuppressWarnings("unchecked")

@@ -10,14 +10,18 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 
 import org.apache.log4j.Logger;
-import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
+import org.esco.dynamicgroups.domain.parameters.LDAPPersonsParametersSection;
+import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.util.Assert;
 
 /**
+ * Used to manage the connections to the LDAP.
  * @author GIP RECIA - A. Deman
  * 28 avr. 2009
  *
  */
-public class LDAPConnectionManager implements Serializable {
+public class LDAPConnectionManager implements InitializingBean, Serializable {
 
     /** Serial version UID.*/
     private static final long serialVersionUID = -9019129173624950239L;
@@ -25,47 +29,41 @@ public class LDAPConnectionManager implements Serializable {
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(LDAPConnectionManager.class);
 
-    /** singleton. */
-    private static LDAPConnectionManager instance;
-
-    /** Idle interval when trying to reconnect to the ldap. */
-    private int reconnectionIdle;
-
-    /** Number of attempts when trying to reconnect to the ldap. */
-    private int nbMaxAttempts;
-
+    /** The user parameters provider. */
+    private ParametersProvider parametersProvider;
+    
+    /** LDAP parameters. */
+    private LDAPPersonsParametersSection ldapParameters;
     /**
      * Builds an instance of LDAPConnectionManager.
      */
     private LDAPConnectionManager() {
-        reconnectionIdle = ESCODynamicGroupsParameters.instance().getLdapReconnectionIdle();
-        nbMaxAttempts = ESCODynamicGroupsParameters.instance().getLdapReconnectionAttemptsNb();
+       super();
     }
-
 
     /**
-     * Gives the available instance of LDAP connextion manager.
-     * @return The singleton.
+     * Checks the bean injection.
+     * @throws Exception
+     * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
      */
-    public static LDAPConnectionManager instance() {
-        if (instance == null) {
-            instance = new LDAPConnectionManager();
-        }
-        return instance;
-    }
-
+    public void afterPropertiesSet() throws Exception {
+        Assert.notNull(parametersProvider, "The property parametersProvider in the class " 
+                + getClass().getName() + " can't be null.");
+       ldapParameters = (LDAPPersonsParametersSection) parametersProvider.getPersonsParametersSection();
+        
+    } 
+   
     /**
      * Creates the connexion to the ldap. 
      * @return The LDAP Connexion.
      */
     private LDAPConnection connectInternal() {
-        final ESCODynamicGroupsParameters parameters = ESCODynamicGroupsParameters.instance();
 
-        final int ldapPort = parameters.getLdapPort(); 
-        final int ldapVersion =  parameters.getLdapVersion();        
-        final String ldapHost = parameters.getLdapHost();
-        final String bindDN = parameters.getLdapBindDN();
-        final String credentials = parameters.getLdapCredentials();
+        final int ldapPort = ldapParameters.getLdapPort(); 
+        final int ldapVersion =  ldapParameters.getLdapVersion();        
+        final String ldapHost = ldapParameters.getLdapHost();
+        final String bindDN = ldapParameters.getLdapBindDN();
+        final String credentials = ldapParameters.getLdapCredentials();
         final LDAPConnection lc = new LDAPConnection();
         try {
 
@@ -115,6 +113,8 @@ public class LDAPConnectionManager implements Serializable {
      */
     public LDAPConnection connect() {
         int nbAttempts = 0;
+        final int reconnectionIdle = ldapParameters.getLdapReconnectionIdle();
+        final int nbMaxAttempts = ldapParameters.getLdapReconnectionAttemptsNb();
         LDAPConnection newConnection = null;
         while (!isActiveConnection(newConnection) && nbAttempts++ < nbMaxAttempts) {
             if (nbAttempts > 1) {
@@ -130,7 +130,22 @@ public class LDAPConnectionManager implements Serializable {
             LOGGER.fatal("Unable to connect to the ldap.");
         }
         return newConnection;
-    } 
+    }
 
+    /**
+     * Getter for parametersProvider.
+     * @return parametersProvider.
+     */
+    public ParametersProvider getParametersProvider() {
+        return parametersProvider;
+    }
+
+    /**
+     * Setter for parametersProvider.
+     * @param parametersProvider the new value for parametersProvider.
+     */
+    public void setParametersProvider(final ParametersProvider parametersProvider) {
+        this.parametersProvider = parametersProvider;
+    }
 }
 

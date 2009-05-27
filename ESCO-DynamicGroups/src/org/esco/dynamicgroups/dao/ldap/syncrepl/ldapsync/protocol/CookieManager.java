@@ -15,8 +15,11 @@ import java.util.Calendar;
 import java.util.Date;
 
 import org.apache.log4j.Logger;
-import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
+import org.esco.dynamicgroups.domain.parameters.LDAPPersonsParametersSection;
+import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.util.Assert;
 
 /**
  * Cookie manager for the LdapSync Protocol.
@@ -24,10 +27,7 @@ import org.springframework.core.io.FileSystemResource;
  * 4 févr. 2009
  *
  */
-public class CookieManager implements Serializable {
-
-    /** Name of the file to use for the ldap sync cookie. */
-    public static final String DEF_COOKIE_FILE = "esco_dg.cookie";
+public class CookieManager implements InitializingBean, Serializable {
 
     /** Serial version UID.*/
     private static final long serialVersionUID = 7772446526416999140L;
@@ -59,20 +59,14 @@ public class CookieManager implements Serializable {
     /** Suffix for the date field in the entry csn. */
     private static final String TIMEZONE_SUFFIX = "Z";
    
-    /** Singleton. */
-    private static final CookieManager INSTANCE = new CookieManager();
-
-    /** The name of the file to use for the cookie. */
-    private String cookieFileName;
+    /** The user parameters provider. */
+    private ParametersProvider parametersProvider;
     
+    /** The LDAP Parameters. */
+    private LDAPPersonsParametersSection ldapParameters;
+
     /** The cookie file. */
     private File cookieFile;
-
-    /** Replicat id. */
-    private int rid;
-    
-    /** The saveModulo for saving the cookie. */
-    private int saveModulo;
     
     /** Change counter to determine when to save the cookie. */
     private int changesCount;
@@ -84,21 +78,20 @@ public class CookieManager implements Serializable {
      * Builds an instance of CookieManager.
      */
     private CookieManager() {
-        cookieFileName = ESCODynamicGroupsParameters.instance().getSyncReplCookieFile();
-        
-        
-        
-        rid = ESCODynamicGroupsParameters.instance().getSyncReplRID();
-        saveModulo = ESCODynamicGroupsParameters.instance().getSyncReplCookieSaveModulo();
-        initializeCookie();
+       super();
     }
     
     /**
-     * Gives the singleton.
-     * @return The available instance of CookieManager;
+     * Checks the beans injection.
+     * @throws Exception
+     * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
      */
-    public static CookieManager instance() {
-        return INSTANCE;
+    public void afterPropertiesSet() throws Exception {
+        Assert.notNull(this.parametersProvider, "The property parametersProvider in the class " 
+                + getClass().getName() + " can't be null.");
+        ldapParameters = (LDAPPersonsParametersSection) parametersProvider.getPersonsParametersSection();
+        
+        initializeCookie(); 
     }
     
     /**
@@ -136,6 +129,7 @@ public class CookieManager implements Serializable {
      * @return the cookie if a file can be loaded, null otherwise.
      */
     private byte[] read() {
+        final String cookieFileName = ldapParameters.getSyncReplCookieFile();
         try {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Loading the cookie from the file: " + getCookieFile().getCanonicalPath());
@@ -161,6 +155,8 @@ public class CookieManager implements Serializable {
      */
     private synchronized void initializeCookie() {
         currentCookie = read();
+        final int rid = ldapParameters.getSyncReplRID();
+        final String cookieFileName = ldapParameters.getSyncReplCookieFile();
         if (currentCookie == null) {
             currentCookie = buildNewCookie();
         } else {
@@ -192,7 +188,8 @@ public class CookieManager implements Serializable {
             try {
                 return Integer.parseInt(ridValue);
             } catch (NumberFormatException e) {
-                LOGGER.error("Unable to retrieve the rid in the cookie file: " + cookieFileName);
+                LOGGER.error("Unable to retrieve the rid in the cookie file: " 
+                        + ldapParameters.getSyncReplCookieFile());
                 LOGGER.error(e, e);
             }
         }
@@ -207,7 +204,7 @@ public class CookieManager implements Serializable {
         final Date date = Calendar.getInstance().getTime();
         final String dateEntry = DATE_FORMATER.format(date) + TIMEZONE_SUFFIX;
         final String cookie = CSN_ENTRY + dateEntry + DEFAULT_CSN_SUFFIX 
-            + CSN_RID_FIELDS_SEP + RID_ENTRY + rid;
+            + CSN_RID_FIELDS_SEP + RID_ENTRY + ldapParameters.getSyncReplRID();
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Creating a new cookie: " + cookie);
@@ -229,7 +226,7 @@ public class CookieManager implements Serializable {
                 LOGGER.debug("Cookie updated: " + new String(currentCookie));
             }
             
-            if (changesCount % saveModulo == 0) {
+            if (changesCount % ldapParameters.getSyncReplCookieSaveModulo() == 0) {
                 write(currentCookie);
                 changesCount = 0;
             }
@@ -257,9 +254,27 @@ public class CookieManager implements Serializable {
      */
     public File getCookieFile() {
         if (cookieFile == null) {
-            final FileSystemResource fsr = new FileSystemResource(cookieFileName);
+            final FileSystemResource fsr = new FileSystemResource(ldapParameters.getSyncReplCookieFile());
             cookieFile = fsr.getFile();
         }
         return cookieFile;
     }
+
+    /**
+     * Getter for parametersProvider.
+     * @return parametersProvider.
+     */
+    public ParametersProvider getParametersProvider() {
+        return parametersProvider;
+    }
+
+    /**
+     * Setter for parametersProvider.
+     * @param parametersProvider the new value for parametersProvider.
+     */
+    public void setParametersProvider(final ParametersProvider parametersProvider) {
+        this.parametersProvider = parametersProvider;
+    }
+
+ 
 }

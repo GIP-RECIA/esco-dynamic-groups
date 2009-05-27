@@ -46,7 +46,7 @@ public class PropositionCodec implements InitializingBean {
     private static final String NOT_EQUAL = "!=";
     
     /** I18n entry for the bracket errors. */
-    private static final String BRACKET_ERROR = "proposition.decoding.error";
+    private static final String BRACKET_ERROR = "proposition.decoding.error.bracket";
 
     /** I18n entry for an empty string atom. */
     private static final String EMPTY_STRING_ATOM_ERROR = "proposition.decoding.error.empty.atom";
@@ -60,7 +60,6 @@ public class PropositionCodec implements InitializingBean {
     /** I18n entry for the = not found. */
     private static final String INVALID_PROP = "proposition.decoding.error.invalidproposition";
    
-    
     /** The atom validator to use. */
     private IAtomicPropositionValidator atomValidator;
     
@@ -221,6 +220,23 @@ public class PropositionCodec implements InitializingBean {
     }
     
     /**
+     * Normalizes an expression.
+     * @param logicExpression The expression to normalize.
+     * @return The normalized expression if the expression is valid, null otherwise.
+     */
+    public String nomalize(final String logicExpression) {
+        if (logicExpression == null) {
+            return null;
+        }
+        
+        final DecodedPropositionResult result = decode(logicExpression);
+        if (!result.isValid()) {
+            return null;
+        }
+        return result.getProposition().toString();
+    }
+    
+    /**
      * Decodes a negation.
      * @param coded The coded string.
      * @return The proposition that corresponds to the negation if the
@@ -244,7 +260,7 @@ public class PropositionCodec implements InitializingBean {
         
         if (countOpenBacket(coded) != countCloseBacket(coded)) {
             return new DecodedPropositionResult(coded, 
-                    i18n.getI18nMessage(BRACKET_ERROR));
+                    i18n.getI18nMessage(BRACKET_ERROR, coded));
         }
         String content = coded;
         final int start = coded.indexOf(OPEN_BRACKET);
@@ -263,14 +279,21 @@ public class PropositionCodec implements InitializingBean {
         if (pos < 1  || pos == content.length() - 2) {
            pos = content.indexOf(EQUAL);
            if (pos < 1  || pos == content.length() - 1) {
-               return new DecodedPropositionResult(coded, i18n.getI18nMessage(EQUAL_NOT_FOUND));
+               return new DecodedPropositionResult(coded, i18n.getI18nMessage(EQUAL_NOT_FOUND, content));
            }
            negative = false;
            sepLength = EQUAL.length();
         }
         final String attribute = content.substring(0, pos).trim();
         final String value = content.substring(pos + sepLength).trim();
-        return new DecodedPropositionResult(new AtomicProposition(attribute, value, negative));
+        final AtomicProposition atom = new AtomicProposition(attribute, value, negative);
+        
+        // checks the atom
+        if (!atomValidator.isValid(atom)) {
+            return new DecodedPropositionResult(content, atomValidator.explainInvalidAtom(atom));
+        }
+        return new DecodedPropositionResult(atom);
+        
     }
     
     /**

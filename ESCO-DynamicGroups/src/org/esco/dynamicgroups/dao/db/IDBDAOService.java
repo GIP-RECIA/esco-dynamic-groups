@@ -29,10 +29,10 @@ public interface IDBDAOService {
 
     /**
      * Retrieves the attribute associated to a given name.
-     * @param name The name of the attribute.
+     * @param groupUUID The uuid of the group.
      * @return The attribute if found, null otherwise.
      */
-    DynGroup getDynGroupByName(final String name);
+    DynGroup getDynGroupByUUID(final String groupUUID);
 
     /**
      * Stores a DynAttribute instance.
@@ -54,9 +54,9 @@ public interface IDBDAOService {
     
     /**
      * Deletes a group.
-     * @param groupName The name of the group to delete.
+     * @param groupUUID The uuid of the group to delete.
      */
-    void deleteDynGroup(final String groupName);
+    void deleteDynGroup(final String groupUUID);
     
     /**
      * Deletes a DynGroup instance.
@@ -97,11 +97,11 @@ public interface IDBDAOService {
     /**
      * Retrieves the values of a given attribute for a group.
      * @param attributeName The name of the attribute.
-     * @param groupName The name of the group.
+     * @param groupUUID The uuid of the group.
      * @return The value of the attribute in the group definition if the attribute
      * is present.
      */
-    Set<String> getAttributeValuesForGroup(final String attributeName, final String groupName);
+    Set<String> getAttributeValuesForGroup(final String attributeName, final String groupUUID);
     
     
     /**
@@ -114,10 +114,10 @@ public interface IDBDAOService {
     
     /**
      * Retrieves the list of attributes values involved in a group definition.
-     * @param groupName The of the considered group.
+     * @param groupUUID The uuid of the considered group.
      * @return The set of attribute values.
      */
-    Set<AttributeValue> getAttributeValuesForGroup(final String groupName);
+    Set<AttributeValue> getAttributeValuesForGroup(final String groupUUID);
     
     /**
      * Resolves the indirections, i.e. : the groups that correspond to a conjunctive component

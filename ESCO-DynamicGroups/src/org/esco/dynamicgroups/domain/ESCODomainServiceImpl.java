@@ -4,7 +4,6 @@
 package org.esco.dynamicgroups.domain;
 
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -14,10 +13,12 @@ import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.IEntryDTO;
 import org.esco.dynamicgroups.dao.db.IDBDAOService;
 import org.esco.dynamicgroups.dao.grouper.IGroupsDAOService;
+import org.esco.dynamicgroups.dao.ldap.IMembersFromDefinitionDAO;
 import org.esco.dynamicgroups.domain.beans.DynGroup;
 import org.esco.dynamicgroups.domain.beans.DynGroupOccurences;
-import org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters;
 import org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition;
+import org.esco.dynamicgroups.domain.parameters.IDynamicAttributesProvider;
+import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
@@ -33,8 +34,8 @@ import org.springframework.util.Assert;
  *
  */
 public class ESCODomainServiceImpl 
-    implements IDomainService, ApplicationListener, 
-        InitializingBean {
+implements IDomainService, ApplicationListener, 
+InitializingBean {
 
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(ESCODomainServiceImpl.class);
@@ -43,26 +44,29 @@ public class ESCODomainServiceImpl
     private static final String[] UNDEF_VALUE = {"___UNDEF_VALUE_DYNGRP___"}; 
 
     /** The dynamic attributes. */
-    private String[] dynamicAttributes;
+    private Set<String> dynamicAttributes;
+    
+    /** The users parameters provider. */
+    private ParametersProvider parametersProvider;
 
     /** The Grouper DAO Service to use. */
     private IGroupsDAOService groupsService;
 
     /** The Database DAO Service to use. */
     private IDBDAOService daoService;
+    
+    /** Service used to retrives the members from the logic defintion 
+     * of the group. */
+    private IMembersFromDefinitionDAO membersFromDefinitionService;
 
     /** Listener for the repository. */
     private IRepositoryListener repositoryListener;
-    
+
     /**
      * Builds an instance of ESCODomainServiceImpl.
      */
     public ESCODomainServiceImpl() {
-        dynamicAttributes = ESCODynamicGroupsParameters.instance().getLdapSearchAttributesAsArray();
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Creates an instance of ESCODomainServiceImpl - Attributes: " 
-                    + Arrays.toString(dynamicAttributes) + ".");
-        }
+      super();
     }
 
     /**
@@ -83,6 +87,21 @@ public class ESCODomainServiceImpl
         Assert.notNull(this.repositoryListener, 
                 "The property repositoryListener in the class " + this.getClass().getName() 
                 + " can't be null.");
+        
+        Assert.notNull(this.membersFromDefinitionService, 
+                "The property membersFromDefinitionService in the class " + this.getClass().getName() 
+                + " can't be null.");
+
+        Assert.notNull(this.parametersProvider, 
+                "The property parametersProvider in the class " + this.getClass().getName() 
+                + " can't be null.");
+        IDynamicAttributesProvider dynAttProvider = 
+            (IDynamicAttributesProvider) parametersProvider.getPersonsParametersSection();
+        dynamicAttributes = dynAttProvider.getDynamicAttributes();
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Instance of ESCODomainServiceImpl initialized - Attributes: " 
+                    + dynamicAttributes + ".");
+        }
     }
 
 
@@ -95,7 +114,7 @@ public class ESCODomainServiceImpl
     public void onApplicationEvent(final ApplicationEvent event) {
         if (event instanceof ContextRefreshedEvent) {
             if (!repositoryListener.isListening()) {
-                
+
                 repositoryListener.listen();
             }
         } else if (event instanceof ContextClosedEvent) {
@@ -174,11 +193,11 @@ public class ESCODomainServiceImpl
 
             for (DynGroup candidatGroupForAtt : candidatGroupsForAtt) {
 
-                if (!candidatGroups.containsKey(candidatGroupForAtt.getGroupName())) {
-                    candidatGroups.put(candidatGroupForAtt.getGroupName(), 
+                if (!candidatGroups.containsKey(candidatGroupForAtt.getGroupUUID())) {
+                    candidatGroups.put(candidatGroupForAtt.getGroupUUID(), 
                             new DynGroupOccurences(candidatGroupForAtt));
                 }
-                candidatGroups.get(candidatGroupForAtt.getGroupName()).incrementOccurences();
+                candidatGroups.get(candidatGroupForAtt.getGroupUUID()).incrementOccurences();
             }
         }
 
@@ -210,7 +229,7 @@ public class ESCODomainServiceImpl
         if (conjunctiveCompInds.size() > 0) {
             final Set<DynGroup> resolvedGroups = daoService.resolvConjunctiveComponentIndirections(conjunctiveCompInds);
             for (DynGroup resolvedGroup : resolvedGroups) {
-                retainedCandidatGroups.put(resolvedGroup.getGroupName(), resolvedGroup);
+                retainedCandidatGroups.put(resolvedGroup.getGroupUUID(), resolvedGroup);
             }
         }
 
@@ -225,6 +244,27 @@ public class ESCODomainServiceImpl
         return retainedCandidatGroups;
     }
 
+    /**
+     * Initializes the group : removes all the existing members and retrieves the 
+     * new members from the group definition.
+     * @param definition The dfinition associated to the group to initialize.
+     */
+    private void initialize(final DynamicGroupDefinition definition) {
+        
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Initialization of the group with the definition: " + definition);
+        }
+        
+        final Set<String> userIds = membersFromDefinitionService.getMembers(definition);
+        groupsService.resetGroupMembers(definition);
+        // Adds the members to the list.
+        if (userIds.size() > 0) {
+            groupsService.addToGroup(definition.getGroupUUID(), userIds);
+        }
+
+    }
+   
+    
     /**
      * Getter for groupsService.
      * @return groupsService.
@@ -267,8 +307,22 @@ public class ESCODomainServiceImpl
      */
     public void handleNewOrModifiedDynamicGroup(final DynamicGroupDefinition definition) {
         daoService.storeOrModifyDynGroup(definition);
-        groupsService.resetGroupMembers(definition);
+        initialize(definition);
 
+    }
+
+    /**
+     * Gives the members definition for a dynamic group.
+     * @param groupUUID The uuid of the dynamic group.
+     * @return The definition if it exists, null oterwise.
+     * @see org.esco.dynamicgroups.domain.IDomainService#getMembershipExpression(java.lang.String)
+     */
+    public String getMembershipExpression(final String groupUUID) {
+        final DynGroup group = daoService.getDynGroupByUUID(groupUUID);
+        if (group == null) {
+            return null;
+        }
+        return group.getGroupDefinition();
     }
 
     /**
@@ -294,5 +348,37 @@ public class ESCODomainServiceImpl
      */
     public void handleDeletedGroup(final String groupName) {
         this.daoService.deleteDynGroup(groupName);
+    }
+
+    /**
+     * Getter for membersFromDefinitionService.
+     * @return membersFromDefinitionService.
+     */
+    public IMembersFromDefinitionDAO getMembersFromDefinitionService() {
+        return membersFromDefinitionService;
+    }
+
+    /**
+     * Setter for membersFromDefinitionService.
+     * @param membersFromDefinitionService the new value for membersFromDefinitionService.
+     */
+    public void setMembersFromDefinitionService(final IMembersFromDefinitionDAO membersFromDefinitionService) {
+        this.membersFromDefinitionService = membersFromDefinitionService;
+    }
+
+    /**
+     * Getter for parametersProvider.
+     * @return parametersProvider.
+     */
+    public ParametersProvider getParametersProvider() {
+        return parametersProvider;
+    }
+
+    /**
+     * Setter for parametersProvider.
+     * @param parametersProvider the new value for parametersProvider.
+     */
+    public void setParametersProvider(final ParametersProvider parametersProvider) {
+        this.parametersProvider = parametersProvider;
     }
 }

@@ -48,7 +48,7 @@ public class TestBatch {
         System.out.println("==>" + dynGroup);
         System.out.println("==>" + dynGroup2);
         
-       DynGroup dynGroup3 = hib3Support.getDynGroupByName("dynG2");
+       DynGroup dynGroup3 = hib3Support.getDynGroupByUUID("dynG2");
        hib3Support.deleteDynGroup(dynGroup3);
        
        dynGroup.setGroupDefinition("Or(ENTPersonSexe=?, toto=tralala)");

@@ -4,8 +4,12 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
 
-	<bean id="parameters" class="org.esco.dynamicgroups.domain.beans.ESCODynamicGroupsParameters">
+	<bean id="parametersProvider" class="org.esco.dynamicgroups.domain.parameters.ParametersProvider">
 		<constructor-arg value="resources/esco-dynamic-groups.properties" />
+		<constructor-arg>
+			<bean class="org.esco.dynamicgroups.domain.parameters.LDAPPersonsParametersSection"/>
+	
+		</constructor-arg>
 	</bean>
 	
 	<bean id="i18nService" class="org.springframework.context.support.ResourceBundleMessageSource">
@@ -19,11 +23,12 @@
 	
 	
 	<bean id="i18n" class="org.esco.dynamicgroups.domain.beans.I18NManager">
-		<property name="parameters" ref="parameters"/>
+		<property name="parametersProvider" ref="parametersProvider"/>
 		<property name="messageSource" ref="i18nService"/>
 	</bean>
 	<bean id="atomValidator" class="org.esco.dynamicgroups.domain.definition.AtomicPropositionValidatorFromList">
-		<property name="parameters" ref="parameters"/>
+		<property name="parametersProvider" ref="parametersProvider"/>
+		<property name="i18n" ref="i18n"/>
 	</bean>
 	
 	<bean id="PropositionCodec" class="org.esco.dynamicgroups.domain.definition.PropositionCodec">
@@ -36,10 +41,10 @@
 	<bean id="reportFormatter" class="org.esco.dynamicgroups.domain.reporting.ReportFormatter">
 		<property name="xhtmlFormatter" ref="xhtmlReportFormatter"/>
 		<property name="textFormatter" ref="textReportFormatter"/>
-		<property name="parameters" ref="parameters"/>
+		<property name="parametersProvider" ref="parametersProvider"/>
 	</bean>
 	<bean id="statisticsManager" class="org.esco.dynamicgroups.domain.reporting.statistics.StatisticsManager">
-		<property name="parameters" ref="parameters"/>
+		<property name="parametersProvider" ref="parametersProvider"/>
 		<property name="i18n" ref="i18n"/>
 		<property name="reportFormatter" ref="reportFormatter"/>
 		<property name="groupsService" ref="groupsService"/>
@@ -49,11 +54,13 @@
 		<property name="statisticsManager" ref="statisticsManager"/>
 	</bean>
 	
-	<bean id="hooksInstaller" class="org.esco.dynamicgroups.hooks.ESCOHooksInstaller" depends-on="parameters, statisticsManagerProvider"/>
+	
+	
+	<bean id="hooksInstaller" class="org.esco.dynamicgroups.hooks.ESCOHooksInstaller" depends-on="parametersProvider statisticsManagerProvider"/>
 
 	
 	<bean id="mailer" class="org.esco.dynamicgroups.util.Mailer">
-		<property name="parameters" ref="parameters"/>
+		<property name="parametersProvider" ref="parametersProvider"/>
 	</bean>
 	
 	
@@ -70,8 +77,8 @@
   		</property>
 	</bean>
 	
-	<bean id="cronTrigger" class="org.esco.dynamicgroups.domain.reporting.ReportingTrigger" depends-on="parameters">
-		<constructor-arg ref="parameters"/>
+	<bean id="cronTrigger" class="org.esco.dynamicgroups.domain.reporting.ReportingTrigger" depends-on="parametersProvider">
+		<constructor-arg ref="parametersProvider"/>
 		<property name="jobDetail" ref="reportingJob"/>
 	</bean>
 	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
@@ -83,7 +90,7 @@
 	</bean>
 	
 	<bean id="repositoryListener" class="org.esco.dynamicgroups.domain.SyncReplClientListenerImpl">
-		<property name="syncReplClient" ref="synReplClient" />
+		<property name="syncReplClient" ref="syncReplClient" />
 		<property name="exceptionHandlerFactory" ref="uncaughtExceptionHandlerFactory" />
 	</bean>
 	
@@ -93,13 +100,17 @@
 	</bean>
 	
 	<bean id="domainService" class="org.esco.dynamicgroups.domain.ESCODomainServiceImpl"
-		  depends-on="parameters">
+		  depends-on="parametersProvider">
+		<property name="parametersProvider" ref="parametersProvider" />
 		<property name="daoService" ref="daoService" />
+		<property name="membersFromDefinitionService" ref="membersFromDefinitionService"/>
 		<property name="groupsService" ref="groupsService" />
 		<property name="repositoryListener" ref="repositoryListener" />
 	</bean>
 	
-	
+	<bean id="domainServiceProvider" class="org.esco.dynamicgroups.domain.DomainServiceProviderForHooks">
+		<property name="domainService" ref="domainService"/>
+	</bean>
 	
 
 </beans>
