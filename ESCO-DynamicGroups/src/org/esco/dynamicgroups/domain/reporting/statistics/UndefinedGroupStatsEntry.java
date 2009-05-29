@@ -15,10 +15,10 @@ import org.esco.dynamicgroups.domain.beans.I18NManager;
  *
  */
 public class UndefinedGroupStatsEntry implements IUndefinedGroupStatsEntry {
-    
+
     /** Serial version UID.*/
     private static final long serialVersionUID = 2289834357420086979L;
-    
+
     /** Key for the label of this entry. */
     private static final String UNDEF_GROUPS_KEY = "stats.groups.undefined";
 
@@ -27,12 +27,12 @@ public class UndefinedGroupStatsEntry implements IUndefinedGroupStatsEntry {
 
     /** The group service. */
     private IGroupsDAOService groupsService;
-    
+
     /** The I18N Manager. */
-    private I18NManager i18n;
-    
+    private transient I18NManager i18n;
+
     /** Names of the groups whithout a membership definition. */
-   private Set<String> undefinedGroups;
+    private Set<String> undefinedGroups;
 
     /**
      * Builds an instance of UndefinedGroupStatsEntry.
@@ -43,7 +43,7 @@ public class UndefinedGroupStatsEntry implements IUndefinedGroupStatsEntry {
         this.groupsService = groupsService;
         this.i18n = i18n;
     }
-    
+
     /**
      * Gives the list of the dynamic groups whithout a membership definition.
      * @return The list of the group names.
@@ -77,7 +77,7 @@ public class UndefinedGroupStatsEntry implements IUndefinedGroupStatsEntry {
     public String getLabel() {
         return i18n.getI18nMessage(UNDEF_GROUPS_KEY);
     }
-    
+
 
     /**
      * Gives the label for the undefined groups names list.
@@ -85,7 +85,7 @@ public class UndefinedGroupStatsEntry implements IUndefinedGroupStatsEntry {
      * @see org.esco.dynamicgroups.domain.reporting.statistics.IUndefinedGroupStatsEntry#getUndefGroupNamesLabel()
      */
     public String getUndefGroupNamesLabel() {
-      return i18n.getI18nMessage(UNDEF_GROUPS_LIST_KEY);  
+        return i18n.getI18nMessage(UNDEF_GROUPS_LIST_KEY);  
     }
 
     /**

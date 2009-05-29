@@ -3,6 +3,7 @@
  */
 package org.esco.dynamicgroups.domain.reporting.statistics;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,8 +28,11 @@ public class GroupsAcrivityStatsEntry implements IGroupsActivityStatsEntry {
      * 6 mai 2009
      *
      */
-    private class GroupActivity {
+    private class GroupActivity implements Serializable {
         
+        /** Serial version UID.*/
+        private static final long serialVersionUID = 5125745073908244250L;
+
         /** Number of added members for a group. */
         private int addedMembersCount;
         
@@ -96,7 +100,7 @@ public class GroupsAcrivityStatsEntry implements IGroupsActivityStatsEntry {
     private Map<String, GroupActivity> activities = new HashMap<String, GroupActivity>();
     
     /** The I18NManager. */
-    private I18NManager i18n;
+    private transient I18NManager i18n;
     
     
     

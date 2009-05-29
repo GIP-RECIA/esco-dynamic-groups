@@ -1,22 +1,12 @@
-* Supprimer l'uid de la liste des attributs dynamiques.
 
-- [* Gérer les erreurs lors de la saisie des definitions dynamiques :
-    - +fois le même attribut e.g. And(att=1, And (att1=1,...)]
- 
-* And et Or non binaires.
+* Serialization du statisticsManager.
 
-* Repartir ESCOParameters dans plusieurs classes pour faciliter les
-  implementations vers d'autres backends. 
-  
- * Passer les différentes sections au niveua du constructeur et supprimer les depends on dans
- les xml spring.
- 
- * Separer LDAPDynamicGroupInitializer en domain et DAO.
+* Rendre impossible l'ajout de membres subjets aux groupes dynamiques.
  
 * Cassification
 
-OK * tâche ant pour la verification de propositions logiques
-OK * tâche ant pour l'installation.
+* tâche ant pour la verification de propositions logiques
+
 
 * Reflechir aux problèmes de synchronization lors de la modification ou lors de la creation.
 
@@ -34,17 +24,10 @@ OK * tâche ant pour l'installation.
 
 OK * Suppression du domainregistry dans le hook -> utiliser un provider.
 
-* Utiliser un provider egalement pour les parametres utilisateurs.
 
-* Utilisation de ldaps
 
 * recuperation du timezone suffix dans le cookieManager (i18n ou pas de creation de cookie).
 
-OK * Revoir le schema de la base pour être en FN.
-
-OK * Voir la creation de la base.
-
-OK * Statistiques + rapport:
 
  - i18n
 
@@ -75,5 +58,30 @@ Vérifications de cohérence.
     N premiers groupes != peuplement obtenu par le processus d'initialisation. 	
  	  
    
+   - [* Gérer les erreurs lors de la saisie des definitions dynamiques :
+    - +fois le même attribut e.g. And(att=1, And (att1=1,...)]
  
-   
+[* And et Or non binaires.]
+ 
+OK * Separer LDAPDynamicGroupInitializer en domain et DAO.   
+
+
+OK * Revoir le schema de la base pour être en FN.
+
+OK * Voir la creation de la base.
+
+OK * Statistiques + rapport:
+
+OK * tâche ant pour l'installation.
+
+OK Repartir ESCOParameters dans plusieurs classes pour faciliter les
+  implementations vers d'autres backends. 
+  
+OK Passer les différentes sections au niveau du constructeur et supprimer les depends on dans
+ les xml spring.
+ 
+OK * Supprimer l'uid de la liste des attributs dynamiques.
+
+OK * Utiliser un provider egalement pour les parametres utilisateurs.
+
+OK * Utilisation de ldaps

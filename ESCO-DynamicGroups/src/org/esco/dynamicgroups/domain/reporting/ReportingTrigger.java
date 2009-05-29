@@ -7,6 +7,7 @@ package org.esco.dynamicgroups.domain.reporting;
 import java.text.ParseException;
 
 import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
+import org.esco.dynamicgroups.domain.parameters.ReportingParametersSection;
 import org.springframework.scheduling.quartz.CronTriggerBean;
 
 /**
@@ -26,7 +27,9 @@ public class ReportingTrigger extends CronTriggerBean {
      * @throws ParseException If the cron expression is not valid.
      */
     public ReportingTrigger(final ParametersProvider parametersProvider) throws ParseException { 
-       setCronExpression(parametersProvider.getReportCronExpression()); 
+        final ReportingParametersSection reportingParameters = 
+            (ReportingParametersSection) parametersProvider.getReportingParametersSection();
+       setCronExpression(reportingParameters.getReportCronExpression()); 
     }
     
   

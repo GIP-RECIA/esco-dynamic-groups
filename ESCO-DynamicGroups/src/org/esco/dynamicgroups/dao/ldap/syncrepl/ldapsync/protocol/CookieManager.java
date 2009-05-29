@@ -14,11 +14,13 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+
 import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.domain.parameters.LDAPPersonsParametersSection;
 import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
+import org.esco.dynamicgroups.exceptions.DynamicGroupsException;
+import org.esco.dynamicgroups.util.ServletContextResourcesUtil;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.util.Assert;
 
 /**
@@ -73,6 +75,9 @@ public class CookieManager implements InitializingBean, Serializable {
 
     /** The last cookie. */
     private byte[] currentCookie;
+    
+    /** Util class to read and write the cookie under the servlet context. */
+    private ServletContextResourcesUtil resourceUtil;
 
     /**
      * Builds an instance of CookieManager.
@@ -88,6 +93,8 @@ public class CookieManager implements InitializingBean, Serializable {
      */
     public void afterPropertiesSet() throws Exception {
         Assert.notNull(this.parametersProvider, "The property parametersProvider in the class " 
+                + getClass().getName() + " can't be null.");
+        Assert.notNull(this.resourceUtil, "The property resourceUtil in the class " 
                 + getClass().getName() + " can't be null.");
         ldapParameters = (LDAPPersonsParametersSection) parametersProvider.getPersonsParametersSection();
         
@@ -154,6 +161,10 @@ public class CookieManager implements InitializingBean, Serializable {
      * Initialization of the cookie.
      */
     private synchronized void initializeCookie() {
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Initializing the cookie - file: " + getCookieFile().getAbsolutePath());
+        }
+        
         currentCookie = read();
         final int rid = ldapParameters.getSyncReplRID();
         final String cookieFileName = ldapParameters.getSyncReplCookieFile();
@@ -254,8 +265,12 @@ public class CookieManager implements InitializingBean, Serializable {
      */
     public File getCookieFile() {
         if (cookieFile == null) {
-            final FileSystemResource fsr = new FileSystemResource(ldapParameters.getSyncReplCookieFile());
-            cookieFile = fsr.getFile();
+            try {
+                cookieFile = resourceUtil.getResource(ldapParameters.getSyncReplCookieFile()).getFile();
+            } catch (IOException e) {
+               LOGGER.fatal(e, e);
+               throw new DynamicGroupsException(e);
+            }
         }
         return cookieFile;
     }
@@ -274,6 +289,22 @@ public class CookieManager implements InitializingBean, Serializable {
      */
     public void setParametersProvider(final ParametersProvider parametersProvider) {
         this.parametersProvider = parametersProvider;
+    }
+
+       /**
+     * Getter for resourceUtil.
+     * @return resourceUtil.
+     */
+    public ServletContextResourcesUtil getResourceUtil() {
+        return resourceUtil;
+    }
+
+    /**
+     * Setter for resourceUtil.
+     * @param resourceUtil the new value for resourceUtil.
+     */
+    public void setResourceUtil(final ServletContextResourcesUtil resourceUtil) {
+        this.resourceUtil = resourceUtil;
     }
 
  

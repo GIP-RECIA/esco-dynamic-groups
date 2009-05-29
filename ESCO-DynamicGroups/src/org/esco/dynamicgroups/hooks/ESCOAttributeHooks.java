@@ -12,7 +12,9 @@ import edu.internet2.middleware.grouper.hooks.logic.HookVeto;
 import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.domain.definition.DecodedPropositionResult;
 import org.esco.dynamicgroups.domain.definition.PropositionCodec;
+import org.esco.dynamicgroups.domain.parameters.GroupsParametersSection;
 import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
+import org.esco.dynamicgroups.domain.parameters.ParametersProviderForHooks;
 
 /**
  * Hooks to handle the field associated to the dynamic group type.
@@ -32,7 +34,10 @@ public class ESCOAttributeHooks extends AttributeHooks {
      * Builds an instance of ESCOAttributeHooks.
      */
     public ESCOAttributeHooks() {
-        definitionField = ParametersProvider.instance().getGrouperDefinitionField();
+        final ParametersProvider parametersProvider = ParametersProviderForHooks.instance().getParametersProvider();
+        final GroupsParametersSection grouperParameters = 
+            (GroupsParametersSection) parametersProvider.getGroupsParametersSection();
+        definitionField = grouperParameters.getGrouperDefinitionField();
     }
 
     /**

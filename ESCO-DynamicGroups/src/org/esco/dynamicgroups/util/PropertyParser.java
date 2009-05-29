@@ -90,6 +90,27 @@ public class PropertyParser implements Serializable {
         return strValue.equalsIgnoreCase(YES) || Boolean.parseBoolean(strValue);
     }
     
+    /**
+     * Retrieves the Boolean value from a properties instance for a given key.
+     * @param logger The logger to use.
+     * @param propertiesSourceName The name of the source used to load the properties.
+     * @param properties The properties instance.
+     * @param key The considered key.
+     * @param defaultValue The value to return if the key is not found.
+     * @return The Boolean value if available in the properties, the default value otherwise.
+     */
+    public Boolean parseBooleanFromPropertySafe(final Logger logger,
+            final String propertiesSourceName,
+            final Properties properties, 
+            final String key,
+            final Boolean defaultValue) {
+        String strValue = properties.getProperty(key);
+        if (strValue == null) {
+            return defaultValue;
+        }
+        return strValue.equalsIgnoreCase(YES) || Boolean.parseBoolean(strValue);
+    }
+    
     
     /**
      * Retrieves the string value from a properties instance for a given key.

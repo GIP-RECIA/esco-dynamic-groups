@@ -5,6 +5,7 @@ package org.esco.dynamicgroups.domain.reporting;
 
 import java.util.Date;
 
+import org.esco.dynamicgroups.domain.parameters.CommonsParametersSection;
 import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
@@ -22,6 +23,9 @@ public class ReportFormatter implements IReportFormatter, InitializingBean {
     
     /** The XHTML formatter. */ 
     private IReportFormatter xhtmlFormatter;
+    
+    /** Common parameters. */
+    private CommonsParametersSection commonsParameters;
     
     /** Text formatter. */
     private IReportFormatter textFormatter;
@@ -41,7 +45,7 @@ public class ReportFormatter implements IReportFormatter, InitializingBean {
      * @return The formatter corresponding the the user paramters.
      */
     protected IReportFormatter selectFormatter() {
-        if (parametersProvider.getXHTMLReport()) {
+        if (commonsParameters.getXHTML()) {
             return xhtmlFormatter;
         }
         return textFormatter;
@@ -221,6 +225,8 @@ public class ReportFormatter implements IReportFormatter, InitializingBean {
         Assert.notNull(textFormatter, 
                 "The property textFormatter int the class " 
                 + getClass().getSimpleName() + " can't be null.");
+        
+        commonsParameters = (CommonsParametersSection) parametersProvider.getCommonsParametersSection();
         
     }
 

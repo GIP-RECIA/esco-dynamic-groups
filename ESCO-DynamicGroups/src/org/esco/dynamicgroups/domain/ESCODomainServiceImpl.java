@@ -17,8 +17,10 @@ import org.esco.dynamicgroups.dao.ldap.IMembersFromDefinitionDAO;
 import org.esco.dynamicgroups.domain.beans.DynGroup;
 import org.esco.dynamicgroups.domain.beans.DynGroupOccurences;
 import org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition;
+import org.esco.dynamicgroups.domain.parameters.GroupsParametersSection;
 import org.esco.dynamicgroups.domain.parameters.IDynamicAttributesProvider;
 import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
+import org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
@@ -61,6 +63,12 @@ InitializingBean {
 
     /** Listener for the repository. */
     private IRepositoryListener repositoryListener;
+    
+    /** The statistics manager to use. */
+    private IStatisticsManager statisticsManager;
+    
+    /** Flag to determine if the memebrs of the dynamic groups should be checked on startup. */
+    private boolean checkMembersOnStartup;
 
     /**
      * Builds an instance of ESCODomainServiceImpl.
@@ -76,28 +84,39 @@ InitializingBean {
      */
     public void afterPropertiesSet() throws Exception {
 
+        final String cantBeNull = " can't be null.";
+        
         Assert.notNull(this.groupsService, 
                 "The property groupService in the class " + this.getClass().getName() 
-                + " can't be null.");
+                + cantBeNull);
 
         Assert.notNull(this.daoService, 
                 "The property daoService in the class " + this.getClass().getName() 
-                + " can't be null.");
+                + cantBeNull);
 
         Assert.notNull(this.repositoryListener, 
                 "The property repositoryListener in the class " + this.getClass().getName() 
-                + " can't be null.");
+                + cantBeNull);
         
         Assert.notNull(this.membersFromDefinitionService, 
                 "The property membersFromDefinitionService in the class " + this.getClass().getName() 
-                + " can't be null.");
+                + cantBeNull);
 
         Assert.notNull(this.parametersProvider, 
                 "The property parametersProvider in the class " + this.getClass().getName() 
-                + " can't be null.");
+                + cantBeNull);
+
+        Assert.notNull(this.statisticsManager, 
+                "The property statisticsManager in the class " + this.getClass().getName() 
+                + cantBeNull);
+        
         IDynamicAttributesProvider dynAttProvider = 
             (IDynamicAttributesProvider) parametersProvider.getPersonsParametersSection();
         dynamicAttributes = dynAttProvider.getDynamicAttributes();
+        
+        checkMembersOnStartup = 
+            ((GroupsParametersSection) parametersProvider.getGroupsParametersSection()).getCheckMembersOnStartup();
+        
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Instance of ESCODomainServiceImpl initialized - Attributes: " 
                     + dynamicAttributes + ".");
@@ -114,12 +133,25 @@ InitializingBean {
     public void onApplicationEvent(final ApplicationEvent event) {
         if (event instanceof ContextRefreshedEvent) {
             if (!repositoryListener.isListening()) {
-
+                statisticsManager.load();
+                
+                if (checkMembersOnStartup) {
+                    checkMembersForDynamicGroups();
+                }
+                
                 repositoryListener.listen();
+                LOGGER.info("-----------------------------------------------");
+                LOGGER.info("- Dynamic groups system for grouper started.");
+                LOGGER.info("-----------------------------------------------");
+                
             }
         } else if (event instanceof ContextClosedEvent) {
             if (repositoryListener.isListening()) {
                 repositoryListener.stop();
+                statisticsManager.save();
+                LOGGER.info("-----------------------------------------------");
+                LOGGER.info("- Dynamic groups system for grouper stopped.");
+                LOGGER.info("-----------------------------------------------");
             } 
         }
     }
@@ -210,7 +242,7 @@ InitializingBean {
 
         for (String candidatGroup : candidatGroups.keySet()) {
             final DynGroupOccurences dynGroupOcc = candidatGroups.get(candidatGroup);
-            if (dynGroupOcc.getOcurrences() >= dynGroupOcc.getGroup().getAttributesNb()) {
+            if (dynGroupOcc.getOccurrences() >= dynGroupOcc.getGroup().getAttributesNb()) {
 
                 if (dynGroupOcc.getGroup().isConjunctiveComponentIndirection()) {
                     // The group is only a conjunctive component of another group
@@ -262,6 +294,33 @@ InitializingBean {
             groupsService.addToGroup(definition.getGroupUUID(), userIds);
         }
 
+    }
+    
+    /**
+     * Check all the groups.
+     * Warn : this method must be invocated before the listener is started.
+     */
+    private void checkMembersForDynamicGroups() {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Checks all the dynamic groups.");
+        }
+
+        final Set<DynamicGroupDefinition> definitions = groupsService.getAllDynamicGroupDefinitions();
+        for (DynamicGroupDefinition definition : definitions) {
+            final Set<String> expectedMembers = membersFromDefinitionService.getMembers(definition);
+            groupsService.checkGroupMembers(definition, expectedMembers);
+        }
+        
+        
+        
+        
+        
+        
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("All the dynamic groups are checked.");
+        }
+        
+        
     }
    
     
@@ -380,5 +439,21 @@ InitializingBean {
      */
     public void setParametersProvider(final ParametersProvider parametersProvider) {
         this.parametersProvider = parametersProvider;
+    }
+
+    /**
+     * Getter for statisticsManager.
+     * @return statisticsManager.
+     */
+    public IStatisticsManager getStatisticsManager() {
+        return statisticsManager;
+    }
+
+    /**
+     * Setter for statisticsManager.
+     * @param statisticsManager the new value for statisticsManager.
+     */
+    public void setStatisticsManager(final IStatisticsManager statisticsManager) {
+        this.statisticsManager = statisticsManager;
     }
 }

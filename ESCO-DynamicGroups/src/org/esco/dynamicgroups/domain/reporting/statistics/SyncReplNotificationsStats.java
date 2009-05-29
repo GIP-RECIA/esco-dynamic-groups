@@ -50,7 +50,7 @@ public class SyncReplNotificationsStats implements ISyncReplNotificationsStats {
     private int presentCount;
 
     /** The I18N manager. */
-    private I18NManager i18n;
+    private transient I18NManager i18n;
 
     /**
      * Builds an instance of SyncReplNotificationsStats.

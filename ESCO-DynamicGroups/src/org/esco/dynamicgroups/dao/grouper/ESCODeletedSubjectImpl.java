@@ -30,7 +30,7 @@ public class ESCODeletedSubjectImpl implements Subject {
     private static final Logger LOGGER = Logger.getLogger(ESCODeletedSubjectImpl.class);
     
     /** Subjects source id. */
-    private static final String SOURCE_ID = ParametersProvider.instance().getGrouperSubjectsSourceId();
+    private static String sourceId;
     
     /** Id if a subject. */
     private  String id;
@@ -108,7 +108,7 @@ public class ESCODeletedSubjectImpl implements Subject {
      */
     public Source getSource() {
         try {
-            return SourceManager.getInstance().getSource(SOURCE_ID);
+            return SourceManager.getInstance().getSource(sourceId);
         } catch (SourceUnavailableException e) {
             LOGGER.error(e, e);
         } catch (Exception e) {
@@ -124,6 +124,22 @@ public class ESCODeletedSubjectImpl implements Subject {
      */
     public SubjectType getType() {
         return SubjectTypeEnum.PERSON;
+    }
+
+    /**
+     * Getter for sourceId.
+     * @return sourceId.
+     */
+    public static String getSourceId() {
+        return sourceId;
+    }
+
+    /**
+     * Setter for sourceId.
+     * @param newSourceId the new value for sourceId.
+     */
+    public static void setSourceId(final String newSourceId) {
+        sourceId = newSourceId;
     }
 
     

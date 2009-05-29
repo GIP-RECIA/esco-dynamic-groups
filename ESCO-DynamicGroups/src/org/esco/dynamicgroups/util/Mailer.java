@@ -15,6 +15,8 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 import org.apache.log4j.Logger;
+import org.esco.dynamicgroups.domain.parameters.CommonsParametersSection;
+import org.esco.dynamicgroups.domain.parameters.MailParametersSection;
 import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
@@ -37,7 +39,7 @@ public class Mailer implements InitializingBean, IMailer {
     private static final char CHARSET_SEP = ';';
     
     /** Charset name. */
-    private static final String CHARSET_FIELD = "charset=";
+    private static final String CHARSET_FIELD_PREFIX = "charset=";
     
     /** Property used to specify the mailer. */
     private static final String X_MAILER = "X-Mailer";
@@ -53,35 +55,15 @@ public class Mailer implements InitializingBean, IMailer {
     
     /** The user parameters provider. */
     private ParametersProvider parametersProvider;
-
-    /** SMTP server.*/
-    private String smtpHost;
-
-    /** From field of the mail. */
-    private String fromField;
-
-    /** To field of the mail. */
-    private String toField;
-
-    /** Login for the smtp server. */
-    private String smtpUser;
-
-    /** Password for the smtp server. */
-    private String smtpPassword;
-
-    /** Prefix to use for the subjects.*/
-    private String subjectPrefix = "";
     
-    /** The charset to use for the mails. */
-    private String charset;
+    /** The user parameters for the mail. */
+    private MailParametersSection mailParameters;
     
-    /** Flag to determine if the messages should be send in xhtml.*/
-    private boolean xhtml;
+    /** The common paramters. */
+    private CommonsParametersSection commonsParameters;
     
-    
-
-    /** Flag to disable the mails. */
-    private boolean disabled;
+    /** The charset field. */
+    private String charsetField;
 
     /**
      * Builds an instance of Mailer.
@@ -100,17 +82,24 @@ public class Mailer implements InitializingBean, IMailer {
         Assert.notNull(this.parametersProvider, 
                 "The property parametersProvider in the class " + this.getClass().getName() 
                 + " can't be null.");
-        setSmtpHost(parametersProvider.getSmtpHost());
-        setFromField(parametersProvider.getFromField());
-        setToField(parametersProvider.getToField());
-        setSubjectPrefix(parametersProvider.getSubjectPrefix());
-        setCharset(parametersProvider.getMailCharset());
-        setXhtml(parametersProvider.getXHTMLReport());
-        if (parametersProvider.isAuthenticatedSMTPHost()) {
-            LOGGER.debug("Authenticated SMTP.");
-            setSmtpUser(parametersProvider.getSmtpUser());
-            setSmtpPassword(parametersProvider.getSmtpPassword());
+        
+        mailParameters = (MailParametersSection) parametersProvider.getMailParametersSection();
+        commonsParameters = (CommonsParametersSection) parametersProvider.getCommonsParametersSection();
+        charsetField = mailParameters.getMailCharset().trim();
+        if (!charsetField.toLowerCase().startsWith(CHARSET_FIELD_PREFIX)) {
+            charsetField = CHARSET_FIELD_PREFIX + charsetField;
         }
+//        setSmtpHost(parametersProvider.getSmtpHost());
+//        setFromField(parametersProvider.getFromField());
+//        setToField(parametersProvider.getToField());
+//        setSubjectPrefix(parametersProvider.getSubjectPrefix());
+//        setCharset(parametersProvider.getMailCharset());
+//        setXhtml(parametersProvider.getXHTMLReport());
+//        if (parametersProvider.isAuthenticatedSMTPHost()) {
+//            LOGGER.debug("Authenticated SMTP.");
+//            setSmtpUser(parametersProvider.getSmtpUser());
+//            setSmtpPassword(parametersProvider.getSmtpPassword());
+//        }
     }
 
     /**
@@ -167,7 +156,7 @@ public class Mailer implements InitializingBean, IMailer {
      * @see org.esco.dynamicgroups.util.IMailer#sendMail(java.lang.String, java.lang.String)
      */
     public void sendMail(final String subjectField, final String messageContent) {
-        sendMailInternal(subjectField, messageContent, xhtml);
+        sendMailInternal(subjectField, messageContent, commonsParameters.getXHTML());
     }
     
     /**
@@ -179,32 +168,34 @@ public class Mailer implements InitializingBean, IMailer {
      */
     public void sendMailInternal(final String subjectField, final String messageContent, final boolean xhtmlFlag) {
         
-        if (isDisabled()) {
+        if (mailParameters.isMailDisabled()) {
             LOGGER.info("Mails are disabled.");
         } else {
             try {
                 Properties properties = System.getProperties();
-                properties.put(MAIL_SMTP_HOST, smtpHost);
+                properties.put(MAIL_SMTP_HOST, mailParameters.getSmtpHost());
                 Session session = Session.getDefaultInstance(properties, null);
                 
                 Message message = new MimeMessage(session);
                 
-                message.setFrom(new InternetAddress(fromField));
-                message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toField, false));
-                message.setSubject(getSubjectPrefix() + subjectField);
+                message.setFrom(new InternetAddress(mailParameters.getFromField()));
+                message.setRecipients(Message.RecipientType.TO, 
+                        InternetAddress.parse(mailParameters.getToField(), false));
+                message.setSubject(mailParameters.getSubjectPrefix() + subjectField);
                 if (xhtmlFlag) {
-                    message.setContent(messageContent, TEXT_HTML_CONTENT_TYPE + CHARSET_SEP + getCharset());
+                    message.setContent(messageContent, 
+                            TEXT_HTML_CONTENT_TYPE + CHARSET_SEP + charsetField);
                 } else {
                     message.setText(messageContent);
                 }
                 message.setHeader(X_MAILER, MAILER_FIELD);
                 message.setSentDate(new Date());
                 
-                if (smtpUser != null) {
+                if (mailParameters.getSmtpUser() != null) {
                     Transport transport = session.getTransport(SMTP_PROTOCOL);
-                    transport.connect(smtpHost, 
-                            smtpUser, 
-                            smtpPassword);
+                    transport.connect(mailParameters.getSmtpHost(), 
+                            mailParameters.getSmtpUser(), 
+                            mailParameters.getSmtpPassword());
                     Transport.send(message);
                 } else {
                     Transport.send(message);
@@ -218,120 +209,7 @@ public class Mailer implements InitializingBean, IMailer {
         }
     }
 
-    /**
-     * Getter for smtpHost.
-     * @return smtpHost.
-     */
-    public String getSmtpHost() {
-        return smtpHost;
-    }
-
-    /**
-     * Setter for smtpHost.
-     * @param smtpHost the new value for smtpHost.
-     */
-    public void setSmtpHost(final String smtpHost) {
-        this.smtpHost = smtpHost;
-    }
-
-    /**
-     * Getter for fromField.
-     * @return fromField.
-     */
-    public String getFromField() {
-        return fromField;
-    }
-
-    /**
-     * Setter for fromField.
-     * @param fromField the new value for fromField.
-     */
-    public void setFromField(final String fromField) {
-        this.fromField = fromField;
-    }
-
-    /**
-     * Getter for toField.
-     * @return toField.
-     */
-    public String getToField() {
-        return toField;
-    }
-
-    /**
-     * Setter for toField.
-     * @param toField the new value for toField.
-     */
-    public void setToField(final String toField) {
-        this.toField = toField;
-    }
-
-    /**
-     * Getter for smtpUser.
-     * @return smtpUser.
-     */
-    public String getSmtpUser() {
-        return smtpUser;
-    }
-
-    /**
-     * Setter for smtpUser.
-     * @param smtpUser the new value for smtpUser.
-     */
-    public void setSmtpUser(final String smtpUser) {
-        this.smtpUser = smtpUser;
-    }
-
-    /**
-     * Getter for smtpPassword.
-     * @return smtpPassword.
-     */
-    public String getSmtpPassword() {
-        return smtpPassword;
-    }
-
-    /**
-     * Setter for smtpPassword.
-     * @param smtpPassword the new value for smtpPassword.
-     */
-    public void setSmtpPassword(final String smtpPassword) {
-        this.smtpPassword = smtpPassword;
-    }
-
-
-    /**
-     * Getter for subjectPrefix.
-     * @return subjectPrefix.
-     */
-    public String getSubjectPrefix() {
-        return subjectPrefix;
-    }
-
-    /**
-     * Setter for subjectPrefix.
-     * @param subjectPrefix the new value for subjectPrefix.
-     */
-    public void setSubjectPrefix(final String subjectPrefix) {
-        this.subjectPrefix = subjectPrefix;
-    }
-
-    /**
-     * Getter for disabled.
-     * @return disabled.
-     */
-    public boolean isDisabled() {
-        return disabled;
-    }
-
-
-    /**
-     * Setter for disabled.
-     * @param disabled the new value for disabled.
-     */
-    public void setDisabled(final boolean disabled) {
-        this.disabled = disabled;
-    }
-
+   
 
     /**
      * Getter for parametersProvider.
@@ -349,65 +227,6 @@ public class Mailer implements InitializingBean, IMailer {
     public void setParametersProvider(final ParametersProvider parametersProvider) {
         this.parametersProvider = parametersProvider;
     }
-    /**
-     * Getter for charset.
-     * @return charset.
-     */
-    public String getCharset() {
-        return charset;
-    }
-
-
-    /**
-     * Setter for charset.
-     * @param charset the new value for charset.
-     */
-    public void setCharset(final String charset) {
-        this.charset = charset.trim();
-        if (!this.charset.toLowerCase().startsWith(CHARSET_FIELD)) {
-            this.charset = CHARSET_FIELD + charset;
-        }
-    }
-
-
-    /**
-     * Getter for xhtml.
-     * @return xhtml.
-     */
-    public boolean isXhtml() {
-        return xhtml;
-    }
-
-
-    /**
-     * Setter for xhtml.
-     * @param xhtml the new value for xhtml.
-     */
-    public void setXhtml(final boolean xhtml) {
-        this.xhtml = xhtml;
-    }
-    
-//    public static void main(final String args[]) {
-//        Mailer mailer = new Mailer();
-//        mailer.setSmtpHost("smtp.giprecia.net");
-//        mailer.setFromField("noreply@recia.fr");
-//        mailer.setToField("arnaud.deman@recia.fr");
-//        mailer.setSubjectPrefix("[test mail]");
-//        mailer.setCharset("utf8");
-//        final String content = "\"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\""
-//            + "\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">"
-//            + "<html xmlns=\"http://www.w3.org/1999/xhtml\"><head><title/>"
-//            + "</head>"
-//            + "<body><h1>Groupes dynamiques - Statisitiques </h1><br/><br/>"
-//            + "Rapport Généré le : 05/05/2009::01:32:00<br/><br/><br/><b>Nombre de définitions modifiées : </b>0<br/>"
-//            + "<b>Notifications protocole SyncRepl : </b>0 - 0 - 0 - 0<br/></body></html>"
-//            + "<H1>test</H1></body></html>";
-//        mailer.sendMail(" xxx ", content);
-//        
-//        
-//    }
-
-
    
 
 }

@@ -40,7 +40,22 @@ public interface IGroupsDAOService {
      * Gives the list of the dynamic group names whitout a memebership defintion.
      * @return The list of the group names.
      */
-    Set<String> getUndefinedDynamicGroups(); 
+    Set<String> getUndefinedDynamicGroups();
+    
+    /**
+     * Checks the members of a group.
+     * @param groupDefinition The definition of the group to check.
+     * @param expectedMembers The expected members of the group according to 
+     * its logic definition.
+     */
+    void checkGroupMembers(final DynamicGroupDefinition groupDefinition, 
+            final Set<String> expectedMembers);
+    
+    /**
+     * Gives all the dynamic group definitnions.
+     * @return The sset of dynamic group definitions.
+     */
+    Set<DynamicGroupDefinition> getAllDynamicGroupDefinitions();
     
     /**
      * Adds a user to a group.
