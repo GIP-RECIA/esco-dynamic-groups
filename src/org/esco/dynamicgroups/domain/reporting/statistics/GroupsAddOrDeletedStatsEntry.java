@@ -32,7 +32,7 @@ public class GroupsAddOrDeletedStatsEntry implements IGroupAddOrDeletedStatsEntr
     private int deletedCount;
     
     /** I18N manager. */
-    private I18NManager i18n;
+    private transient I18NManager i18n;
 
     /**
      * Builds an instance of GroupsAddOrDeletedStatsEntry.

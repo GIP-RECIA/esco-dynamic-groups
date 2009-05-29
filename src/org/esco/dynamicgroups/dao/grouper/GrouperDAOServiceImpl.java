@@ -35,6 +35,7 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.domain.beans.DynGroup;
 import org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition;
+import org.esco.dynamicgroups.domain.parameters.GroupsParametersSection;
 import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
 import org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager;
 import org.esco.dynamicgroups.exceptions.DynamicGroupsException;
@@ -62,20 +63,23 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
     /** The Grouper session util instance. */
     private GrouperSessionUtil sessionUtil;
 
-    /** The dynamic type in grouper. */
-    private String grouperDynamicType;
-    
+    //    /** The dynamic type in grouper. */
+    //    private String grouperDynamicType;
+    //    
     /** The user parameters provider. */
     private ParametersProvider parametersProvider;
 
-    /** Flag used to determine if a deleted user should be removed from all groups 
-     * or only from the dynamic ones.
-     */
-    private boolean removeFromAllGroups;
+    /** The grouper parameters. */
+    private GroupsParametersSection grouperParameters;
+
+    //    /** Flag used to determine if a deleted user should be removed from all groups 
+    //     * or only from the dynamic ones.
+    //     */
+    //    private boolean removeFromAllGroups;
 
     /** Initialization flag. */
     private boolean initialized;
-    
+
     /** The statistics manager service. */
     private IStatisticsManager statisticsManager;
 
@@ -83,7 +87,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
      * Builds an instance of GrouperDAOServiceImpl.
      */
     public GrouperDAOServiceImpl() {
-       super();
+        super();
     }
 
 
@@ -99,17 +103,17 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
         Assert.notNull(this.parametersProvider, 
                 "The property parametersProvider in the class " + this.getClass().getName() 
                 + " can't be null.");
-        
-        sessionUtil = new GrouperSessionUtil(ParametersProvider.instance().getGrouperUser());
-        grouperDynamicType = ParametersProvider.instance().getGrouperType();
-        removeFromAllGroups = ParametersProvider.instance().getRemoveFromAllGroups();
-       
+
+        grouperParameters = (GroupsParametersSection) parametersProvider.getGroupsParametersSection();
+        sessionUtil = new GrouperSessionUtil(grouperParameters.getGrouperUser());
+        ESCODeletedSubjectImpl.setSourceId(grouperParameters.getGrouperSubjectsSourceId());
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Instance of GrouperDAOServiceImpl initialized - Grouper user: "  
-                    + ParametersProvider.instance().getGrouperUser() 
-                    + " - Grouper dynamic type " + grouperDynamicType 
-                    + " - deleted users are removed from all groups: " + removeFromAllGroups + ".");
+                    + grouperParameters.getGrouperUser() 
+                    + " - Grouper dynamic type " + grouperParameters.getGrouperType() 
+                    + " - deleted users are removed from all groups: " 
+                    + grouperParameters.getRemoveFromAllGroups() + ".");
         }
     }
 
@@ -136,11 +140,11 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
      */
     public void addToGroup(final String groupUUID, final Set<String> userIds) {
 
+        final GrouperSession session  = sessionUtil.createSession();
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Adding users: " + userIds + " to the group: " + groupUUID + ".");
         }
 
-        final GrouperSession session  = sessionUtil.createSession();
         final Group group = retrieveGroup(session, groupUUID);
 
         if (group == null) {
@@ -162,6 +166,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
                                 + " is already an immediate member of the group: " + groupUUID + ".");
                     }
                 }
+                sessionUtil.stopSession(session);
 
 
             } catch (SubjectNotFoundException e) {
@@ -241,13 +246,134 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
     }
 
     /**
+     * Gives the set of definitions for all the dynamic groups in grouper.
+     * @return The set of definitions.
+     * @see org.esco.dynamicgroups.dao.grouper.IGroupsDAOService#getAllDynamicGroupDefinitions()
+     */
+    @Override
+    public Set<DynamicGroupDefinition> getAllDynamicGroupDefinitions() {
+        final GrouperSession session = sessionUtil.createSession();
+
+        final String grouperDynamicType = grouperParameters.getGrouperType();
+        final String definitionField = grouperParameters.getGrouperDefinitionField();
+        final Set<DynamicGroupDefinition> definitions = new HashSet<DynamicGroupDefinition>();
+        final GroupType type = retrieveType(grouperDynamicType);
+        if (type != null) {
+            final Set<Group> groups = GroupFinder.findAllByType(session, type);
+            for (Group group : groups) {
+                String membersDef = null;
+                try {
+                    membersDef = group.getAttribute(definitionField);
+                    definitions.add(new DynamicGroupDefinition(group.getUuid(), membersDef));
+                } catch (AttributeNotFoundException e) {
+                    LOGGER.error("Unable to retrieve the attribute "  
+                            + definitionField + " for the group: " + group.getName() + ".");
+                }
+            }
+        } else {
+            LOGGER.error("Error unable to retrieve the dynamic type: " + grouperDynamicType);
+        }
+        sessionUtil.stopSession(session);
+        return definitions;
+    }
+
+    /** 
+     * Checks the members of a group.
+     * @param groupDefinition The definition of the group to check.
+     * @param expectedMembers The expected members of the group according to 
+     * its logic definition.
+     * @see org.esco.dynamicgroups.dao.grouper.IGroupsDAOService#checkGroupMembers(DynamicGroupDefinition, Set)
+     */
+    public void checkGroupMembers(final DynamicGroupDefinition groupDefinition, 
+            final Set<String> expectedMembers) {
+
+
+        final GrouperSession session = sessionUtil.createSession();
+
+        final Group group = retrieveGroup(session, groupDefinition.getGroupUUID());
+        
+        if (group != null) {
+
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Checking group: " + group.getName());
+            }
+
+
+            // Builds the actual members of the group in order to compare
+            // with the expected one.
+            final Set<String> actualMembers = new HashSet<String>(); 
+
+            @SuppressWarnings("unchecked") 
+            final Set members = group.getImmediateMembers();
+            for (Object o : members) {
+                try {
+                    final Subject subj = ((Member) o).getSubject();
+                    actualMembers.add(subj.getId());
+                   
+                } catch (SubjectNotFoundException e) {
+                    LOGGER.error(e, e);
+                }
+            }
+
+            // Checks that all the expected members are actually members of the group.
+            for (String expectedMember : expectedMembers) {
+                if (!actualMembers.contains(expectedMember)) {
+                    LOGGER.warn("Checking group: " 
+                            + group.getName() + " member " + expectedMember + " not found (added).");
+                    try {
+                        final Subject subj = SubjectFinder.findById(expectedMember);
+                        group.addMember(subj);
+                    } catch (SubjectNotFoundException e) {
+                        LOGGER.error(e, e);
+                    } catch (SubjectNotUniqueException e) {
+                        LOGGER.error(e, e);
+                    } catch (InsufficientPrivilegeException e) {
+                        LOGGER.error(e, e);
+                    } catch (MemberAddException e) {
+                        LOGGER.error(e, e);
+                    }
+                }
+                actualMembers.remove(expectedMember);
+            }
+
+            // All the remaining uid in the actual list are invalid, so the corresponding subjects
+            // are removed from the group.
+            for (String invalidMemeber : actualMembers) {
+                LOGGER.warn("Checking group: " 
+                        + group.getName() + " member " + invalidMemeber + " is invalid (removed).");
+
+                try {
+                    Subject subj = SubjectFinder.findById(invalidMemeber);
+                    group.deleteMember(subj);
+                } catch (SubjectNotFoundException e) {
+                    LOGGER.error(e, e);
+                } catch (SubjectNotUniqueException e) {
+                    LOGGER.error(e, e);
+                } catch (InsufficientPrivilegeException e) {
+                    LOGGER.error(e, e);
+                } catch (MemberDeleteException e) {
+                    LOGGER.error(e, e);
+                }
+            }
+        }
+
+        sessionUtil.stopSession(session);
+
+        if (LOGGER.isDebugEnabled() && group != null) {
+            LOGGER.debug("Group: " + group.getName() + " checked.");
+        }
+
+    }
+
+    /**
      * Checks the dynamic types.
      */
     private void checkDynamicType() {
 
-        final boolean create = ParametersProvider.instance().getCreateGrouperType();
-        LOGGER.info("Checking the dynamic type: " + grouperDynamicType);
-        final String definitionField = ParametersProvider.instance().getGrouperDefinitionField();
+        final boolean create = grouperParameters.getCreateGrouperType();
+        LOGGER.info("Checking the dynamic type: " + grouperParameters.getGrouperType());
+        final String definitionField = grouperParameters.getGrouperDefinitionField();
+        final String grouperDynamicType = grouperParameters.getGrouperType();
         // Checks the group types.
         final GrouperSession session = sessionUtil.createSession();
         try {
@@ -303,7 +429,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
         final Set<GroupType> types = group.getTypes();
 
         for (GroupType type : types) {
-            if (grouperDynamicType.equals(type.getName())) {
+            if (grouperParameters.getGrouperType().equals(type.getName())) {
                 return true;
             }
         }
@@ -364,7 +490,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
 
         if (LOGGER.isDebugEnabled()) {
             String msg = "Removing the user from ";
-            if (removeFromAllGroups) {
+            if (grouperParameters.getRemoveFromAllGroups()) {
                 msg += " all its groups.";
             } else {
                 msg += " its dynamic groups.";
@@ -394,9 +520,9 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
                     statisticsManager.handleMemberRemoved(group.getName(), userId);
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug(" Removing user: " + userId + " from the dynamic group: " + group.getName());
-                        
+
                     }
-                } else if (removeFromAllGroups) {
+                } else if (grouperParameters.getRemoveFromAllGroups()) {
                     // The group is not dynamic but all the groups have to be processed.
                     group.deleteMember(subject);
                     if (LOGGER.isDebugEnabled()) {
@@ -405,7 +531,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
                 }
             }
 
-         
+
 
             sessionUtil.stopSession(session);
 
@@ -423,7 +549,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
             throw new DynamicGroupsException(e);
         }
     }
-    
+
     /**
      * Gives the list of groups with no membership defintions.
      * @return The group names.
@@ -431,19 +557,19 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
      */
     public Set<String> getUndefinedDynamicGroups() {
         final GrouperSession session = sessionUtil.createSession();
-        GroupType type = retrieveType(grouperDynamicType);
+        GroupType type = retrieveType(grouperParameters.getGrouperType());
         final Set<Group> groups = GroupFinder.findAllByType(session, type);
         final Set<String> undefGroups = new HashSet<String>();
         for (Group group : groups) {
             String membersDef = null;
             try {
-                membersDef = group.getAttribute(ParametersProvider.instance().getGrouperDefinitionField());
+                membersDef = group.getAttribute(grouperParameters.getGrouperDefinitionField());
                 if ("".equals(membersDef)) {
                     undefGroups.add(group.getName());
                 }
             } catch (AttributeNotFoundException e) {
                 LOGGER.error("Unable to retrieve the attribute "  
-                        + ParametersProvider.instance().getGrouperDefinitionField()
+                        + grouperParameters.getGrouperDefinitionField()
                         + " for the group: " + group.getName() + ".");
             }
         }
@@ -457,12 +583,12 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
      * @see org.esco.dynamicgroups.dao.grouper.IGroupsDAOService#updateMemberships(java.lang.String, java.util.Map)
      */
     public void updateMemberships(final String userId, final Map<String, DynGroup> newGroups) {
-
+        final GrouperSession session = sessionUtil.createSession();
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Updating the memberships for the user: " + userId);
         }
 
-        final GrouperSession session = sessionUtil.createSession();
+
         try {
             final Subject subject = SubjectFinder.findById(userId);
             final Map<String, Group> previousGroups = retrieveDynamicGroupsForUser(session, subject);
@@ -474,7 +600,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
                     final Group group = previousGroups.get(previousGroup); 
                     group.deleteMember(subject);
                     statisticsManager.handleMemberRemoved(group.getName(), userId);
-                    
+
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("Update memberships user: " + userId 
                                 + " removed from the group: " + group.getName());
@@ -643,5 +769,8 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
     public void setParametersProvider(final ParametersProvider parametersProvider) {
         this.parametersProvider = parametersProvider;
     }
+
+
+
 
 }

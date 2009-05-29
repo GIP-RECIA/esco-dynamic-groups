@@ -20,7 +20,7 @@ public class DynGroupOccurences implements Serializable {
     private DynGroup group;
     
     /** The number of occurences.*/
-    private int ocurrences;
+    private int occurrences;
     
     /**
      * Builds an instance of DynGroupOccurences.
@@ -31,26 +31,72 @@ public class DynGroupOccurences implements Serializable {
     }
     
     /**
+     * Gives the string that represents this instance.
+     * @return The String that represents this instance.
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "#{" + group + ", occurence: " 
+        + occurrences + "}"; 
+    }
+    
+    /**
+     * Tests if an object is equal to this instance.
+     * @param obj The object to test.
+     * @return True if the object is equal to this instance.
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        
+        if (!(obj instanceof DynGroupOccurences)) {
+            return false;
+        }
+        
+        final DynGroupOccurences other =  (DynGroupOccurences) obj;
+        if (other.getOccurrences() != getOccurrences()) {
+            return false;
+        }
+        return group.equals(other.getGroup());
+        
+    }
+    
+    /**
+     * Gives the hash value for this instance.
+     * @return The hash value.
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return group.hashCode() + occurrences;
+    }
+    
+    
+    /**
      * Increments the number of occurences.
      */
     public void incrementOccurences() {
-        this.ocurrences++;
+        this.occurrences++;
     }
 
     /**
-     * Getter for ocurrences.
-     * @return ocurrences.
+     * Getter for occurrences.
+     * @return occurrences.
      */
-    public int getOcurrences() {
-        return ocurrences;
+    public int getOccurrences() {
+        return occurrences;
     }
 
     /**
-     * Setter for ocurrences.
-     * @param ocurrences the new value for ocurrences.
+     * Setter for occurrences.
+     * @param occurrences the new value for occurrences.
      */
-    public void setOcurrences(final int ocurrences) {
-        this.ocurrences = ocurrences;
+    public void setOccurrences(final int occurrences) {
+        this.occurrences = occurrences;
     }
 
     /**
@@ -68,5 +114,4 @@ public class DynGroupOccurences implements Serializable {
     public void setGroup(final DynGroup group) {
         this.group = group;
     }
-
 }

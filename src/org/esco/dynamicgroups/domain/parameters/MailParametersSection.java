@@ -23,6 +23,9 @@ public class MailParametersSection extends DGParametersSection {
     /** Default cahrset value. */
     private static final String DEFAULT_CHARSET = "utf-8";
     
+    /** Default value for the flag that disables the mail. */
+    private static final Boolean DEFAULT_MAIL_DISABLED = false;  
+    
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(MailParametersSection.class);
     
@@ -69,7 +72,7 @@ public class MailParametersSection extends DGParametersSection {
     }
    
     /**
-     * Loads all the parameter sections.
+     * Loads all the parameters.
      * @param params The properties that contains the values to load.
      */
     @Override
@@ -87,7 +90,7 @@ public class MailParametersSection extends DGParametersSection {
 
         // Retrieves the values.
        
-        setMailDisabled(parseBooleanFromProperty(params, mailDisabledKey));
+        setMailDisabled(parseBooleanFromPropertySafe(params, mailDisabledKey, DEFAULT_MAIL_DISABLED));
         if (!isMailDisabled()) {
             setSmtpHost(parseStringFromProperty(params, mailSMTPKey));
             setSubjectPrefix(parseStringSafeFromProperty(params, mailSubjPrefixKey, ""));
@@ -95,6 +98,7 @@ public class MailParametersSection extends DGParametersSection {
             setFromField(parseStringFromProperty(params, mailFromKey));
             setSmtpUser(parseStringSafeFromProperty(params, mailSmtpUserKey, ""));
             setMailCharset(parseStringSafeFromProperty(params, mailCharsetKey, DEFAULT_CHARSET));
+           
             if (isAuthenticatedSMTPHost()) {
                 setSmtpPassword(parseStringFromProperty(params, mailSmtpPasswdKey));
             }
@@ -109,27 +113,21 @@ public class MailParametersSection extends DGParametersSection {
      */
     @Override
     public String toString() {
-        final StringBuffer sb = new StringBuffer(getClass().getSimpleName());
-        sb.append("#{");
-        sb.append("mail disabled: ");
-        sb.append(isMailDisabled());
+        final StringBuilder sb = new StringBuilder();
+        toStringFormatSingleEntry(sb, getClass().getSimpleName() + "#{\n");
+        toStringFormatProperty(sb, "Mail disabled: ", isMailDisabled());
         if (!isMailDisabled()) {
-            sb.append("smtp: ");
-            sb.append(getSmtpHost());
+            toStringFormatProperty(sb, "SMTP Server: ", getSmtpHost());
             if (isAuthenticatedSMTPHost()) {
-                sb.append("; smtp user: ");
-                sb.append(getSmtpUser());
-                sb.append("; smtp password: ");
-                sb.append(getSmtpPassword().replaceAll(".", "\\*"));
+                toStringFormatProperty(sb, "User: ", getSmtpUser());
+                toStringFormatProperty(sb,  "SMTP Password: ", toStringFormatPassword(getSmtpPassword()));
             }
-            sb.append("; mail to: ");
-            sb.append(getToField());
-            sb.append("; mail from: ");
-            sb.append(getFromField());
-            sb.append("; subject prefix: ");
-            sb.append(getSubjectPrefix());
+            toStringFormatProperty(sb, "Mail to: ", getToField());
+            toStringFormatProperty(sb, "Mail from: ", getFromField());
+            toStringFormatProperty(sb, "Subject prefix: ", getSubjectPrefix());
+            
         }
-        sb.append("}");
+        toStringFormatSingleEntry(sb, "}");
         return sb.toString();
     }
 
@@ -268,4 +266,6 @@ public class MailParametersSection extends DGParametersSection {
     public void setMailCharset(final String mailCharset) {
         this.mailCharset = mailCharset;
     }
+
+
 }

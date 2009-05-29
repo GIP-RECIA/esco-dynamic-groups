@@ -22,6 +22,16 @@ public abstract class DGParametersSection implements Serializable {
     /** Prefix for the properties. */
     protected static final String PROPERTIES_PREFIX = "esco.dynamic.groups.";
     
+    /** Padding to use int the toString methods. */
+    protected static final String TO_STRING_PAD_SIMPLE = "   ";
+    
+    /** Padding to use int the toString methods. */
+    protected static final String TO_STRING_PAD_DOUBLE = TO_STRING_PAD_SIMPLE + TO_STRING_PAD_SIMPLE;
+    
+    /** Padding to use int the toString methods. */
+    protected static final String TO_STRING_PAD_TRIPLE = TO_STRING_PAD_SIMPLE + TO_STRING_PAD_DOUBLE;
+
+    
     /** The default value for the configuration file. */
     private static final String UNDEF_CONF_FILE = "<Undefined file>";
 
@@ -51,6 +61,19 @@ public abstract class DGParametersSection implements Serializable {
      */
     protected Boolean parseBooleanFromProperty(final Properties properties, final String key) {
         return PropertyParser.instance().parseBooleanFromProperty(getLogger(), configurationFile, properties, key);
+    }
+    
+    /**
+     * Retrieves the Boolean value from a properties instance for a given key.
+     * @param properties The properties instance.
+     * @param key The considered key.
+     * @param defaultValue The default value to use.
+     * @return The Boolean value if available in the properties, null otherwise.
+     */
+    protected Boolean parseBooleanFromPropertySafe(final Properties properties, 
+            final String key, final Boolean defaultValue) {
+        return PropertyParser.instance().parseBooleanFromPropertySafe(getLogger(), 
+                configurationFile, properties, key, defaultValue);
     }
 
     /**
@@ -155,4 +178,52 @@ public abstract class DGParametersSection implements Serializable {
     public void setConfigurationFile(final String configurationFile) {
         this.configurationFile = configurationFile;
     }
+    
+    /** 
+     * Format util method for the toString implementation of the sub classes.
+     * @param sb The string builder.
+     * @param entry The entry to format.
+     */
+    protected void toStringFormatSingleEntry(final StringBuilder sb, final String entry) {
+        sb.append(TO_STRING_PAD_SIMPLE);
+        sb.append(entry);
+    }
+
+    /** 
+     * Format util method for the toString implementation of the sub classes.
+     * @param sb The string builder.
+     * @param entries The entries to format.
+     */
+    protected void toStringFormatMultipleEntries(final StringBuilder sb, final Iterable< ? > entries) {
+        for (Object entry : entries) {
+            sb.append(TO_STRING_PAD_TRIPLE);
+            sb.append(entry);
+            sb.append("\n");
+        }
+    }
+    /** 
+     * Format util method for the toString implementation of the sub classes.
+     * @param sb the String builder.
+     * @param propertyName The property to format.
+     * @param value The value of the property to format.
+     */
+    protected void toStringFormatProperty(final StringBuilder sb, final String propertyName, final Object value) {
+        sb.append(TO_STRING_PAD_DOUBLE);
+        sb.append(propertyName);
+        sb.append(value);
+        sb.append("\n");
+    }
+    
+    /**
+     * Format the value of a password.
+     * @param password the password to format.
+     * @return The formatted password.
+     */
+    protected String toStringFormatPassword(final String password) {
+        if (password == null) {
+            return "null";
+        }
+        return password.replaceAll(".", "\\*");
+    }
+    
 }

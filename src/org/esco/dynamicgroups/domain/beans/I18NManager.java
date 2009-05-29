@@ -5,6 +5,7 @@ package org.esco.dynamicgroups.domain.beans;
 
 import java.io.Serializable;
 
+import org.esco.dynamicgroups.domain.parameters.CommonsParametersSection;
 import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.MessageSource;
@@ -26,6 +27,9 @@ public class I18NManager implements Serializable, InitializingBean {
     
     /** The user parameters provider. */
     private ParametersProvider parametersProvider;
+    
+    /** Common user parameters.*/
+    private CommonsParametersSection commonsParameters;
     
     /** The message source instance. */
     private MessageSource messageSource;
@@ -49,7 +53,7 @@ public class I18NManager implements Serializable, InitializingBean {
         Assert.notNull(this.messageSource, 
                 "The property messageSource in the class " + this.getClass().getName() 
                 + " can't be null.");
-        
+        commonsParameters = (CommonsParametersSection) parametersProvider.getCommonsParametersSection();
     }
     
     
@@ -68,7 +72,7 @@ public class I18NManager implements Serializable, InitializingBean {
      * @return The message.
      */
     public String getI18nMessage(final String key, final String...args) {
-        return messageSource.getMessage(key, args, UNDEF_I18N + key, parametersProvider.getLocale());
+        return messageSource.getMessage(key, args, UNDEF_I18N + key, commonsParameters.getLocale());
     }
     /**
      * Getter for parametersProvider.

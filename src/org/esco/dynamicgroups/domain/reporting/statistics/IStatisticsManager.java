@@ -67,5 +67,15 @@ public interface IStatisticsManager extends Serializable {
      * @param userId The id of the user.
      */
     void handleMemberRemoved(final String groupName, final String userId);
+    
+    /** 
+     * Loads the instance if possible.
+     */
+    void load();
+    
+    /**
+     * Saves the instance.
+     */
+    void save();
 
 }

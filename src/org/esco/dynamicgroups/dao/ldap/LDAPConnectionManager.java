@@ -5,6 +5,8 @@ package org.esco.dynamicgroups.dao.ldap;
 
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPException;
+import com.novell.ldap.LDAPJSSESecureSocketFactory;
+import com.novell.ldap.LDAPSocketFactory;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -22,6 +24,9 @@ import org.springframework.util.Assert;
  *
  */
 public class LDAPConnectionManager implements InitializingBean, Serializable {
+
+    /** Java system property to set the keystrore path. */
+    private static final String JAVAPROP_TRUST_STORE = "javax.net.ssl.trustStore";
 
     /** Serial version UID.*/
     private static final long serialVersionUID = -9019129173624950239L;
@@ -50,7 +55,12 @@ public class LDAPConnectionManager implements InitializingBean, Serializable {
         Assert.notNull(parametersProvider, "The property parametersProvider in the class " 
                 + getClass().getName() + " can't be null.");
        ldapParameters = (LDAPPersonsParametersSection) parametersProvider.getPersonsParametersSection();
-        
+       if (ldapParameters.getUseSSLConnection()) {
+           System.setProperty(JAVAPROP_TRUST_STORE, ldapParameters.getKeystorePath());
+           final LDAPSocketFactory ssf = new LDAPJSSESecureSocketFactory();
+           LDAPConnection.setSocketFactory(ssf);
+           LOGGER.debug("Using ssl for ldap connexions.");
+       }
     } 
    
     /**
@@ -64,7 +74,13 @@ public class LDAPConnectionManager implements InitializingBean, Serializable {
         final String ldapHost = ldapParameters.getLdapHost();
         final String bindDN = ldapParameters.getLdapBindDN();
         final String credentials = ldapParameters.getLdapCredentials();
+        
+       
+        
+        
         final LDAPConnection lc = new LDAPConnection();
+        
+        
         try {
 
             lc.connect(ldapHost, ldapPort);

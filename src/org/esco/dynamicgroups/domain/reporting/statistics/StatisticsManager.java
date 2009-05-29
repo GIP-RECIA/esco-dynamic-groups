@@ -4,12 +4,21 @@
 package org.esco.dynamicgroups.domain.reporting.statistics;
 
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
 import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.dao.grouper.IGroupsDAOService;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncStateControl;
 import org.esco.dynamicgroups.domain.beans.I18NManager;
 import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
+import org.esco.dynamicgroups.domain.parameters.ReportingParametersSection;
 import org.esco.dynamicgroups.domain.reporting.IReportFormatter;
+import org.esco.dynamicgroups.util.ServletContextResourcesUtil;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
@@ -25,14 +34,20 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
     /** Serial version UID.*/
     private static final long serialVersionUID = -825908954001800235L;
 
+    /** Serialization file name. */
+    private static final String SER_FILE_NAME = StatisticsManager.class.getSimpleName() + ".ser";
+
     /** LOGGER. */
     private static final Logger LOGGER = Logger.getLogger(StatisticsManager.class);
 
     /** The user parameters provider instance. */
-    private ParametersProvider parametersProvider;
+    private transient ParametersProvider parametersProvider;
+
+    /** The user parameters for the reporting. */
+    private transient ReportingParametersSection reportingParameters;
 
     /** The I18N Manager. */
-    private I18NManager i18n;
+    private transient I18NManager i18n;
 
     /** The statistics regarding the modifications of definition. */
     private IDefinitionModificationsStatsEntry definitionModifications;
@@ -45,17 +60,18 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
 
     /** Statistics for the undefined groups. */
     private IUndefinedGroupStatsEntry undefGroupsStats;
-    
+
     /** Statistics for the groups activity. */
     private IGroupsActivityStatsEntry groupsActivityStats;
-    
+
     /** The report formatter to use. */
-    private IReportFormatter reportFormatter;
-    
+    private transient IReportFormatter reportFormatter;
+
     /** The group service. */
-    private IGroupsDAOService groupsService;
-    
-    
+    private transient IGroupsDAOService groupsService;
+
+    /**Util class to serialize and load the instance.*/
+    private transient ServletContextResourcesUtil resourceUtil;
 
     /**
      * Builds an instance of StatisticsManager.
@@ -78,36 +94,42 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
         Assert.notNull(this.i18n, 
                 "The property i18n in the class " + this.getClass().getName() 
                 + " can't be null.");
-        
+
         Assert.notNull(this.reportFormatter, 
                 "The property reportFormatter in the class " + this.getClass().getName() 
                 + " can't be null.");
-        
-        if (parametersProvider.getCountUndefiedGroups()) {
-            Assert.notNull(this.groupsService, 
-                "The property groupsService in the class " + this.getClass().getName() 
+
+        Assert.notNull(this.resourceUtil, 
+                "The property resourceUtil in the class " + this.getClass().getName() 
                 + " can't be null.");
+
+        reportingParameters = (ReportingParametersSection) parametersProvider.getReportingParametersSection();
+
+        if (reportingParameters.getCountUndefiedGroups()) {
+            Assert.notNull(this.groupsService, 
+                    "The property groupsService in the class " + this.getClass().getName() 
+                    + " can't be null.");
             undefGroupsStats = new UndefinedGroupStatsEntry(groupsService, i18n);
         }
 
-        if (parametersProvider.getCountDefinitionModifications()) {
+        if (reportingParameters.getCountDefinitionModifications()) {
             definitionModifications = new DefinitionModificationsStats(i18n);
         }
 
-        if (parametersProvider.getCountSyncReplNotifications()) {
+        if (reportingParameters.getCountSyncReplNotifications()) {
             syncReplNotifications = new SyncReplNotificationsStats(i18n);
         }
 
-        if (parametersProvider.getCountGroupCreationDeletion()) {
+        if (reportingParameters.getCountGroupCreationDeletion()) {
             groupsStats = new GroupsAddOrDeletedStatsEntry(i18n);
         }
-        
-        if (parametersProvider.getCountGroupsActivity()) {
+
+        if (reportingParameters.getCountGroupsActivity()) {
             groupsActivityStats = new GroupsAcrivityStatsEntry(i18n);
         }
     }
-
-    /**
+    
+        /**
      * Getter for parametersProvider.
      * @return parametersProvider.
      */
@@ -132,7 +154,7 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
     public String generateReport() {
         String report = "";
         boolean separateGroupsActivity = false;
-        
+
         if (syncReplNotifications != null) {
             synchronized (syncReplNotifications) {
                 LOGGER.info(syncReplNotifications.getLabel() + syncReplNotifications.getEntry());
@@ -143,7 +165,7 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
             report += reportFormatter.getSeparation();
             report += reportFormatter.getNewLine();
         }
-        
+
         if (groupsStats != null) {
             separateGroupsActivity = true;
             synchronized (groupsStats) {
@@ -154,7 +176,7 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
                 report += reportFormatter.getNewLine();
             }
         }
-        
+
         if (definitionModifications != null) {
             separateGroupsActivity = true;
             synchronized (definitionModifications) {
@@ -165,7 +187,7 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
                 report += reportFormatter.getNewLine();
             }
         }
-        
+
         if (undefGroupsStats != null) {
             separateGroupsActivity = true;
             synchronized (undefGroupsStats) {
@@ -180,17 +202,17 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
             report += reportFormatter.getNewLine();
             report += reportFormatter.getNewLine();
         }
-        
+
         if (groupsActivityStats != null) {
             if (separateGroupsActivity) {
                 report += reportFormatter.getNewLine();
                 report += reportFormatter.getSeparation();
                 report += reportFormatter.getNewLine();
             }
-            
+
             synchronized (groupsActivityStats) {
                 LOGGER.info(groupsActivityStats.getLabel() + groupsActivityStats.getEntry());
-                
+
                 report += reportFormatter.formatEntry(groupsActivityStats.getLabel(), groupsActivityStats.getEntry());
                 report += reportFormatter.getNewLine();
                 report += reportFormatter.format(groupsActivityStats.getActiveGroupsLabel());
@@ -270,7 +292,7 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
                 undefGroupsStats.reset();
             }
         }
-        
+
         if (groupsActivityStats != null) {
             synchronized (groupsActivityStats) {
                 groupsActivityStats.reset();
@@ -304,8 +326,8 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
             }
         }
     }
-    
-    
+
+
     /**
      * Handles the add of a memebr in a group.
      * @param groupName The name of the group.
@@ -319,7 +341,7 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
             }
         }
     }
-    
+
     /**
      * Handles the action of removing a member in a group.
      * @param groupName The name of the group.
@@ -396,6 +418,73 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
      */
     public void setGroupsService(final IGroupsDAOService groupsService) {
         this.groupsService = groupsService;
+    }
+
+    /**
+     * Loads the values from a serialized instance if it exists.
+     * @see org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager#load()
+     */
+    public void load() { 
+        try {
+            final File file = resourceUtil.getResource(SER_FILE_NAME).getFile();
+            if (file.exists()) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Loading serialized instance from: " + file.getAbsolutePath());
+                }
+                final ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
+                final StatisticsManager previousInstance = (StatisticsManager) ois.readObject();
+                if (previousInstance != null) {
+                    this.definitionModifications = previousInstance.definitionModifications;
+                    this.syncReplNotifications = previousInstance.syncReplNotifications;
+                    this.groupsStats = previousInstance.groupsStats;
+                    this.undefGroupsStats = previousInstance.undefGroupsStats;
+                    this.groupsActivityStats = previousInstance.groupsActivityStats;
+                }
+            } else {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Serialization file not found: " + file.getAbsolutePath());
+                }
+                
+            }
+        } catch (IOException ioe) {
+            LOGGER.error(ioe, ioe);
+        } catch (ClassNotFoundException cnfe) {
+            LOGGER.error(cnfe, cnfe);
+        }
+
+    }
+
+    /**
+     * Serializes the instance.
+     * @see org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager#save()
+     */
+    public void save() {
+        try {
+            final File file = resourceUtil.getResource(SER_FILE_NAME).getFile();
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Serialization of the instance intothe file: " + file.getAbsolutePath());
+            }
+            final ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file));
+            oos.writeObject(this);
+        } catch (IOException ioe) {
+            LOGGER.error(ioe, ioe);
+        }
+    }
+
+    /**
+     * Getter for resourceUtil.
+     * @return resourceUtil.
+     */
+    public ServletContextResourcesUtil getResourceUtil() {
+        return resourceUtil;
+    }
+
+    /**
+     * Setter for resourceUtil.
+     * @param resourceUtil the new value for resourceUtil.
+     */
+    public void setResourceUtil(final ServletContextResourcesUtil resourceUtil) {
+        this.resourceUtil = resourceUtil;
     }
 
 }

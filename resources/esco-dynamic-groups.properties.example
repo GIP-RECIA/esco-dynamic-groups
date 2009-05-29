@@ -1,37 +1,88 @@
-#--------------------------------------------#
-#  ESCO Dynamique groups configuration       #
-#--------------------------------------------#
-esco.dynamic.groups.locale="fr"
+#-------------------------------------------------------------------------#
+#  ESCO Dynamique groups configuration 
+# ------------------------------------------------------------------------#
+# A. Deman 05/2009
+#-------------------------------------------------------------------------#
 
-esco.dynamic.groups.stats.handle.definition.modifications = true
-esco.dynamic.groups.stats.handle.syncrepl.notifications = true
-esco.dynamic.groups.stats.handle.groups = true
-esco.dynamic.groups.stats.handle.groups.undefined = true
-esco.dynamic.groups.stats.handle.groups.activity = true
+
+#-------------------------------------------------------------------------#
+# Commons section
+#-------------------------------------------------------------------------#
+esco.dynamic.groups.locale="fr"
+esco.dynamic.groups.xhtml = true
+
+
+#-------------------------------------------------------------------------#
+# Reporting section
+#-------------------------------------------------------------------------#
+
+# Cron expression: dermines the frequency of the reporting process.
+# Format: Seconds Minutes Hours DayOfMonth Month DayOfWeek  Year (Optional)
+# See : http://wiki.opensymphony.com/display/QRTZ1/CronTriggers+Tutorial
+esco.dynamic.groups.reporting.cron.expression =0 */30 * * * ?
+
+# Count the number of notifications associated to the replication protocol.
+# (add, delete, present, modify)
+esco.dynamic.groups.reporting.handle.syncrepl.notifications = true
+
+# Report of the number of modified logic definitions
+esco.dynamic.groups.reporting.handle.definition.modifications = true
+
+# Count the number of created or deleted dynamic groups.
+esco.dynamic.groups.reporting.handle.groups = true
+
+# Count the number of dynamic grouops with an empty Logic definition
+esco.dynamic.groups.reporting.handle.groups.undefined = true
+
+# Reports the groups impacted by modifications in the persons backend. 
+esco.dynamic.groups.reporting.handle.groups.activity = true
+
+
+#-------------------------------------------------------------------------#
+# Mail section
+#-------------------------------------------------------------------------#
+
+# Flag used to disable the mail system (Optional default=false).
 esco.dynamic.groups.mail.disabled = false
+
+# SMTP Server
 esco.dynamic.groups.mail.smtp = smtp.giprecia.net
+
+# SMTP user/passord if the SMTP server needs authentication.
 #esco.dynamic.groups.mail.smtp.user=
 #esco.dynamic.groupsmail.smtp.password=
+
+# Prefix to use in the mail system (Optional).
 esco.dynamic.groups.mail.subject.prefix=[ESCO-DG] 
+
+# Charset to use for the mail (Optional default=utf-8).
 esco.dynamic.groups.mail.charset=utf-8
-esco.dynamic.groups.mail.to =arnaud.deman@recia.fr	
+
+# Destination of the mails.
+esco.dynamic.groups.mail.to =arnaud.deman@recia.fr
+
+# Address to set in the from field of the mails.	
 esco.dynamic.groups.mail.from = noreply@recia.fr
-esco.dynamic.groups.report.xhtml.format = true
-esco.dynamic.groups.report.cron.expression =0 */2 * * * ?
 
 
-#-----------------------------#
-# LDAP and SyncRepl section   #
-#-----------------------------#
+#-------------------------------------------------------------------------#
+# Persons backend section : ldap and LDAPSync parameters
+#-------------------------------------------------------------------------#
 
 # Hostname, port and version of the ldap server.
 esco.dynamic.groups.ldap.host = localhost.recia.fr
 esco.dynamic.groups.ldap.port = 389
 esco.dynamic.groups.ldap.version = 3
 
+# ssl connection (Optional default=false)
+esco.dynamic.groups.ldap.ssl.connection=false
+
+# Path to the keystore (Required only if ssl.connection=true)
+esco.dynamic.groups.ldap.ssl.keystore.path=/home/arnaud/ca-giprecia.keystore
+
 # User/passord for the connection.
 esco.dynamic.groups.ldap.bind.dn = cn=admin,ou=administrateurs, dc=esco-centre,dc=fr
-esco.dynamic.groups.ldap.credentials = LplmENT
+esco.dynamic.groups.ldap.credentials = password
 
 # Idle loop when trying to reconnect in seconds.
 esco.dynamic.groups.ldap.reconnection.idle = 30
@@ -50,17 +101,13 @@ esco.dynamic.groups.ldap.uid.attribute = uid
 # Replicat identifier.
 esco.dynamic.groups.syncrepl.rid = 2
 
-# Number of changes modulo for saving the cookie in its file.
-esco.dynamic.groups.syncrepl.cookie.save.modulo = 1
-
 # Waiting interval (in seconds) for the client to check that a search result is received.
-esco.dynamic.groups.syncrepl.client.idle = 15
+esco.dynamic.groups.syncrepl.client.idle = 3
 
 
-
-#-----------------------------#
-# Grouper section             #
-#-----------------------------#
+#-------------------------------------------------------------------------#
+# Groups backend section : Grouper parameters
+#-------------------------------------------------------------------------#
  
 # Identifier of the subject source.
 esco.dynamic.groups.grouper.subjects.source = esco:ldap
@@ -68,8 +115,8 @@ esco.dynamic.groups.grouper.subjects.source = esco:ldap
 # Grouper types associated to the dynamic groups.
 esco.dynamic.groups.grouper.type = Groupe dynamique
 
-# field of the Grouper type that contains the logic definition
-esco.dynamic.groups.grouper.definiton.field = Définition
+# Field associated to the Grouper type that contains the logic definition.
+esco.dynamic.groups.grouper.definiton.field = Membres
 
 #Flag to determine if the dynamic type should be created
 # in group if it does not exist.
@@ -77,7 +124,7 @@ esco.dynamic.groups.grouper.create.type = true
 
 # Flag to determine if all the dynamic groups
 # should be reseted on the startup.
-esco.dynamic.groups.grouper.reset.on.startup = false
+esco.dynamic.groups.grouper.check.members.on.startup = false
 
 # Grouper user.
 esco.dynamic.groups.grouper.user = GrouperSystem

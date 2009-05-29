@@ -18,7 +18,9 @@ import org.esco.dynamicgroups.domain.DomainServiceProviderForHooks;
 import org.esco.dynamicgroups.domain.IDomainService;
 import org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition;
 import org.esco.dynamicgroups.domain.definition.PropositionCodec;
+import org.esco.dynamicgroups.domain.parameters.GroupsParametersSection;
 import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
+import org.esco.dynamicgroups.domain.parameters.ParametersProviderForHooks;
 import org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager;
 import org.esco.dynamicgroups.domain.reporting.statistics.StatisticsManagerProviderForHooks;
 
@@ -62,8 +64,12 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
      * Builds an instance of ESCOGroupHooks.
      */
     public ESCOGroupHooks() {
-        dynamicType = ParametersProvider.instance().getGrouperType();
-        definitionField = ParametersProvider.instance().getGrouperDefinitionField();
+        final ParametersProvider parametersProvider = ParametersProviderForHooks.instance().getParametersProvider();
+        
+        final GroupsParametersSection grouperParameters = 
+            (GroupsParametersSection) parametersProvider.getGroupsParametersSection();
+        dynamicType = grouperParameters.getGrouperType();
+        definitionField = grouperParameters.getGrouperDefinitionField();
         definitionFieldInternal = ATTRIBUTE_PREFIX + definitionField;
         statisticsManager = StatisticsManagerProviderForHooks.instance().getStatisticsManager();
         domainService = DomainServiceProviderForHooks.instance().getDomainService();

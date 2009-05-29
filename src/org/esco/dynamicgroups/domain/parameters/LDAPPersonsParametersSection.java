@@ -35,11 +35,14 @@ public class LDAPPersonsParametersSection extends DGParametersSection implements
 
     /** Default value for the number of retry for the reconnections. */
     private static final int DEF_LDAP_RECONNECT_ATTEMPTS_NB = 5;
+    
+    /** Default value for the use of an ssl connection. */
+    private static final Boolean DEF_USE_SSL = false;
 
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(LDAPPersonsParametersSection.class);
 
-        /** To convert seconds into milliseconds.*/
+    /** To convert seconds into milliseconds.*/
     private static final  int SECONDS_TO_MILLIS_FACTOR = 1000; 
 
     /** The LDAP host. */
@@ -86,14 +89,20 @@ public class LDAPPersonsParametersSection extends DGParametersSection implements
 
     /** Idle duration for the SyncRepl client. */
     private int syncreplClientIdle;
+    
+    /** Flag to determine if an ssl connection should be used. */
+    private boolean useSSLConnection;
+    
+    /** The path of the keystore to use in the case of an ssl connection. */
+    private String keystorePath;
 
     /**
-     * Constructor for ParametersProvider.
+     * Constructor for LDAPPersonsParametersSection.
      */
     private LDAPPersonsParametersSection() {
         super();
     }
-    
+
     /**
      * Gives the logger for this class.
      * @return The logger for this class.
@@ -105,7 +114,6 @@ public class LDAPPersonsParametersSection extends DGParametersSection implements
     }
 
     /**
-     * 
      * Loads the values from a properties instance.
      * @param params The properties that contains the values to load.
      * @see org.esco.dynamicgroups.domain.parameters.DGParametersSection#loadFromProperties(java.util.Properties)
@@ -116,6 +124,8 @@ public class LDAPPersonsParametersSection extends DGParametersSection implements
         final String ldapHostKey = PROPERTIES_PREFIX + "ldap.host";
         final String ldapPortKey = PROPERTIES_PREFIX + "ldap.port";
         final String ldapVersionKey = PROPERTIES_PREFIX + "ldap.version";
+        final String ldapUseSSLKey = PROPERTIES_PREFIX + "ldap.ssl.connection";
+        final String ldapKeystorePathKey = PROPERTIES_PREFIX + "ldap.ssl.keystore.path";
         final String ldapBindDNKey = PROPERTIES_PREFIX + "ldap.bind.dn";
         final String ldapCredentialsKey = PROPERTIES_PREFIX + "ldap.credentials";
         final String ldapReconnectionIdleKey = PROPERTIES_PREFIX + "ldap.reconnection.idle";
@@ -128,12 +138,17 @@ public class LDAPPersonsParametersSection extends DGParametersSection implements
         final String synreplRIDKey = PROPERTIES_PREFIX + "syncrepl.rid";
         final String synreplCookieFileKey = PROPERTIES_PREFIX + "syncrepl.cookie.file";
         final String synreplCookieSaveModuloKey = PROPERTIES_PREFIX + "syncrepl.cookie.save.modulo";
-       
+
         // Retrieves the values.
         setLdapHost(parseStringFromProperty(params, ldapHostKey));
         setLdapPort(parseIntegerFromProperty(params, ldapPortKey));
         setLdapVersion(parseIntegerFromProperty(params, ldapVersionKey));
         setLdapBindDN(parseStringFromProperty(params, ldapBindDNKey));
+        setUseSSLConnection(parseBooleanFromPropertySafe(params, ldapUseSSLKey, DEF_USE_SSL));
+        if (getUseSSLConnection()) {
+            setKeystorePath(parseStringFromProperty(params, ldapKeystorePathKey));
+        }
+        
         setLdapCredentials(parseStringFromProperty(params, ldapCredentialsKey));
         setLdapReconnectionIdle(parseStrictPositiveIntegerSafeFromProperty(params, ldapReconnectionIdleKey, 
                 DEF_LDAP_RECONNECT_IDLE) * SECONDS_TO_MILLIS_FACTOR);
@@ -152,7 +167,7 @@ public class LDAPPersonsParametersSection extends DGParametersSection implements
     }
 
     /**
-   
+
     /**
      * Gives the string representation of the instance.
      * @return The String that denotes the values of the instance.
@@ -160,48 +175,30 @@ public class LDAPPersonsParametersSection extends DGParametersSection implements
      */
     @Override
     public String toString() {
-        final StringBuffer sb = new StringBuffer(getClass().getSimpleName());
-        sb.append("#{");
-        sb.append("; LDAP Host: ");
-        sb.append(getLdapHost());
-        sb.append("; LDAP Port: ");
-        sb.append(getLdapPort());
-        sb.append("; LDAP Version: ");
-        sb.append(getLdapVersion());
-        sb.append("; LDAP Bind DN: ");
-        sb.append(getLdapBindDN());
-        sb.append("; LDAP Credentials: ");
-        if (getLdapCredentials() == null) {
-            sb.append(getLdapCredentials());
-        } else {
-            sb.append(getLdapCredentials().replaceAll(".", "\\*"));
+        final StringBuilder sb = new StringBuilder();
+        toStringFormatSingleEntry(sb, getClass().getSimpleName() + "#{\n");
+
+        toStringFormatProperty(sb, "Host: ", getLdapHost());
+        toStringFormatProperty(sb, "Port: ", getLdapPort());
+        toStringFormatProperty(sb, "Version: ", getLdapVersion());
+        toStringFormatProperty(sb, "SSL Connection: ", getUseSSLConnection());
+        if (getUseSSLConnection()) {
+            toStringFormatProperty(sb, "Path to keystore: ", getKeystorePath());
         }
-        sb.append("; LDAP reconnection idle: ");
-        sb.append(getLdapReconnectionIdle());
-        sb.append("; LDAP reconnection attempts nb: ");
-        sb.append(getLdapReconnectionAttemptsNb());
-
-        sb.append("; LDAP Search base: ");
-        sb.append(getLdapSearchBase());
-        sb.append("; LDAP Search filter: ");
-        sb.append(getLdapSearchFilter());
-        sb.append("; LDAP Search attributes: ");
-        if (getLdapSearchAttributes() == null) {
-            sb.append(getLdapSearchAttributes());
-        } else {
-            sb.append(getLdapSearchAttributes());
-        }
-
-        sb.append("; SyncRepl Client idle: ");
-        sb.append(getSyncreplClientIdle());
-
-        sb.append("; SyncRepl cookie file: ");
-        sb.append(getSyncReplCookieFile());
-
-        sb.append("; SyncRepl cookie save modulo: ");
-        sb.append(getSyncReplCookieSaveModulo());
-
-        sb.append("}");
+        toStringFormatProperty(sb, "Bind DN: ", getLdapBindDN());
+        toStringFormatProperty(sb, "Credentials: ", toStringFormatPassword(getLdapCredentials()));
+        toStringFormatProperty(sb, "Reconnection idle: ", getLdapReconnectionIdle());
+        toStringFormatProperty(sb, "Reconnection attempts nb: ", getLdapReconnectionAttemptsNb());
+        toStringFormatProperty(sb, "Search base: ", getLdapSearchBase());
+        toStringFormatProperty(sb, "Search filter: ", getLdapSearchFilter());
+        toStringFormatProperty(sb, "UID Attribute: ", getLdapUidAttribute());
+        toStringFormatProperty(sb, "SyncRepl Search attributes: ", "");
+        toStringFormatMultipleEntries(sb, getLdapSearchAttributes());
+        toStringFormatProperty(sb, "SyncRepl Client idle: ", getSyncreplClientIdle());
+        toStringFormatProperty(sb, "SyncRepl cookie file: ", getSyncReplCookieFile());
+        toStringFormatProperty(sb, "SyncRepl cookie save modulo: ", getSyncReplCookieSaveModulo());
+        
+        toStringFormatSingleEntry(sb, "}");
         return sb.toString();
     }
 
@@ -333,7 +330,7 @@ public class LDAPPersonsParametersSection extends DGParametersSection implements
     public Set<String> getLdapSearchAttributes() {
         return ldapSearchAttributes;
     }
-    
+
     /**
      * Gives the attributes considered in the dynamic defininitions.
      * @return the attributes.
@@ -341,7 +338,7 @@ public class LDAPPersonsParametersSection extends DGParametersSection implements
     public Set<String> getAttributesForDynamicDefinition() {
         return getLdapSearchAttributes();
     }
-    
+
     /**
      * Setter for ldapSearchAttributes.
      * @param ldapSearchAttributes the ldapSearchAttributes to set
@@ -471,5 +468,37 @@ public class LDAPPersonsParametersSection extends DGParametersSection implements
      */
     public void setLdapReconnectionAttemptsNb(final int ldapReconnectionAttemptsNb) {
         this.ldapReconnectionAttemptsNb = ldapReconnectionAttemptsNb;
+    }
+
+    /**
+     * Getter for useSSLConnection.
+     * @return useSSLConnection.
+     */
+    public boolean getUseSSLConnection() {
+        return useSSLConnection;
+    }
+
+    /**
+     * Setter for useSSLConnection.
+     * @param useSSLConnection the new value for useSSLConnection.
+     */
+    public void setUseSSLConnection(final boolean useSSLConnection) {
+        this.useSSLConnection = useSSLConnection;
+    }
+
+    /**
+     * Getter for keystorePath.
+     * @return keystorePath.
+     */
+    public String getKeystorePath() {
+        return keystorePath;
+    }
+
+    /**
+     * Setter for keystorePath.
+     * @param keystorePath the new value for keystorePath.
+     */
+    public void setKeystorePath(final String keystorePath) {
+        this.keystorePath = keystorePath;
     }
 }

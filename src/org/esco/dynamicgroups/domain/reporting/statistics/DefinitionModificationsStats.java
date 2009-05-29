@@ -24,7 +24,7 @@ public class DefinitionModificationsStats implements IDefinitionModificationsSta
     private static final String LABEL_KEY = "stats.modified.definitions";
 
     /** The I18NManager. */
-    private I18NManager i18n;
+    private transient I18NManager i18n;
     
     /** Number of modified definitions. */
     private int nbModifiedDefinitions;

@@ -4,28 +4,31 @@
 
 <beans>
 	<!--  Groups service -->
-	<bean id="groupsService" class="org.esco.dynamicgroups.dao.grouper.GrouperDAOServiceImpl" depends-on="parametersProvider">
+	<bean id="groupsService" class="org.esco.dynamicgroups.dao.grouper.GrouperDAOServiceImpl">
 		<property name="parametersProvider" ref="parametersProvider"/>
 		<property name="statisticsManager" ref="statisticsManager"/>
 	</bean>
+	
 	<!--  LDAP Connection -->
 	<bean id="ldapConnectionManager" class="org.esco.dynamicgroups.dao.ldap.LDAPConnectionManager">
 		<property name="parametersProvider" ref="parametersProvider"/>
 	</bean>
 	
 	<!-- DAO for the LDAP. -->
-	<bean id="membersFromDefinitionService" class="org.esco.dynamicgroups.dao.ldap.LDAPMembersFromDefinitionDAO" depends-on="parametersProvider">
+	<bean id="membersFromDefinitionService" class="org.esco.dynamicgroups.dao.ldap.LDAPMembersFromDefinitionDAO">
 		<property name="connectionManager" ref="ldapConnectionManager"/>
 		<property name="parametersProvider" ref="parametersProvider"/>
 	</bean>
 	
 	<!-- LDAP SyncRepl client -->
+	<bean id="resourceUtil" class="org.esco.dynamicgroups.util.ServletContextResourcesUtil"/>
 	<bean id="cookieManager" class="org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.CookieManager">
 		<property name="parametersProvider" ref="parametersProvider"/>
+		<property name="resourceUtil" ref="resourceUtil"/>
 	</bean>
 	
 	<bean id="abstractAction" class="org.esco.dynamicgroups.dao.ldap.syncrepl.client.AbstractSyncReplsTriggeredAction" 
-		abstract="true" depends-on="parametersProvider">
+		abstract="true">
 		<property name="domainService" ref="domainService"/>
 		<property name="parametersProvider" ref="parametersProvider"/>
 	</bean>
