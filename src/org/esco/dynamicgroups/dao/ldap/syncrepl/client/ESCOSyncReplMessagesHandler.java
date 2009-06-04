@@ -7,6 +7,8 @@ import com.novell.ldap.LDAPMessage;
 import com.novell.ldap.LDAPSearchResult;
 
 import org.apache.log4j.Logger;
+import org.esco.dynamicgroups.dao.ldap.syncrepl.client.util.ISyncReplMessagesLogger;
+import org.esco.dynamicgroups.dao.ldap.syncrepl.client.util.ISyncReplMessagesLoggerFactory;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.CookieManager;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncInfoMessage;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncStateControl;
@@ -42,6 +44,12 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
     
     /** The statistics manager. */
     private IStatisticsManager statisticsManager;
+    
+    /** The messages logger. */
+    private ISyncReplMessagesLogger messagesLogger;
+
+    /** The messages logger. */
+    private ISyncReplMessagesLoggerFactory messagesLoggerFactory;
     
     /** The cookie manager. */
     private CookieManager cookieManager;
@@ -88,6 +96,12 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
                 "The property cookieManager in the class " + this.getClass().getName() 
                 + cantBeNull);
         
+        Assert.notNull(this.messagesLoggerFactory, 
+                "The property messagesLoggerFactory in the class " + this.getClass().getName() 
+                + cantBeNull);
+        
+        messagesLogger = messagesLoggerFactory.createLogger();
+        
     }
     
     /**
@@ -113,6 +127,7 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
      * #processLDAPMessage(com.novell.ldap.LDAPMessage)
      */
     public void processLDAPMessage(final LDAPMessage message) {
+        messagesLogger.log(message);
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Handling the message tag: " + message.getTag());
         }
@@ -260,5 +275,37 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
      */
     public void setCookieManager(final CookieManager cookieManager) {
         this.cookieManager = cookieManager;
+    }
+
+    /**
+     * Getter for messagesLogger.
+     * @return messagesLogger.
+     */
+    public ISyncReplMessagesLogger getMessagesLogger() {
+        return messagesLogger;
+    }
+
+    /**
+     * Setter for messagesLogger.
+     * @param messagesLogger the new value for messagesLogger.
+     */
+    public void setMessagesLogger(final ISyncReplMessagesLogger messagesLogger) {
+        this.messagesLogger = messagesLogger;
+    }
+
+    /**
+     * Getter for messagesLoggerFactory.
+     * @return messagesLoggerFactory.
+     */
+    public ISyncReplMessagesLoggerFactory getMessagesLoggerFactory() {
+        return messagesLoggerFactory;
+    }
+
+    /**
+     * Setter for messagesLoggerFactory.
+     * @param messagesLoggerFactory the new value for messagesLoggerFactory.
+     */
+    public void setMessagesLoggerFactory(final ISyncReplMessagesLoggerFactory messagesLoggerFactory) {
+        this.messagesLoggerFactory = messagesLoggerFactory;
     }
 }

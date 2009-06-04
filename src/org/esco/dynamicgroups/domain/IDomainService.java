@@ -52,5 +52,15 @@ public interface IDomainService {
      */
     void handleDeletedGroup(final String groupName);
     
+    /**
+     * Starts the checking of the members ah the dynamic groups.
+     */
+    void startMembersCheckingProcess();
+    
+    /**
+     * Stops the checking of the members ah the dynamic groups.
+     */
+    void stopMembersCheckingProcess();
+    
     
 }

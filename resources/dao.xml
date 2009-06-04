@@ -37,7 +37,9 @@
 	<bean id="deleteAction" parent="abstractAction" class="org.esco.dynamicgroups.dao.ldap.syncrepl.client.DeleteSyncReplTriggeredAction" />
 	<bean id="modifyAction" parent="abstractAction" class="org.esco.dynamicgroups.dao.ldap.syncrepl.client.ModifySyncReplTriggeredAction" />
 	<bean id="presentAction" parent="abstractAction" class="org.esco.dynamicgroups.dao.ldap.syncrepl.client.PresentSyncReplTriggeredAction" />
-	
+	<bean id="syncreplMessagesLoggerFactory" class="org.esco.dynamicgroups.dao.ldap.syncrepl.client.util.SyncReplMessagesLoggerFactoryImpl">
+		<property name="parametersProvider" ref="parametersProvider"/>
+	</bean>
 	<bean id="syncReplMessagesHandler" class="org.esco.dynamicgroups.dao.ldap.syncrepl.client.ESCOSyncReplMessagesHandler">
 		<property name="addAction" ref="addAction"/>
 		<property name="deleteAction" ref="deleteAction"/>
@@ -45,6 +47,7 @@
 		<property name="presentAction" ref="presentAction"/>
 		<property name="statisticsManager" ref="statisticsManager"/>
 		<property name="cookieManager" ref="cookieManager"/>
+		<property name="messagesLoggerFactory" ref="syncreplMessagesLoggerFactory"/>
 	</bean>
 	
 	<bean id="syncReplClient" class="org.esco.dynamicgroups.dao.ldap.syncrepl.client.ESCOSyncReplClient">

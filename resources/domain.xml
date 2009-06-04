@@ -63,6 +63,7 @@
 		<property name="i18n" ref="i18n"/>
 		<property name="reportFormatter" ref="reportFormatter"/>
 		<property name="groupsService" ref="groupsService"/>
+		<property name="domainService" ref="domainService"/>
 		<property name="resourceUtil" ref="resourceUtil"/>
 	</bean>
 	
@@ -75,15 +76,17 @@
 	<bean id="mailer" class="org.esco.dynamicgroups.util.Mailer">
 		<property name="parametersProvider" ref="parametersProvider"/>
 	</bean>
-	
+	<bean name="reportingManager" class="org.esco.dynamicgroups.domain.reporting.ReportingManager">
+		<property name="statisticsManager" ref="statisticsManager"/>
+     	<property name="mailer" ref="mailer"/>
+     	<property name="i18n" ref="i18n"/>
+     	<property name="reportFormatter" ref="reportFormatter"/>
+	</bean>
 	<bean name="reportingJob" class="org.springframework.scheduling.quartz.JobDetailBean">
   		<property name="jobClass" value="org.esco.dynamicgroups.domain.reporting.ReportingJob"/>
   		<property name="jobDataAsMap">
     		<map>
-     	 		<entry key="statisticsManager" value-ref="statisticsManager"/>
-     	 		<entry key="mailer" value-ref="mailer"/>
-     	 		<entry key="i18n" value-ref="i18n"/>
-     	 		<entry key="reportFormatter" value-ref="reportFormatter"/>
+     	 		<entry key="reportingManager" value-ref="reportingManager"/>
     		</map>
   		</property>
 	</bean>
@@ -117,6 +120,7 @@
 		<property name="groupsService" ref="groupsService" />
 		<property name="repositoryListener" ref="repositoryListener" />
 		<property name="statisticsManager" ref="statisticsManager" />
+		<property name="reportingManager" ref="reportingManager"/>
 	</bean>
 	
 	<bean id="domainServiceProvider" class="org.esco.dynamicgroups.domain.DomainServiceProviderForHooks">

@@ -24,5 +24,13 @@ public interface IUndefinedGroupStatsEntry extends IStatisticsEntry {
      * @return The label for the list of undefined groups.
      */
     String getUndefGroupNamesLabel();
+    
+    /**
+     * Tests if there is some undefined group.
+     * @return True if at least one group is undefined.
+     */
+    boolean hasUndefinedGroup();
+    
+    
 
 }

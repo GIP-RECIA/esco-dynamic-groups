@@ -9,6 +9,8 @@ import edu.internet2.middleware.grouper.hooks.beans.HooksAttributeBean;
 import edu.internet2.middleware.grouper.hooks.beans.HooksContext;
 import edu.internet2.middleware.grouper.hooks.logic.HookVeto;
 
+import java.io.Serializable;
+
 import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.domain.definition.DecodedPropositionResult;
 import org.esco.dynamicgroups.domain.definition.PropositionCodec;
@@ -22,8 +24,11 @@ import org.esco.dynamicgroups.domain.parameters.ParametersProviderForHooks;
  * 18 mai 2009
  *
  */
-public class ESCOAttributeHooks extends AttributeHooks {
+public class ESCOAttributeHooks extends AttributeHooks implements Serializable {
     
+    /** Serial versin UID.*/
+    private static final long serialVersionUID = 9122480003264627999L;
+
     /** The logger to use. */
     private static final Logger LOGGER = Logger.getLogger(ESCOAttributeHooks.class);
 

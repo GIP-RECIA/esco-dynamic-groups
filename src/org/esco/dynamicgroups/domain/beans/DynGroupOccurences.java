@@ -37,7 +37,7 @@ public class DynGroupOccurences implements Serializable {
      */
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "#{" + group + ", occurence: " 
+        return getClass().getSimpleName() + "#{" + group + ", occurences: " 
         + occurrences + "}"; 
     }
     

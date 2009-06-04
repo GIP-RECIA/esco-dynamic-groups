@@ -3,6 +3,7 @@
  */
 package org.esco.dynamicgroups.domain.reporting.statistics;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import org.esco.dynamicgroups.dao.grouper.IGroupsDAOService;
@@ -26,7 +27,7 @@ public class UndefinedGroupStatsEntry implements IUndefinedGroupStatsEntry {
     private static final String UNDEF_GROUPS_LIST_KEY = "stats.groups.undefined.list";
 
     /** The group service. */
-    private IGroupsDAOService groupsService;
+    private transient IGroupsDAOService groupsService;
 
     /** The I18N Manager. */
     private transient I18NManager i18n;
@@ -95,6 +96,32 @@ public class UndefinedGroupStatsEntry implements IUndefinedGroupStatsEntry {
     @Override
     public void reset() {
         undefinedGroups = null;
+    }
 
+    /**
+     * Initializes an instance.
+     * @param initializationValues The instance that contains 
+     * the initialization values.
+     * @see org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsEntry#initializeFrom(IStatisticsEntry)
+     */
+    public void initializeFrom(final IStatisticsEntry initializationValues) {
+
+        if (!(initializationValues instanceof UndefinedGroupStatsEntry)) {
+            throw new IllegalArgumentException("The parameter is not an instance of " + getClass().getName());
+        }
+        
+        final UndefinedGroupStatsEntry other = (UndefinedGroupStatsEntry) initializationValues;
+        if (other.undefinedGroups != null) {
+            this.undefinedGroups = new HashSet<String>();
+            this.undefinedGroups.addAll(other.undefinedGroups);
+        }
+    }
+    
+    /**
+     * Tests if there is some undefined group.
+     * @return True if at least one group is undefined.
+     */
+    public boolean hasUndefinedGroup() {
+        return undefinedGroups.size() > 0;
     }
 }

@@ -27,6 +27,9 @@ public class LDAPConnectionManager implements InitializingBean, Serializable {
 
     /** Java system property to set the keystrore path. */
     private static final String JAVAPROP_TRUST_STORE = "javax.net.ssl.trustStore";
+    
+    /** To convert seconds into milliseconds. */
+    private static final int SECONDS_TO_MILLIS_FACTOR = 1000;
 
     /** Serial version UID.*/
     private static final long serialVersionUID = -9019129173624950239L;
@@ -129,7 +132,7 @@ public class LDAPConnectionManager implements InitializingBean, Serializable {
      */
     public LDAPConnection connect() {
         int nbAttempts = 0;
-        final int reconnectionIdle = ldapParameters.getLdapReconnectionIdle();
+        final int reconnectionIdle = ldapParameters.getLdapReconnectionIdle() * SECONDS_TO_MILLIS_FACTOR;
         final int nbMaxAttempts = ldapParameters.getLdapReconnectionAttemptsNb();
         LDAPConnection newConnection = null;
         while (!isActiveConnection(newConnection) && nbAttempts++ < nbMaxAttempts) {

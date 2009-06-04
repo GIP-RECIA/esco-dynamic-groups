@@ -69,6 +69,32 @@ public interface IStatisticsManager extends Serializable {
     void handleMemberRemoved(final String groupName, final String userId);
     
     /** 
+     * Handles a group with an invalid member.
+     * @param groupName The name of the group.
+     * @param userId The id of the invalid memeber.
+     */
+    void handleInvalidMember(final String groupName, final String userId);
+    
+    /** 
+     * Handles a group with a missing member.
+     * @param groupName The name of the group.
+     * @param userId The id of the missing member.
+     */
+    void handleMissingMember(final String groupName, final String userId);
+    
+    /**
+     * Handles the notification of the verification of the members of a group.
+     * @param groupName The name of the checked group.
+     */
+    void handleGroupMembersChecked(final String groupName);
+  
+    /**
+     * Generates the report for the check of the dynamic groups members.
+     * @return The report the checking process.
+     */
+    String generateGroupsMembersCheckReport();
+    
+    /** 
      * Loads the instance if possible.
      */
     void load();

@@ -4,10 +4,15 @@
 package org.esco.dynamicgroups.domain;
 
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.IEntryDTO;
@@ -20,6 +25,8 @@ import org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition;
 import org.esco.dynamicgroups.domain.parameters.GroupsParametersSection;
 import org.esco.dynamicgroups.domain.parameters.IDynamicAttributesProvider;
 import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
+import org.esco.dynamicgroups.domain.parameters.ReportingParametersSection;
+import org.esco.dynamicgroups.domain.reporting.IReportingManager;
 import org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationEvent;
@@ -67,8 +74,18 @@ InitializingBean {
     /** The statistics manager to use. */
     private IStatisticsManager statisticsManager;
     
+    /** Reporting manager. */
+    private IReportingManager reportingManager; 
+    
     /** Flag to determine if the memebrs of the dynamic groups should be checked on startup. */
     private boolean checkMembersOnStartup;
+    
+    /** Flag to determine if the verification of the dynamic group memebrs
+     * should be reported. */
+    private boolean reportCheckMemebersOnStartup;
+    
+    /** Stop the checking process for the members of dynamic groups. */
+    private AtomicBoolean stopCheckingProcess  = new AtomicBoolean();
 
     /**
      * Builds an instance of ESCODomainServiceImpl.
@@ -110,12 +127,23 @@ InitializingBean {
                 "The property statisticsManager in the class " + this.getClass().getName() 
                 + cantBeNull);
         
+        Assert.notNull(this.reportingManager, 
+                "The property reportingManager in the class " + this.getClass().getName() 
+                + cantBeNull);
+        
         IDynamicAttributesProvider dynAttProvider = 
             (IDynamicAttributesProvider) parametersProvider.getPersonsParametersSection();
         dynamicAttributes = dynAttProvider.getDynamicAttributes();
         
-        checkMembersOnStartup = 
-            ((GroupsParametersSection) parametersProvider.getGroupsParametersSection()).getCheckMembersOnStartup();
+        final GroupsParametersSection groupsParameters = 
+            (GroupsParametersSection) parametersProvider.getGroupsParametersSection();
+        
+        checkMembersOnStartup = groupsParameters.getCheckMembersOnStartup();
+        
+        final ReportingParametersSection reportingParameters =
+                (ReportingParametersSection) parametersProvider.getReportingParametersSection();
+        
+        reportCheckMemebersOnStartup = reportingParameters.getCountInvalidOrMissingMembers();
         
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Instance of ESCODomainServiceImpl initialized - Attributes: " 
@@ -136,7 +164,13 @@ InitializingBean {
                 statisticsManager.load();
                 
                 if (checkMembersOnStartup) {
-                    checkMembersForDynamicGroups();
+                    LOGGER.info("Starting to check the members of dynamic groups.");
+                            
+                    startMembersCheckingProcess();
+                    LOGGER.info("Members of dynamic groups checked.");
+                    if (reportCheckMemebersOnStartup) {
+                        reportingManager.doReportingForGroupsMembersCheck();
+                    }
                 }
                 
                 repositoryListener.listen();
@@ -161,7 +195,8 @@ InitializingBean {
      * @param entry The entry associated to the user.
      * @see org.esco.dynamicgroups.domain.IDomainService#addToDynamicGroups(org.esco.dynamicgroups.IEntryDTO)
      */
-    public void addToDynamicGroups(final IEntryDTO entry) {
+    public synchronized void addToDynamicGroups(final IEntryDTO entry) {
+        
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Request to create the dynamic groups memberships for the user: " + entry.getId());
         }
@@ -169,7 +204,7 @@ InitializingBean {
         final Map<String, DynGroup> retainedCandidatGroups = computeDynGroups(entry);
 
         // Updates the memberships effectively.
-        groupsService.createMemeberShips(entry.getId(), retainedCandidatGroups);
+        groupsService.createMemberships(entry.getId(), retainedCandidatGroups);
     }
 
     /**
@@ -177,7 +212,8 @@ InitializingBean {
      * @param entry The user entry used to compute the new groups.
      * @see org.esco.dynamicgroups.domain.IDomainService#updateDynamicGroups(IEntryDTO)
      */
-    public void updateDynamicGroups(final IEntryDTO entry) {
+    public synchronized void updateDynamicGroups(final IEntryDTO entry) {
+        
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Request to Update the dynamic groups for the user: " + entry.getId());
         }
@@ -195,7 +231,7 @@ InitializingBean {
      * @param entry The entry associated to the user.
      * @see org.esco.dynamicgroups.domain.IDomainService#removeDeletedUserFromGroups(org.esco.dynamicgroups.IEntryDTO)
      */
-    public void removeDeletedUserFromGroups(final IEntryDTO entry) {
+    public synchronized void removeDeletedUserFromGroups(final IEntryDTO entry) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Request to remove from groups the deleted user: " + entry.getId());
         }
@@ -293,34 +329,49 @@ InitializingBean {
         if (userIds.size() > 0) {
             groupsService.addToGroup(definition.getGroupUUID(), userIds);
         }
-
+       
     }
     
     /**
-     * Check all the groups.
-     * Warn : this method must be invocated before the listener is started.
+     * Checks all the groups.
+     * @see org.esco.dynamicgroups.domain.IDomainService#startMembersCheckingProcess()
      */
-    private void checkMembersForDynamicGroups() {
+    public synchronized  void startMembersCheckingProcess() {
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Checks all the dynamic groups.");
+            LOGGER.debug("Starting the checking of the dynamic groups.");
         }
-
-        final Set<DynamicGroupDefinition> definitions = groupsService.getAllDynamicGroupDefinitions();
-        for (DynamicGroupDefinition definition : definitions) {
+        stopCheckingProcess.set(false);
+        
+        
+      
+        // Gets the list of the dynamic groups definitions.
+        // This list is shuffled for the case that only a part of the list is control.
+        final List<DynamicGroupDefinition> definitions = new ArrayList<DynamicGroupDefinition>();
+        definitions.addAll(groupsService.getAllDynamicGroupDefinitions());
+        Collections.shuffle(definitions);
+        
+        final Iterator<DynamicGroupDefinition> definitionsIter = definitions.iterator();
+        
+        // The definitions are checked until the end of the list or the processus is stopped.
+        while (definitionsIter.hasNext() && !stopCheckingProcess.get()) {
+            final DynamicGroupDefinition definition = definitionsIter.next();
             final Set<String> expectedMembers = membersFromDefinitionService.getMembers(definition);
             groupsService.checkGroupMembers(definition, expectedMembers);
         }
         
-        
-        
-        
-        
-        
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("All the dynamic groups are checked.");
+            LOGGER.debug("Dynamic groups checking finished.");
         }
-        
-        
+    }
+    
+    /**
+     * Stops the checking of the members ah the dynamic groups.
+     */
+    public void stopMembersCheckingProcess() {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Stoping the checking of the dynamic groups.");
+        }
+        stopCheckingProcess.set(true);
     }
    
     
@@ -364,10 +415,9 @@ InitializingBean {
      * @param definition The dynamic group definition.
      * @see org.esco.dynamicgroups.domain.IDomainService#handleNewOrModifiedDynamicGroup(DynamicGroupDefinition)
      */
-    public void handleNewOrModifiedDynamicGroup(final DynamicGroupDefinition definition) {
+    public synchronized  void handleNewOrModifiedDynamicGroup(final DynamicGroupDefinition definition) {
         daoService.storeOrModifyDynGroup(definition);
         initialize(definition);
-
     }
 
     /**
@@ -376,7 +426,7 @@ InitializingBean {
      * @return The definition if it exists, null oterwise.
      * @see org.esco.dynamicgroups.domain.IDomainService#getMembershipExpression(java.lang.String)
      */
-    public String getMembershipExpression(final String groupUUID) {
+    public synchronized  String getMembershipExpression(final String groupUUID) {
         final DynGroup group = daoService.getDynGroupByUUID(groupUUID);
         if (group == null) {
             return null;
@@ -455,5 +505,21 @@ InitializingBean {
      */
     public void setStatisticsManager(final IStatisticsManager statisticsManager) {
         this.statisticsManager = statisticsManager;
+    }
+
+    /**
+     * Getter for reportingManager.
+     * @return reportingManager.
+     */
+    public IReportingManager getReportingManager() {
+        return reportingManager;
+    }
+
+    /**
+     * Setter for reportingManager.
+     * @param reportingManager the new value for reportingManager.
+     */
+    public void setReportingManager(final IReportingManager reportingManager) {
+        this.reportingManager = reportingManager;
     }
 }

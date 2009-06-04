@@ -76,5 +76,5 @@ public interface IGroupsDAOService {
      * @param userId The id of the user.
      * @param groups The groups to which the user should become a member.
      */
-    void createMemeberShips(final String userId, final Map<String, DynGroup> groups);
+    void createMemberships(final String userId, final Map<String, DynGroup> groups);
 }

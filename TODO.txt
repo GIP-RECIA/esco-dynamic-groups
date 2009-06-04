@@ -1,21 +1,14 @@
 
-* Serialization du statisticsManager.
+* parametrer la serialization du statisticsManager.
 
 * Rendre impossible l'ajout de membres subjets aux groupes dynamiques.
  
+
 * Cassification
 
 * tâche ant pour la verification de propositions logiques
 
-
-* Reflechir aux problèmes de synchronization lors de la modification ou lors de la creation.
-
- 1 - Groupe Cree
- 2 - Groupe peuplé requette LDAP
- 3 - Modification LDAP
- => Etre sûr que la modification LDAP n'intervient pas avant l'initialisation.
- 
- * Verifier ce qui se passe lorsque le type dynamique est retiré d'un groupe.
+* Verifier ce qui se passe lorsque le type dynamique est retiré d'un groupe.
 
  * revoir la réinitialization de tous les groupes
     - verifier que le client LDAP n'est pas démarré
@@ -24,12 +17,7 @@
 
 OK * Suppression du domainregistry dans le hook -> utiliser un provider.
 
-
-
-* recuperation du timezone suffix dans le cookieManager (i18n ou pas de creation de cookie).
-
-
- - i18n
+OK - i18n
 
  - chaque entree, groupe d'entrée doit être activable/ desactivable.
  - Envoyé par mail.
@@ -54,7 +42,7 @@ Activités des groupes :
 	
 	
 	
-Vérifications de cohérence.	 	
+OK * Vérifications de cohérence.	 	
     N premiers groupes != peuplement obtenu par le processus d'initialisation. 	
  	  
    
@@ -85,3 +73,9 @@ OK * Supprimer l'uid de la liste des attributs dynamiques.
 OK * Utiliser un provider egalement pour les parametres utilisateurs.
 
 OK * Utilisation de ldaps
+
+OK * Rapport uniquement de la vérification des membres au démarrage.
+
+OK * Reflechir aux problèmes de synchronization lors de la modification ou lors de la creation.
+
+* recuperation du timezone suffix dans le cookieManager (i18n ou pas de creation de cookie).

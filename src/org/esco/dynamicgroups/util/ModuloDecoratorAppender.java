@@ -3,12 +3,12 @@
  */
 package org.esco.dynamicgroups.util;
 
+import java.util.Enumeration;
+
 import org.apache.log4j.Appender;
 import org.apache.log4j.AppenderSkeleton;
-import org.apache.log4j.Layout;
-import org.apache.log4j.Logger;
-import org.apache.log4j.spi.ErrorHandler;
-import org.apache.log4j.spi.Filter;
+import org.apache.log4j.helpers.AppenderAttachableImpl;
+import org.apache.log4j.spi.AppenderAttachable;
 import org.apache.log4j.spi.LoggingEvent;
 
 /**
@@ -19,53 +19,50 @@ import org.apache.log4j.spi.LoggingEvent;
  * 29 mai 2009
  *
  */
-public class ModuloDecoratorAppender extends AppenderSkeleton {
-    
+public class ModuloDecoratorAppender extends AppenderSkeleton implements AppenderAttachable {
+
     /** DEfault value for the modulo. */
     private static final int DEF_MODULO = 100;
-    
-    
+
+
     /** The modulo to use. */
     private int modulo = DEF_MODULO;
-    
+
     /** The underlying decorated appender. */
-    private Appender decoratedAppender;
-    
+    private AppenderAttachableImpl decoratedAppenders;
+
     /** Counter for the calls. */
     private int calls;
-    
-    
-    
+
+
+
     /**
      * Builds an instance of ModuloDecoratorAppender.
      */
     public ModuloDecoratorAppender() {
-        super();
-    }
-    
-    /**
-     *  @param filter
-     * @see org.apache.log4j.Appender#addFilter(org.apache.log4j.spi.Filter)
-     */
-    @Override
-    public void addFilter(final Filter filter) {
-        decoratedAppender.addFilter(filter);
+        decoratedAppenders = new AppenderAttachableImpl();
     }
 
-    /**
-     * @see org.apache.log4j.Appender#clearFilters()
-     */
-    @Override
-    public void clearFilters() {
-        decoratedAppender.clearFilters();
-    }
+
 
     /**
      * @see org.apache.log4j.Appender#close()
      */
     @Override
     public void close() {
-       decoratedAppender.close();
+        synchronized (decoratedAppenders) {
+            @SuppressWarnings("unchecked")
+            final Enumeration appendersIt = decoratedAppenders.getAllAppenders();
+
+            if (appendersIt != null) {
+                while (appendersIt.hasMoreElements()) {
+                    final Object appenderObj = appendersIt.nextElement();
+                    if (appenderObj instanceof Appender) {
+                        ((Appender) appenderObj).close();
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -76,71 +73,27 @@ public class ModuloDecoratorAppender extends AppenderSkeleton {
     @Override
     public void doAppend(final LoggingEvent event) {
         boolean actuallyAppend;
+
         synchronized (this) {
             actuallyAppend = (calls++ % modulo) == 0;
         }
+
+        
         if (actuallyAppend) {
-            decoratedAppender.doAppend(event);
+
+            @SuppressWarnings("unchecked")
+            final Enumeration appendersIt = decoratedAppenders.getAllAppenders();
+
+            if (appendersIt != null) {
+                while (appendersIt.hasMoreElements()) {
+                    final Object appenderObj = appendersIt.nextElement();
+                    if (appenderObj instanceof Appender) {
+                        ((Appender) appenderObj).doAppend(event);
+                    }
+                }
+            }
         }
-
     }
-
-    /**
-     * @return ErrorHandler
-     * @see org.apache.log4j.Appender#getErrorHandler()
-     */
-    @Override
-    public ErrorHandler getErrorHandler() {
-       return decoratedAppender.getErrorHandler();
-    }
-
-    /**
-     * @return Filter
-     * @see org.apache.log4j.Appender#getFilter()
-     */
-    @Override
-    public Filter getFilter() {
-       return decoratedAppender.getFilter();
-    }
-
-    /**
-     * @return Layout
-     * @see org.apache.log4j.Appender#getLayout()
-     */
-    @Override
-    public Layout getLayout() {
-        return decoratedAppender.getLayout();
-    }
-
-    /**
-     * This Appender does not require a layout.
-     * @return boolean.
-     * @see org.apache.log4j.Appender#requiresLayout()
-     */
-    @Override
-    public boolean requiresLayout() {
-      return false;
-    }
-
-    /**
-     * @param arg0
-     * @see org.apache.log4j.Appender#setErrorHandler(org.apache.log4j.spi.ErrorHandler)
-     */
-    @Override
-    public void setErrorHandler(final ErrorHandler arg0) {
-        decoratedAppender.setErrorHandler(arg0);
-    }
-
-    /**
-     * @param arg0
-     * @see org.apache.log4j.Appender#setLayout(org.apache.log4j.Layout)
-     */
-    @Override
-    public void setLayout(final Layout arg0) {
-        decoratedAppender.setLayout(arg0);
-    }
-
-  
 
     /**
      * Getter for modulo.
@@ -159,33 +112,104 @@ public class ModuloDecoratorAppender extends AppenderSkeleton {
     }
 
     /**
-     * Getter for decoratedAppender.
-     * @return decoratedAppender.
-     */
-    public Appender getDecoratedAppender() {
-        return decoratedAppender;
-    }
-
-    /**
-     * Setter for decoratedAppender.
-     * @param decoratedAppender the new value for decoratedAppender.
-     */
-    public void setDecoratedAppender(final String decoratedAppenderName) {
-       
-        this.decoratedAppender = decoratedAppender;
-    }
-    
-    
-    /**
-     * @param loggingEvent.
+     * Performs actual logging.
+     * @param loggingEvent The event to log.
      * @see org.apache.log4j.AppenderSkeleton#append(org.apache.log4j.spi.LoggingEvent)
      */
     @Override
     protected void append(final LoggingEvent loggingEvent) {
         doAppend(loggingEvent);
-        
     }
 
-   
+    /**
+     * Add an appender.
+     * @param appender The new appender.
+     * @see org.apache.log4j.spi.AppenderAttachable#addAppender(org.apache.log4j.Appender)
+     */
+    public void addAppender(final Appender appender) {
+        synchronized (decoratedAppenders) {
+            decoratedAppenders.addAppender(appender);
+        }
+    }
+
+    /**
+     * Gives all the decorated appenders.     
+     * @return The decorated appenders.
+     * @see org.apache.log4j.spi.AppenderAttachable#getAllAppenders()
+     */
+    @SuppressWarnings("unchecked")
+    public Enumeration getAllAppenders() {
+        synchronized (decoratedAppenders) {
+            return decoratedAppenders.getAllAppenders();
+        }
+    }
+
+    /**
+     * Gives an appender.
+     * @param appenderName The name of the appender to give.
+     * @return The appender.
+     * @see org.apache.log4j.spi.AppenderAttachable#getAppender(java.lang.String)
+     */
+    public Appender getAppender(final String appenderName) {
+        synchronized (decoratedAppenders) {
+            return decoratedAppenders.getAppender(appenderName);
+        }
+    }
+
+
+    /**
+     * Tests if an appender is attached.
+     * @param appender The appender.
+     * @return True if the appender is attached.
+     * @see org.apache.log4j.spi.AppenderAttachable#isAttached(org.apache.log4j.Appender)
+     */
+    public boolean isAttached(final Appender appender) {
+        synchronized (decoratedAppenders) {
+            return decoratedAppenders.isAttached(appender);
+        }
+    }
+
+    /**
+     * Removes and closes all attached appenders.
+     * 
+     * @see org.apache.log4j.spi.AppenderAttachable#removeAllAppenders()
+     */
+    public void removeAllAppenders() {
+        synchronized (decoratedAppenders) {
+            decoratedAppenders.removeAllAppenders();
+        }
+    }
+
+    /**
+     * Removes an appender.
+     * @param appender The appender to remove.
+     * @see org.apache.log4j.spi.AppenderAttachable#removeAppender(org.apache.log4j.Appender)
+     */
+    public void removeAppender(final Appender appender) {
+        synchronized (decoratedAppenders) {
+            decoratedAppenders.removeAppender(appender);
+        }
+    }
+
+    /**
+     * Removes an appender.
+     * @param appenderName The name of the appender to remove.
+     * @see org.apache.log4j.spi.AppenderAttachable#removeAppender(java.lang.String)
+     */
+    public void removeAppender(final String appenderName) {
+        synchronized (decoratedAppenders) {
+            decoratedAppenders.removeAppender(appenderName);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean requiresLayout() {
+      return false;
+    }
+
+
 
 }

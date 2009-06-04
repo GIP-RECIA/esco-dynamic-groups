@@ -37,6 +37,9 @@ esco.dynamic.groups.reporting.handle.groups.undefined = true
 # Reports the groups impacted by modifications in the persons backend. 
 esco.dynamic.groups.reporting.handle.groups.activity = true
 
+# Reports invalid members when checking the effective members of the dynamic groups. 
+esco.dynamic.groups.reporting.handle.members.checking = true
+
 
 #-------------------------------------------------------------------------#
 # Mail section
