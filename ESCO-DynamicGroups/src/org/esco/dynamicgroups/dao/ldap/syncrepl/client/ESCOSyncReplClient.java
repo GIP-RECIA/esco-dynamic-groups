@@ -33,6 +33,9 @@ public class ESCOSyncReplClient implements InitializingBean {
 
     /** Number of idle loops between two marks. */
     private static final int MARK_INTERVAL = 10;
+    
+    /** To convert seconds into milliseconds. */
+    private static final int SECONDS_TO_MILLIS_FACTOR = 1000;
 
     /** Idle duration for the initialization step. */
     private static final int REFRESH_STAGE_IDLE = 1000;
@@ -54,6 +57,7 @@ public class ESCOSyncReplClient implements InitializingBean {
 
     /** Messages handler. */
     private ISyncReplMessagesHandler messagesHandler;
+    
     
     /** The LDAP connection manager. */
     private LDAPConnectionManager connectionManager;
@@ -112,6 +116,7 @@ public class ESCOSyncReplClient implements InitializingBean {
                 + " can't be null.");
         
         ldapParameters = (LDAPPersonsParametersSection) parametersProvider.getPersonsParametersSection();
+       
     }
 
     /**
@@ -170,7 +175,9 @@ public class ESCOSyncReplClient implements InitializingBean {
                         false,                 
                         null, 
                         constraints);
+                logger.info("---------------------------------");
                 logger.info("SyncRepl Client connected.");
+                logger.info("---------------------------------");
             } catch (LDAPException e) {
                 logger.fatal(e, e);
 
@@ -202,7 +209,7 @@ public class ESCOSyncReplClient implements InitializingBean {
         setStopRequest(false);
         connect();
 
-        final int idle = ldapParameters.getSyncreplClientIdle();
+        final int idle = ldapParameters.getSyncreplClientIdle() * SECONDS_TO_MILLIS_FACTOR;
 
         if (queue != null) {
             int contextualIdle = REFRESH_STAGE_IDLE;

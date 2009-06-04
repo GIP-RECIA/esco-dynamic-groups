@@ -11,7 +11,7 @@ import org.esco.dynamicgroups.domain.beans.I18NManager;
  * 5 mai 2009
  *
  */
-public class GroupsAddOrDeletedStatsEntry implements IGroupAddOrDeletedStatsEntry {
+public class GroupsCreatedOrDeletedStatsEntry implements IGroupCreatedOrDeletedStatsEntry {
 
     /** Serial version UID.*/
     private static final long serialVersionUID = -4524167486981975737L;
@@ -35,10 +35,10 @@ public class GroupsAddOrDeletedStatsEntry implements IGroupAddOrDeletedStatsEntr
     private transient I18NManager i18n;
 
     /**
-     * Builds an instance of GroupsAddOrDeletedStatsEntry.
+     * Builds an instance of GroupsCreatedOrDeletedStatsEntry.
      * @param i18n The i18n manager to use.
      */
-    public GroupsAddOrDeletedStatsEntry(final I18NManager i18n) {
+    public GroupsCreatedOrDeletedStatsEntry(final I18NManager i18n) {
         this.i18n = i18n;
     }
     
@@ -74,7 +74,8 @@ public class GroupsAddOrDeletedStatsEntry implements IGroupAddOrDeletedStatsEntr
     /**
      * Handles the creation of a group.
      * @param groupName The name of the group.
-     * @see org.esco.dynamicgroups.domain.reporting.statistics.IGroupAddOrDeletedStatsEntry#handleCreatedGroup(String)
+     * @see org.esco.dynamicgroups.domain.reporting.statistics.IGroupCreatedOrDeletedStatsEntry#
+     * handleCreatedGroup(String)
      */
     public void handleCreatedGroup(final String groupName) {
        createdCount++;
@@ -83,11 +84,29 @@ public class GroupsAddOrDeletedStatsEntry implements IGroupAddOrDeletedStatsEntr
     /**
      * Handles the deletion of a group.
      * @param groupName The name of the group.
-     * @see org.esco.dynamicgroups.domain.reporting.statistics.IGroupAddOrDeletedStatsEntry#handleDeletedGroup(String)
+     * @see org.esco.dynamicgroups.domain.reporting.statistics.IGroupCreatedOrDeletedStatsEntry#
+     * handleDeletedGroup(String)
      */
     public void handleDeletedGroup(final String groupName) {
         deletedCount++;
         
+    }
+    
+    /**
+     * Initializes an instance.
+     * @param initializationValues The instance that contains 
+     * the initialization values.
+     * @see org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsEntry#initializeFrom(IStatisticsEntry)
+     */
+    public void initializeFrom(final IStatisticsEntry initializationValues) {
+
+        if (!(initializationValues instanceof GroupsCreatedOrDeletedStatsEntry)) {
+            throw new IllegalArgumentException("The parameter is not an instance of " + getClass().getName());
+        }
+        
+        final GroupsCreatedOrDeletedStatsEntry other = (GroupsCreatedOrDeletedStatsEntry) initializationValues;
+        this.createdCount = other.createdCount;
+        this.deletedCount = other.deletedCount;
     }
 
 }

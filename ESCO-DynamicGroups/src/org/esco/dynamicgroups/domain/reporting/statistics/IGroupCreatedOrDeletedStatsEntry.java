@@ -9,7 +9,7 @@ package org.esco.dynamicgroups.domain.reporting.statistics;
  * 5 mai 2009
  *
  */
-public interface IGroupAddOrDeletedStatsEntry extends IStatisticsEntry {
+public interface IGroupCreatedOrDeletedStatsEntry extends IStatisticsEntry {
 
     /**
      * Handles the creation of a group.

@@ -58,9 +58,6 @@ public class CookieManager implements InitializingBean, Serializable {
     /** Formatter for the date in the csn entry of a new cookie. */
     private static final SimpleDateFormat DATE_FORMATER = new SimpleDateFormat(DATE_PATTERN);
 
-    /** Suffix for the date field in the entry csn. */
-    private static final String TIMEZONE_SUFFIX = "Z";
-   
     /** The user parameters provider. */
     private ParametersProvider parametersProvider;
     
@@ -213,7 +210,7 @@ public class CookieManager implements InitializingBean, Serializable {
      */
     private byte[] buildNewCookie() {
         final Date date = Calendar.getInstance().getTime();
-        final String dateEntry = DATE_FORMATER.format(date) + TIMEZONE_SUFFIX;
+        final String dateEntry = DATE_FORMATER.format(date);
         final String cookie = CSN_ENTRY + dateEntry + DEFAULT_CSN_SUFFIX 
             + CSN_RID_FIELDS_SEP + RID_ENTRY + ldapParameters.getSyncReplRID();
 

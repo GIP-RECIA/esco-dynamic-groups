@@ -55,10 +55,10 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
     private String definitionFieldInternal;
 
     /** The statistics manager.*/
-    private IStatisticsManager statisticsManager;
+    private transient IStatisticsManager statisticsManager;
 
     /** The domain service to use to handle thy operations associated to the dynamic groups. */
-    private IDomainService domainService;
+    private transient IDomainService domainService;
 
     /**
      * Builds an instance of ESCOGroupHooks.

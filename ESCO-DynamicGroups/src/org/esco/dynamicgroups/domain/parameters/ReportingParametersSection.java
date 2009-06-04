@@ -20,11 +20,11 @@ public class ReportingParametersSection extends DGParametersSection {
      /** Serial version UID. */
     private static final long serialVersionUID = -186884409502387377L;
 
-    /** Prefix for the properties. */
-    private static final String PROPERTIES_PREFIX = "esco.dynamic.groups.";
-
-    /** Logger. */
+     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(ReportingParametersSection.class);
+    
+    /** Default value fot the check of the dynamic groups members. */
+    private static final int DEF_MB_CHK_DUR = 0;
     
     /** The cron expression used to send the reports. */
     private String reportCronExpression;
@@ -45,6 +45,12 @@ public class ReportingParametersSection extends DGParametersSection {
     
     /** Flag for the stats on the groups activities. */
     private boolean countGroupsActivity;
+    
+    /** Flag to determine if the missing or the invalid memebers should be counted. */
+    private boolean countInvalidOrMissingMembers;
+    
+    /** Limit for the duration of the members checking process. */
+    private int membersCheckingDuration;
     
     
     /**
@@ -81,6 +87,8 @@ public class ReportingParametersSection extends DGParametersSection {
         final String countGroupKey = PROPERTIES_PREFIX + "reporting.handle.groups";
         final String countUndefGroupKey = PROPERTIES_PREFIX + "reporting.handle.groups.undefined";
         final String countGroupActivityKey = PROPERTIES_PREFIX + "reporting.handle.groups.activity";
+        final String countInvalidOrMissingMembKey = PROPERTIES_PREFIX + "reporting.handle.members.checking";
+        final String mbCheckDurationKey = PROPERTIES_PREFIX + "reporting.handle.members.checking.duration.minutes";
       
         // Retrieves the values.
         setReportCronExpression(parseStringFromProperty(params, reportCronExprKey));
@@ -89,6 +97,8 @@ public class ReportingParametersSection extends DGParametersSection {
         setCountGroupCreationDeletion(parseBooleanFromProperty(params, countGroupKey));
         setCountUndefiedGroups(parseBooleanFromProperty(params, countUndefGroupKey));
         setCountGroupsActivity(parseBooleanFromProperty(params, countGroupActivityKey));
+        setCountInvalidOrMissingMembers(parseBooleanFromProperty(params, countInvalidOrMissingMembKey));
+        setMembersCheckingDuration(parsePositiveIntegerSafeFromProperty(params, mbCheckDurationKey, DEF_MB_CHK_DUR));
     }
 
    
@@ -108,6 +118,9 @@ public class ReportingParametersSection extends DGParametersSection {
         toStringFormatProperty(sb, "Count groups creation/deletion: ", getCountGroupCreationDeletion());
         toStringFormatProperty(sb, "Count groups activity: ", getCountGroupsActivity());
         toStringFormatProperty(sb, "Count undefined groups: ", getCountUndefiedGroups());
+        toStringFormatProperty(sb, "Count invalid or missing members: ", getCountInvalidOrMissingMembers());
+        toStringFormatProperty(sb, "Members checking duration: ", getMembersCheckingDuration());
+        
 
         toStringFormatSingleEntry(sb, "}");
         return sb.toString();
@@ -207,5 +220,37 @@ public class ReportingParametersSection extends DGParametersSection {
      */
     public void setCountGroupsActivity(final boolean countGroupsActivity) {
         this.countGroupsActivity = countGroupsActivity;
+    }
+
+    /**
+     * Getter for countInvalidOrMissingMembers.
+     * @return countInvalidOrMissingMembers.
+     */
+    public boolean getCountInvalidOrMissingMembers() {
+        return countInvalidOrMissingMembers;
+    }
+
+    /**
+     * Setter for countInvalidOrMissingMembers.
+     * @param countInvalidOrMissingMembers the new value for countInvalidOrMissingMembers.
+     */
+    public void setCountInvalidOrMissingMembers(final boolean countInvalidOrMissingMembers) {
+        this.countInvalidOrMissingMembers = countInvalidOrMissingMembers;
+    }
+
+    /**
+     * Getter for membersCheckingDuration.
+     * @return membersCheckingDuration.
+     */
+    public int getMembersCheckingDuration() {
+        return membersCheckingDuration;
+    }
+
+    /**
+     * Setter for membersCheckingDuration.
+     * @param membersCheckingDuration the new value for membersCheckingDuration.
+     */
+    public void setMembersCheckingDuration(final int membersCheckingDuration) {
+        this.membersCheckingDuration = membersCheckingDuration;
     }
 }

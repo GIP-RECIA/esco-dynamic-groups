@@ -20,7 +20,7 @@ import org.esco.dynamicgroups.domain.beans.I18NManager;
  * 6 mai 2009
  *
  */
-public class GroupsAcrivityStatsEntry implements IGroupsActivityStatsEntry {
+public class GroupsActivityStatsEntry implements IGroupsActivityStatsEntry {
     
     /**
      * Stores the activity for a given group.
@@ -45,7 +45,17 @@ public class GroupsAcrivityStatsEntry implements IGroupsActivityStatsEntry {
         public GroupActivity() {
             super();
         }
-
+        
+        /**
+         * Builds an instance of ActivityEntry.
+         * @param addedMembersCount The number of members added.
+         * @param removedMembersCount The number of removed members.
+         */
+        public GroupActivity(final int addedMembersCount, final int removedMembersCount) {
+            this.addedMembersCount = addedMembersCount;
+            this.removedMembersCount = removedMembersCount;
+        }
+        
         /**
          * Getter for addedMembersCount.
          * @return addedMembersCount.
@@ -105,10 +115,10 @@ public class GroupsAcrivityStatsEntry implements IGroupsActivityStatsEntry {
     
     
     /**
-     * Builds an instance of GroupsAcrivityStatsEntry.
+     * Builds an instance of GroupsActivityStatsEntry.
      * @param i18n The i18n manager.
      */
-    public GroupsAcrivityStatsEntry(final I18NManager i18n) {
+    public GroupsActivityStatsEntry(final I18NManager i18n) {
         this.i18n = i18n;
     }
 
@@ -174,6 +184,26 @@ public class GroupsAcrivityStatsEntry implements IGroupsActivityStatsEntry {
 
     }
 
+    
+    /**
+     * Initializes an instance.
+     * @param initializationValues The instance that contains 
+     * the initialization values.
+     * @see org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsEntry#initializeFrom(IStatisticsEntry)
+     */
+    public void initializeFrom(final IStatisticsEntry initializationValues) {
+
+        if (!(initializationValues instanceof GroupsActivityStatsEntry)) {
+            throw new IllegalArgumentException("The parameter is not an instance of " + getClass().getName());
+        }
+        final GroupsActivityStatsEntry other = (GroupsActivityStatsEntry) initializationValues;
+        
+        for (String key : other.activities.keySet()) {
+            this.activities.put(key, other.activities.get(key));
+        }
+        
+    }
+    
     /**
      * Gives the string that represents the entry.
      * @return The text that represents the entry.
@@ -181,6 +211,15 @@ public class GroupsAcrivityStatsEntry implements IGroupsActivityStatsEntry {
      */
     public String getEntry() {
         return String.valueOf(activities.size());
+    }
+    
+    /**
+     * Tests if some groups are active.
+     * @return True if at leastone group is active.
+     * @see org.esco.dynamicgroups.domain.reporting.statistics.IGroupsActivityStatsEntry#hasActiveGroup()
+     */
+    public boolean hasActiveGroup() {
+        return activities.size() > 0;
     }
 
     /**

@@ -10,10 +10,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.dao.grouper.IGroupsDAOService;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncStateControl;
+import org.esco.dynamicgroups.domain.IDomainService;
 import org.esco.dynamicgroups.domain.beans.I18NManager;
 import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
 import org.esco.dynamicgroups.domain.parameters.ReportingParametersSection;
@@ -56,7 +58,7 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
     private ISyncReplNotificationsStats syncReplNotifications;
 
     /** The groups statistics. */
-    private IGroupAddOrDeletedStatsEntry groupsStats;
+    private IGroupCreatedOrDeletedStatsEntry groupsStats;
 
     /** Statistics for the undefined groups. */
     private IUndefinedGroupStatsEntry undefGroupsStats;
@@ -64,8 +66,15 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
     /** Statistics for the groups activity. */
     private IGroupsActivityStatsEntry groupsActivityStats;
 
+    /** Statistics for the check of invalid or missing members. */
+    private ICheckedMembersStatsEntry checkedMembersStats;
+
     /** The report formatter to use. */
     private transient IReportFormatter reportFormatter;
+
+    /** The domain service used to check the members of the
+     * dynamic groups. */
+    private transient IDomainService domainService;
 
     /** The group service. */
     private transient IGroupsDAOService groupsService;
@@ -87,49 +96,60 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
      */
     public void afterPropertiesSet() throws Exception {
 
+        final String canNotBeNull = " can't be null.";
+
         Assert.notNull(this.parametersProvider, 
                 "The property parametersProvider in the class " + this.getClass().getName() 
-                + " can't be null.");
+                + canNotBeNull);
 
         Assert.notNull(this.i18n, 
                 "The property i18n in the class " + this.getClass().getName() 
-                + " can't be null.");
+                + canNotBeNull);
 
         Assert.notNull(this.reportFormatter, 
                 "The property reportFormatter in the class " + this.getClass().getName() 
-                + " can't be null.");
+                + canNotBeNull);
 
         Assert.notNull(this.resourceUtil, 
                 "The property resourceUtil in the class " + this.getClass().getName() 
-                + " can't be null.");
+                + canNotBeNull);
+
+        Assert.notNull(this.groupsService, 
+                "The property groupsService in the class " + this.getClass().getName() 
+                + canNotBeNull);
+
+        Assert.notNull(this.domainService, 
+                "The property domainService in the class "  + this.getClass().getName() 
+                + canNotBeNull);
 
         reportingParameters = (ReportingParametersSection) parametersProvider.getReportingParametersSection();
 
         if (reportingParameters.getCountUndefiedGroups()) {
-            Assert.notNull(this.groupsService, 
-                    "The property groupsService in the class " + this.getClass().getName() 
-                    + " can't be null.");
             undefGroupsStats = new UndefinedGroupStatsEntry(groupsService, i18n);
         }
 
         if (reportingParameters.getCountDefinitionModifications()) {
-            definitionModifications = new DefinitionModificationsStats(i18n);
+            definitionModifications = new DefinitionModificationsStatsEntry(i18n);
         }
 
         if (reportingParameters.getCountSyncReplNotifications()) {
-            syncReplNotifications = new SyncReplNotificationsStats(i18n);
+            syncReplNotifications = new SyncReplNotificationsStatsEntry(i18n);
         }
 
         if (reportingParameters.getCountGroupCreationDeletion()) {
-            groupsStats = new GroupsAddOrDeletedStatsEntry(i18n);
+            groupsStats = new GroupsCreatedOrDeletedStatsEntry(i18n);
         }
 
         if (reportingParameters.getCountGroupsActivity()) {
-            groupsActivityStats = new GroupsAcrivityStatsEntry(i18n);
+            groupsActivityStats = new GroupsActivityStatsEntry(i18n);
+        }
+
+        if (reportingParameters.getCountInvalidOrMissingMembers()) {
+            checkedMembersStats = new CheckedMembersStatsEntry(i18n);
         }
     }
-    
-        /**
+
+    /**
      * Getter for parametersProvider.
      * @return parametersProvider.
      */
@@ -146,6 +166,61 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
     }
 
     /**
+     * Generates the report for the verification of the members of the dynamic groups.
+     * For this report all the members are checked, without a time limit.
+     * @return The Report string.
+     * @see org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager#generateGroupsMembersCheckReport()
+     */
+    public String generateGroupsMembersCheckReport() {
+        handleStartOfMembersCheckingProcess();
+        domainService.startMembersCheckingProcess();
+
+        handleEndOfMembersCheckingProcess();
+
+        String report = "";
+
+        if (checkedMembersStats != null) {
+            synchronized (checkedMembersStats) {
+                
+                if (checkedMembersStats.checkPerformed()) {
+                    
+                    LOGGER.info(checkedMembersStats.getLabel() + checkedMembersStats.getEntry());
+                    
+                    report += reportFormatter.formatEntry(checkedMembersStats.getLabel(), 
+                            checkedMembersStats.getEntry());
+                    report += reportFormatter.getNewLine();
+                    final Set<String> invalidGroups = checkedMembersStats.getInvalidGroups();
+                    final int paddSimple = 3;
+                    final int paddDouble = paddSimple * 2;
+
+
+                    for (String invalidGroup : invalidGroups) {
+                        report += reportFormatter.padd(invalidGroup, paddSimple);
+                        report += reportFormatter.getNewLine();
+
+                        MissingOrInvalidMembersEntry invalidMbInfos = 
+                            checkedMembersStats.getCheckingResult(invalidGroup);
+
+                        if (invalidMbInfos.hasInvalidMembers()) {
+                            report += reportFormatter.padd(checkedMembersStats.getInvalidMembersLabel() 
+                                    + invalidMbInfos.getInvalidMembers(), paddDouble);
+                        }
+
+                        if (invalidMbInfos.hasMissingMembers()) {
+                            report += reportFormatter.padd(checkedMembersStats.getMissingMembersLabel() 
+                                    + invalidMbInfos.getMissingMembers(), paddDouble);
+                        }
+                        report += reportFormatter.getNewLine();
+                    }
+                }
+            }
+        }
+        report += reportFormatter.getNewLine();
+
+        return report;
+    }
+
+    /**
      * Generates the report.
      * @return The lines of the report.
      * @see org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager#generateReport()
@@ -155,6 +230,7 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
         String report = "";
         boolean separateGroupsActivity = false;
 
+        // --- SyncRepl Notifications section.
         if (syncReplNotifications != null) {
             synchronized (syncReplNotifications) {
                 LOGGER.info(syncReplNotifications.getLabel() + syncReplNotifications.getEntry());
@@ -166,6 +242,8 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
             report += reportFormatter.getNewLine();
         }
 
+        
+        // -- Groups stats section.    
         if (groupsStats != null) {
             separateGroupsActivity = true;
             synchronized (groupsStats) {
@@ -177,6 +255,7 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
             }
         }
 
+        // --- Modifications of definition section.
         if (definitionModifications != null) {
             separateGroupsActivity = true;
             synchronized (definitionModifications) {
@@ -188,6 +267,7 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
             }
         }
 
+        // --- Dynamic groups without a members definitions.
         if (undefGroupsStats != null) {
             separateGroupsActivity = true;
             synchronized (undefGroupsStats) {
@@ -195,15 +275,22 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
                 LOGGER.info(undefGroupsStats.getUndefinedGroupNames());
                 report += reportFormatter.formatEntry(undefGroupsStats.getLabel(), 
                         undefGroupsStats.getEntry());
-                report += reportFormatter.getNewLine();
-                report += reportFormatter.format(undefGroupsStats.getUndefGroupNamesLabel());
-                report += reportFormatter.formatList(undefGroupsStats.getUndefinedGroupNames());
+
+                if (undefGroupsStats.hasUndefinedGroup()) {
+                    report += reportFormatter.getNewLine();
+                    report += reportFormatter.format(undefGroupsStats.getUndefGroupNamesLabel());
+                    report += reportFormatter.formatList(undefGroupsStats.getUndefinedGroupNames());
+                }
             }
             report += reportFormatter.getNewLine();
             report += reportFormatter.getNewLine();
         }
 
+        boolean separateMembersCheck = separateGroupsActivity;
+
+        // --- Activity of dynamic groups section.
         if (groupsActivityStats != null) {
+            separateMembersCheck = true;
             if (separateGroupsActivity) {
                 report += reportFormatter.getNewLine();
                 report += reportFormatter.getSeparation();
@@ -214,11 +301,39 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
                 LOGGER.info(groupsActivityStats.getLabel() + groupsActivityStats.getEntry());
 
                 report += reportFormatter.formatEntry(groupsActivityStats.getLabel(), groupsActivityStats.getEntry());
-                report += reportFormatter.getNewLine();
-                report += reportFormatter.format(groupsActivityStats.getActiveGroupsLabel());
-                report += reportFormatter.formatList(groupsActivityStats.getActiveGroups());
+
+                if (groupsActivityStats.hasActiveGroup()) {
+                    report += reportFormatter.getNewLine();
+                    report += reportFormatter.format(groupsActivityStats.getActiveGroupsLabel());
+                    report += reportFormatter.formatList(groupsActivityStats.getActiveGroups());
+                }
             }
+            report += reportFormatter.getNewLine();
         }
+
+
+        // --- Memebers check section.
+        if (checkedMembersStats != null) {
+            
+            // Creates a timer to stop the processus if needed.
+            final int durationMinutes = reportingParameters.getMembersCheckingDuration();
+            if (durationMinutes > 0) {
+                new CheckingMembersProcessStopper(domainService, durationMinutes);
+            }
+            
+            // generate the report.
+            final String membersCheckReport = generateGroupsMembersCheckReport();
+
+            if (separateMembersCheck && !"".equals(membersCheckReport)) {
+                report += reportFormatter.getNewLine();
+                report += reportFormatter.getSeparation();
+                report += reportFormatter.getNewLine();
+            }
+
+            report += membersCheckReport;
+        }
+        report += reportFormatter.getNewLine();
+
         return report;
     }
 
@@ -298,8 +413,13 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
                 groupsActivityStats.reset();
             }
         }
-    }
 
+        if (checkedMembersStats != null) {
+            synchronized (checkedMembersStats) {
+                checkedMembersStats.reset();
+            }
+        }
+    }
 
     /**
      * Handles the creation of a group.
@@ -327,7 +447,6 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
         }
     }
 
-
     /**
      * Handles the add of a memebr in a group.
      * @param groupName The name of the group.
@@ -352,6 +471,67 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
         if (groupsActivityStats != null) {
             synchronized (groupsActivityStats) {
                 groupsActivityStats.handleRemovedUser(groupName, userId);
+            }
+        }
+    }
+
+    /** 
+     * Handles a group with an invalid member.
+     * @param groupName The name of the group.
+     * @param userId The id of the invalid memeber.
+     */
+    public void handleInvalidMember(final String groupName, final String userId) {
+        if (checkedMembersStats != null) {
+            synchronized (checkedMembersStats) {
+                checkedMembersStats.handleInvalidMember(groupName, userId);
+            }
+        }
+    }
+
+    /** 
+     * Handles a group with a missing member.
+     * @param groupName The name of the group.
+     * @param userId The id of the missing member.
+     */
+    public void handleMissingMember(final String groupName, final String userId) {
+        if (checkedMembersStats != null) {
+            synchronized (checkedMembersStats) {
+                checkedMembersStats.handleMissingMember(groupName, userId);
+            }
+        }
+    }
+
+    /**
+     * Handles the notification of the verification of the members of a group.
+     * @param groupName The name of the checked group.
+     * @see org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager#handleGroupMembersChecked(String)
+     */
+    public void handleGroupMembersChecked(final String groupName) {
+        if (checkedMembersStats != null) {
+            synchronized (checkedMembersStats) {
+                checkedMembersStats.handleCheckedGroup(groupName);
+            }
+        }
+    }
+
+    /**
+     * Handles the start of the members verification process.
+     */
+    public void handleStartOfMembersCheckingProcess() {
+        if (checkedMembersStats != null) {
+            synchronized (checkedMembersStats) { 
+                checkedMembersStats.handleStartOfProcess();
+            }
+        }
+    }
+
+    /**
+     * Handles the end of the  members verification process.
+     */
+    public void handleEndOfMembersCheckingProcess() {
+        if (checkedMembersStats != null) {
+            synchronized (checkedMembersStats) {
+                checkedMembersStats.handleEndOfProcess();
             }
         }
     }
@@ -392,7 +572,7 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
      * Getter for groupsStats.
      * @return groupsStats.
      */
-    public IGroupAddOrDeletedStatsEntry getGroupsStats() {
+    public IGroupCreatedOrDeletedStatsEntry getGroupsStats() {
         return groupsStats;
     }
 
@@ -400,7 +580,7 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
      * Setter for groupsStats.
      * @param groupsStats the new value for groupsStats.
      */
-    public void setGroupsStats(final IGroupAddOrDeletedStatsEntry groupsStats) {
+    public void setGroupsStats(final IGroupCreatedOrDeletedStatsEntry groupsStats) {
         this.groupsStats = groupsStats;
     }
 
@@ -434,17 +614,16 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
                 final ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
                 final StatisticsManager previousInstance = (StatisticsManager) ois.readObject();
                 if (previousInstance != null) {
-                    this.definitionModifications = previousInstance.definitionModifications;
-                    this.syncReplNotifications = previousInstance.syncReplNotifications;
-                    this.groupsStats = previousInstance.groupsStats;
-                    this.undefGroupsStats = previousInstance.undefGroupsStats;
-                    this.groupsActivityStats = previousInstance.groupsActivityStats;
+                    this.definitionModifications.initializeFrom(previousInstance.definitionModifications);
+                    this.syncReplNotifications.initializeFrom(previousInstance.syncReplNotifications);
+                    this.groupsStats.initializeFrom(previousInstance.groupsStats);
+                    this.undefGroupsStats.initializeFrom(previousInstance.undefGroupsStats);
+                    this.groupsActivityStats.initializeFrom(previousInstance.groupsActivityStats);
                 }
             } else {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Serialization file not found: " + file.getAbsolutePath());
                 }
-                
             }
         } catch (IOException ioe) {
             LOGGER.error(ioe, ioe);
@@ -462,7 +641,7 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
         try {
             final File file = resourceUtil.getResource(SER_FILE_NAME).getFile();
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Serialization of the instance intothe file: " + file.getAbsolutePath());
+                LOGGER.debug("Serialization of the instance into the file: " + file.getAbsolutePath());
             }
             final ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file));
             oos.writeObject(this);
@@ -487,4 +666,19 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
         this.resourceUtil = resourceUtil;
     }
 
+    /**
+     * Getter for domainService.
+     * @return domainService.
+     */
+    public IDomainService getDomainService() {
+        return domainService;
+    }
+
+    /**
+     * Setter for domainService.
+     * @param domainService the new value for domainService.
+     */
+    public void setDomainService(final IDomainService domainService) {
+        this.domainService = domainService;
+    }
 }

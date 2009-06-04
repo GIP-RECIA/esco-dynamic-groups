@@ -63,19 +63,12 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
     /** The Grouper session util instance. */
     private GrouperSessionUtil sessionUtil;
 
-    //    /** The dynamic type in grouper. */
-    //    private String grouperDynamicType;
-    //    
+   
     /** The user parameters provider. */
     private ParametersProvider parametersProvider;
 
     /** The grouper parameters. */
     private GroupsParametersSection grouperParameters;
-
-    //    /** Flag used to determine if a deleted user should be removed from all groups 
-    //     * or only from the dynamic ones.
-    //     */
-    //    private boolean removeFromAllGroups;
 
     /** Initialization flag. */
     private boolean initialized;
@@ -294,10 +287,14 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
         
         if (group != null) {
 
+            final String groupName = group.getName();
+            
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Checking group: " + group.getName());
+                LOGGER.debug("Checking group: " + groupName);
             }
 
+            statisticsManager.handleGroupMembersChecked(groupName);
+            
 
             // Builds the actual members of the group in order to compare
             // with the expected one.
@@ -319,7 +316,8 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
             for (String expectedMember : expectedMembers) {
                 if (!actualMembers.contains(expectedMember)) {
                     LOGGER.warn("Checking group: " 
-                            + group.getName() + " member " + expectedMember + " not found (added).");
+                            + groupName + " member " + expectedMember + " not found (added).");
+                    statisticsManager.handleMissingMember(groupName, expectedMember);
                     try {
                         final Subject subj = SubjectFinder.findById(expectedMember);
                         group.addMember(subj);
@@ -338,12 +336,12 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
 
             // All the remaining uid in the actual list are invalid, so the corresponding subjects
             // are removed from the group.
-            for (String invalidMemeber : actualMembers) {
+            for (String invalidMember : actualMembers) {
                 LOGGER.warn("Checking group: " 
-                        + group.getName() + " member " + invalidMemeber + " is invalid (removed).");
-
+                        + groupName + " member " + invalidMember + " is invalid (removed).");
+                statisticsManager.handleInvalidMember(groupName, invalidMember);
                 try {
-                    Subject subj = SubjectFinder.findById(invalidMemeber);
+                    Subject subj = SubjectFinder.findById(invalidMember);
                     group.deleteMember(subj);
                 } catch (SubjectNotFoundException e) {
                     LOGGER.error(e, e);
@@ -573,6 +571,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
                         + " for the group: " + group.getName() + ".");
             }
         }
+        sessionUtil.stopSession(session);
         return undefGroups;
     }
 
@@ -665,9 +664,9 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
      * Creates the memberships for a given user.
      * @param userId The id of the user.
      * @param groups The groups to which the user should become a member.
-     * @see org.esco.dynamicgroups.dao.grouper.IGroupsDAOService#createMemeberShips(String, Map)
+     * @see org.esco.dynamicgroups.dao.grouper.IGroupsDAOService#createMemberships(String, Map)
      */
-    public void createMemeberShips(final String userId, final Map<String, DynGroup> groups) {
+    public void createMemberships(final String userId, final Map<String, DynGroup> groups) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Creates the memberships for the user: " + userId);
         }
@@ -769,8 +768,4 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
     public void setParametersProvider(final ParametersProvider parametersProvider) {
         this.parametersProvider = parametersProvider;
     }
-
-
-
-
 }

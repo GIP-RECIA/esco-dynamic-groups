@@ -36,14 +36,14 @@ public class LDAPPersonsParametersSection extends DGParametersSection implements
     /** Default value for the number of retry for the reconnections. */
     private static final int DEF_LDAP_RECONNECT_ATTEMPTS_NB = 5;
     
+    /** Default value for the SyncRepl log modulo. */
+    private static final int DEF_SYNC_REPL_MESSAGES_LOG_MODULO = 0;
+    
     /** Default value for the use of an ssl connection. */
     private static final Boolean DEF_USE_SSL = false;
 
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(LDAPPersonsParametersSection.class);
-
-    /** To convert seconds into milliseconds.*/
-    private static final  int SECONDS_TO_MILLIS_FACTOR = 1000; 
 
     /** The LDAP host. */
     private String ldapHost;
@@ -62,6 +62,9 @@ public class LDAPPersonsParametersSection extends DGParametersSection implements
 
     /** Idle value in seconds when trying to reconnect. */
     private int ldapReconnectionIdle;
+    
+    /**  Modulo to determine when the SyncReplNotifications should be logged. */
+    private int syncReplMessagesLogModulo;
 
     /** Number of retries for the ldap reconnections. */
     private int ldapReconnectionAttemptsNb;
@@ -128,16 +131,17 @@ public class LDAPPersonsParametersSection extends DGParametersSection implements
         final String ldapKeystorePathKey = PROPERTIES_PREFIX + "ldap.ssl.keystore.path";
         final String ldapBindDNKey = PROPERTIES_PREFIX + "ldap.bind.dn";
         final String ldapCredentialsKey = PROPERTIES_PREFIX + "ldap.credentials";
-        final String ldapReconnectionIdleKey = PROPERTIES_PREFIX + "ldap.reconnection.idle";
+        final String ldapReconnectionIdleKey = PROPERTIES_PREFIX + "ldap.reconnection.idle.seconds";
         final String ldapReconnectionAttemptsNbKey = PROPERTIES_PREFIX + "ldap.reconnection.nb.attempts";
         final String ldapSearchBaseKey = PROPERTIES_PREFIX + "ldap.search.base";
         final String ldapSearchFilterKey = PROPERTIES_PREFIX + "ldap.search.filter";
         final String ldapSearchAttributesKey = PROPERTIES_PREFIX + "ldap.search.attributes";
         final String ldapUidAttributeKey = PROPERTIES_PREFIX + "ldap.uid.attribute";
-        final String synreplClientIDLEKey = PROPERTIES_PREFIX + "syncrepl.client.idle";
+        final String synreplClientIDLEKey = PROPERTIES_PREFIX + "syncrepl.client.idle.seconds";
         final String synreplRIDKey = PROPERTIES_PREFIX + "syncrepl.rid";
         final String synreplCookieFileKey = PROPERTIES_PREFIX + "syncrepl.cookie.file";
         final String synreplCookieSaveModuloKey = PROPERTIES_PREFIX + "syncrepl.cookie.save.modulo";
+        final String syncReplMessagesLogModuloKey = PROPERTIES_PREFIX + "syncrepl.client.messages.log.modulo";
 
         // Retrieves the values.
         setLdapHost(parseStringFromProperty(params, ldapHostKey));
@@ -151,7 +155,10 @@ public class LDAPPersonsParametersSection extends DGParametersSection implements
         
         setLdapCredentials(parseStringFromProperty(params, ldapCredentialsKey));
         setLdapReconnectionIdle(parseStrictPositiveIntegerSafeFromProperty(params, ldapReconnectionIdleKey, 
-                DEF_LDAP_RECONNECT_IDLE) * SECONDS_TO_MILLIS_FACTOR);
+                DEF_LDAP_RECONNECT_IDLE));
+       setSyncReplMessagesLogModulo(parsePositiveIntegerSafeFromProperty(params, 
+               syncReplMessagesLogModuloKey, DEF_SYNC_REPL_MESSAGES_LOG_MODULO));
+        
         setLdapReconnectionAttemptsNb(parseStrictPositiveIntegerSafeFromProperty(params, ldapReconnectionAttemptsNbKey, 
                 DEF_LDAP_RECONNECT_ATTEMPTS_NB));
         setLdapSearchBase(parseStringFromProperty(params, ldapSearchBaseKey));
@@ -159,7 +166,7 @@ public class LDAPPersonsParametersSection extends DGParametersSection implements
         setLdapSearchAttributesFromArray(parseStringArrayFromProperty(params, ldapSearchAttributesKey));
         setLdapUidAttribute(parseStringFromProperty(params, ldapUidAttributeKey));
         setSyncReplRID(parsePositiveIntegerSafeFromProperty(params, synreplRIDKey, 0));
-        setSyncreplClientIdle(parseIntegerFromProperty(params, synreplClientIDLEKey) * SECONDS_TO_MILLIS_FACTOR);
+        setSyncreplClientIdle(parseIntegerFromProperty(params, synreplClientIDLEKey));
         setSyncReplCookieFile(parseStringSafeFromProperty(params, synreplCookieFileKey, DEF_COOKIE_FILE));
         setSyncReplCookieSaveModulo(parseStrictPositiveIntegerSafeFromProperty(params, synreplCookieSaveModuloKey, 
                 DEF_SYNCREPL_MODULO));
@@ -188,6 +195,7 @@ public class LDAPPersonsParametersSection extends DGParametersSection implements
         toStringFormatProperty(sb, "Bind DN: ", getLdapBindDN());
         toStringFormatProperty(sb, "Credentials: ", toStringFormatPassword(getLdapCredentials()));
         toStringFormatProperty(sb, "Reconnection idle: ", getLdapReconnectionIdle());
+        toStringFormatProperty(sb, "SyncRepl Log modulo: ", getSyncReplMessagesLogModulo());
         toStringFormatProperty(sb, "Reconnection attempts nb: ", getLdapReconnectionAttemptsNb());
         toStringFormatProperty(sb, "Search base: ", getLdapSearchBase());
         toStringFormatProperty(sb, "Search filter: ", getLdapSearchFilter());
@@ -500,5 +508,21 @@ public class LDAPPersonsParametersSection extends DGParametersSection implements
      */
     public void setKeystorePath(final String keystorePath) {
         this.keystorePath = keystorePath;
+    }
+
+    /**
+     * Getter for syncReplMessagesLogModulo.
+     * @return syncReplMessagesLogModulo.
+     */
+    public int getSyncReplMessagesLogModulo() {
+        return syncReplMessagesLogModulo;
+    }
+
+    /**
+     * Setter for syncReplMessagesLogModulo.
+     * @param syncReplMessagesLogModulo the new value for syncReplMessagesLogModulo.
+     */
+    public void setSyncReplMessagesLogModulo(final int syncReplMessagesLogModulo) {
+        this.syncReplMessagesLogModulo = syncReplMessagesLogModulo;
     }
 }

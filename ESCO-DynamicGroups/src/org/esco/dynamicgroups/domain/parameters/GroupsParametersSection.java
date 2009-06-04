@@ -15,8 +15,6 @@ import org.apache.log4j.Logger;
  * 17 avr. 08
  */
 public class GroupsParametersSection extends DGParametersSection {
-
-       
   
     /** Serial version UID. */
     private static final long serialVersionUID = 9168255829280261203L;
@@ -77,7 +75,7 @@ public class GroupsParametersSection extends DGParametersSection {
         final String grouperTypeKey = PROPERTIES_PREFIX + "grouper.type";
         final String grouperSubjSourceKey = PROPERTIES_PREFIX + "grouper.subjects.source";
         final String createGrouperTypeKey = PROPERTIES_PREFIX + "grouper.create.type";
-        final String checkMbOnStartupKey = PROPERTIES_PREFIX + "grouper.check.members.on.startup";
+        final String checkMbOnStartupKey = PROPERTIES_PREFIX + "grouper.check.all.members.on.startup";
         final String grouperDefKey = PROPERTIES_PREFIX + "grouper.definiton.field";
         final String grouperUserKey = PROPERTIES_PREFIX + "grouper.user";
         final String removeFromAllGroupsKey = PROPERTIES_PREFIX + "grouper.remove.from.all.groups";

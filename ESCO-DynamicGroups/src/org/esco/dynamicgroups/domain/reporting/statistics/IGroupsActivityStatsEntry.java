@@ -33,6 +33,12 @@ public interface IGroupsActivityStatsEntry extends IStatisticsEntry {
     void handleRemovedUser(final String groupName, final String userId);
     
     /**
+     * Tests if some groups are active.
+     * @return True if at leastone group is active.
+     */
+    boolean hasActiveGroup();
+    
+    /**
      * Gives the label for the active groups.
      * @return The label.
      */

@@ -15,7 +15,7 @@ import org.esco.dynamicgroups.domain.beans.I18NManager;
  * 30 avr. 2009
  *
  */
-public class SyncReplNotificationsStats implements ISyncReplNotificationsStats {
+public class SyncReplNotificationsStatsEntry implements ISyncReplNotificationsStats {
 
     /** Serial version UID. */
     private static final long serialVersionUID = -1657137526790547062L;
@@ -53,10 +53,10 @@ public class SyncReplNotificationsStats implements ISyncReplNotificationsStats {
     private transient I18NManager i18n;
 
     /**
-     * Builds an instance of SyncReplNotificationsStats.
+     * Builds an instance of SyncReplNotificationsStatsEntry.
      * @param i18n The i18N manager.
      */
-    public SyncReplNotificationsStats(final I18NManager i18n) {
+    public SyncReplNotificationsStatsEntry(final I18NManager i18n) {
         this.i18n = i18n;
     }
 
@@ -136,6 +136,25 @@ public class SyncReplNotificationsStats implements ISyncReplNotificationsStats {
         deleteCount = 0;
         modifyCount = 0;
         presentCount = 0;
+    }
+    
+    /**
+     * Initializes an instance.
+     * @param initializationValues The instance that contains 
+     * the initialization values.
+     * @see org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsEntry#initializeFrom(IStatisticsEntry)
+     */
+    public void initializeFrom(final IStatisticsEntry initializationValues) {
+
+        if (!(initializationValues instanceof SyncReplNotificationsStatsEntry)) {
+            throw new IllegalArgumentException("The parameter is not an instance of " + getClass().getName());
+        }
+        
+        final SyncReplNotificationsStatsEntry other = (SyncReplNotificationsStatsEntry) initializationValues;
+        this.addCount = other.addCount;
+        this.deleteCount = other.deleteCount;
+        this.modifyCount = other.modifyCount;
+        this.presentCount = other.presentCount;
     }
 
 }

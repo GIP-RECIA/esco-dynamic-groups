@@ -15,7 +15,7 @@ import org.esco.dynamicgroups.domain.beans.I18NManager;
  * 24 févr. 2009
  *
  */
-public class DefinitionModificationsStats implements IDefinitionModificationsStatsEntry {
+public class DefinitionModificationsStatsEntry implements IDefinitionModificationsStatsEntry {
 
     /** Serial version UID.*/
     private static final long serialVersionUID = -711243293922481685L;
@@ -33,10 +33,10 @@ public class DefinitionModificationsStats implements IDefinitionModificationsSta
     
 
     /**
-     * Builds an instance of DefinitionModificationsStats.
+     * Builds an instance of DefinitionModificationsStatsEntry.
      * @param i18n The I18N manager.
      */
-    public DefinitionModificationsStats(final I18NManager i18n) {
+    public DefinitionModificationsStatsEntry(final I18NManager i18n) {
         this.i18n = i18n;
     }
 
@@ -61,10 +61,10 @@ public class DefinitionModificationsStats implements IDefinitionModificationsSta
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof DefinitionModificationsStats)) {
+        if (!(obj instanceof DefinitionModificationsStatsEntry)) {
             return false;
         }
-        return ((DefinitionModificationsStats) obj).nbModifiedDefinitions == this.nbModifiedDefinitions;
+        return ((DefinitionModificationsStatsEntry) obj).nbModifiedDefinitions == this.nbModifiedDefinitions;
     }
 
     /**
@@ -117,4 +117,20 @@ public class DefinitionModificationsStats implements IDefinitionModificationsSta
             final String previousDefinition, final String newDefinition) {
             nbModifiedDefinitions++;
     }
+    
+    /**
+     * Initializes an instance.
+     * @param initializationValues The instance that contains 
+     * the initialization values.
+     * @see org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsEntry#initializeFrom(IStatisticsEntry)
+     */
+    public void initializeFrom(final IStatisticsEntry initializationValues) {
+
+        if (!(initializationValues instanceof DefinitionModificationsStatsEntry)) {
+            throw new IllegalArgumentException("The parameter is not an instance of " + getClass().getName());
+        }
+        final DefinitionModificationsStatsEntry other = (DefinitionModificationsStatsEntry) initializationValues;
+        this.nbModifiedDefinitions = other.nbModifiedDefinitions;
+    }
+
 }
