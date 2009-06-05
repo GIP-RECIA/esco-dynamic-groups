@@ -22,10 +22,11 @@ public class TextReportFormatter implements IReportFormatter {
     private DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
     
     /** The format for the entries.*/
-    private String entryFormat = "   %1$-38s : %2$s";
+//    private String entryFormat = "   %1$-38s  %2$s";
+    private String entryFormat = "   %1$s%2$s";
     
     /** The list items. */
-    private String listItem = "-";
+    private String listItem = "      -";
     
     /** Separation. */
     private String separation = "---"; 
@@ -198,7 +199,7 @@ public class TextReportFormatter implements IReportFormatter {
      * @see org.esco.dynamicgroups.domain.reporting.IReportFormatter#formatList(java.lang.Iterable)
      */
     public String formatList(final Iterable<String> list) {
-        String formattedList = "";
+        String formattedList = getNewLine();
         for (String listEntry : list ) {
             formattedList += getListItem() + listEntry + getNewLine();
         }

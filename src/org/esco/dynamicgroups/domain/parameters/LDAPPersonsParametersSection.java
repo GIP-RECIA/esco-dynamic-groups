@@ -154,21 +154,21 @@ public class LDAPPersonsParametersSection extends DGParametersSection implements
         }
         
         setLdapCredentials(parseStringFromProperty(params, ldapCredentialsKey));
-        setLdapReconnectionIdle(parseStrictPositiveIntegerSafeFromProperty(params, ldapReconnectionIdleKey, 
+        setLdapReconnectionIdle(parseStrictPositiveIntegerFromPropertySafe(params, ldapReconnectionIdleKey, 
                 DEF_LDAP_RECONNECT_IDLE));
-       setSyncReplMessagesLogModulo(parsePositiveIntegerSafeFromProperty(params, 
+       setSyncReplMessagesLogModulo(parsePositiveIntegerFromPropertySafe(params, 
                syncReplMessagesLogModuloKey, DEF_SYNC_REPL_MESSAGES_LOG_MODULO));
         
-        setLdapReconnectionAttemptsNb(parseStrictPositiveIntegerSafeFromProperty(params, ldapReconnectionAttemptsNbKey, 
+        setLdapReconnectionAttemptsNb(parseStrictPositiveIntegerFromPropertySafe(params, ldapReconnectionAttemptsNbKey, 
                 DEF_LDAP_RECONNECT_ATTEMPTS_NB));
         setLdapSearchBase(parseStringFromProperty(params, ldapSearchBaseKey));
         setLdapSearchFilter(parseStringFromProperty(params, ldapSearchFilterKey));
         setLdapSearchAttributesFromArray(parseStringArrayFromProperty(params, ldapSearchAttributesKey));
         setLdapUidAttribute(parseStringFromProperty(params, ldapUidAttributeKey));
-        setSyncReplRID(parsePositiveIntegerSafeFromProperty(params, synreplRIDKey, 0));
+        setSyncReplRID(parsePositiveIntegerFromPropertySafe(params, synreplRIDKey, 0));
         setSyncreplClientIdle(parseIntegerFromProperty(params, synreplClientIDLEKey));
-        setSyncReplCookieFile(parseStringSafeFromProperty(params, synreplCookieFileKey, DEF_COOKIE_FILE));
-        setSyncReplCookieSaveModulo(parseStrictPositiveIntegerSafeFromProperty(params, synreplCookieSaveModuloKey, 
+        setSyncReplCookieFile(parseStringFromPropertySafe(params, synreplCookieFileKey, DEF_COOKIE_FILE));
+        setSyncReplCookieSaveModulo(parseStrictPositiveIntegerFromPropertySafe(params, synreplCookieSaveModuloKey, 
                 DEF_SYNCREPL_MODULO));
 
     }

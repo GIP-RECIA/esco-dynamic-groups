@@ -26,6 +26,9 @@ public class ReportingParametersSection extends DGParametersSection {
     /** Default value fot the check of the dynamic groups members. */
     private static final int DEF_MB_CHK_DUR = 0;
     
+    /** Default value for the persitency of the reporting values. */
+    private static final boolean DEF_PERSISTENT = false;
+    
     /** The cron expression used to send the reports. */
     private String reportCronExpression;
 
@@ -51,6 +54,9 @@ public class ReportingParametersSection extends DGParametersSection {
     
     /** Limit for the duration of the members checking process. */
     private int membersCheckingDuration;
+    
+    /** Flag to determine if the reporting is persistent. */
+    private boolean persistent;
     
     
     /**
@@ -89,6 +95,7 @@ public class ReportingParametersSection extends DGParametersSection {
         final String countGroupActivityKey = PROPERTIES_PREFIX + "reporting.handle.groups.activity";
         final String countInvalidOrMissingMembKey = PROPERTIES_PREFIX + "reporting.handle.members.checking";
         final String mbCheckDurationKey = PROPERTIES_PREFIX + "reporting.handle.members.checking.duration.minutes";
+        final String persistentKey = PROPERTIES_PREFIX + "reporting.persistent";
       
         // Retrieves the values.
         setReportCronExpression(parseStringFromProperty(params, reportCronExprKey));
@@ -98,7 +105,8 @@ public class ReportingParametersSection extends DGParametersSection {
         setCountUndefiedGroups(parseBooleanFromProperty(params, countUndefGroupKey));
         setCountGroupsActivity(parseBooleanFromProperty(params, countGroupActivityKey));
         setCountInvalidOrMissingMembers(parseBooleanFromProperty(params, countInvalidOrMissingMembKey));
-        setMembersCheckingDuration(parsePositiveIntegerSafeFromProperty(params, mbCheckDurationKey, DEF_MB_CHK_DUR));
+        setMembersCheckingDuration(parsePositiveIntegerFromPropertySafe(params, mbCheckDurationKey, DEF_MB_CHK_DUR));
+        setPersistent(parseBooleanFromPropertySafe(params, persistentKey, DEF_PERSISTENT));
     }
 
    
@@ -113,6 +121,7 @@ public class ReportingParametersSection extends DGParametersSection {
         toStringFormatSingleEntry(sb, getClass().getSimpleName() + "#{\n");
         
         toStringFormatProperty(sb, "Cron expression: ", getReportCronExpression());
+        toStringFormatProperty(sb, "Persistent: ", getPersistent());
         toStringFormatProperty(sb, "Count SyncRepl notifications: ", getCountSyncReplNotifications());
         toStringFormatProperty(sb, "Count def mods: ", getCountDefinitionModifications());
         toStringFormatProperty(sb, "Count groups creation/deletion: ", getCountGroupCreationDeletion());
@@ -252,5 +261,21 @@ public class ReportingParametersSection extends DGParametersSection {
      */
     public void setMembersCheckingDuration(final int membersCheckingDuration) {
         this.membersCheckingDuration = membersCheckingDuration;
+    }
+
+    /**
+     * Getter for persistent.
+     * @return persistent.
+     */
+    public boolean getPersistent() {
+        return persistent;
+    }
+
+    /**
+     * Setter for persistent.
+     * @param persistent the new value for persistent.
+     */
+    public void setPersistent(final boolean persistent) {
+        this.persistent = persistent;
     }
 }

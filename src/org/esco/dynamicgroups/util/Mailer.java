@@ -86,20 +86,10 @@ public class Mailer implements InitializingBean, IMailer {
         mailParameters = (MailParametersSection) parametersProvider.getMailParametersSection();
         commonsParameters = (CommonsParametersSection) parametersProvider.getCommonsParametersSection();
         charsetField = mailParameters.getMailCharset().trim();
+        
         if (!charsetField.toLowerCase().startsWith(CHARSET_FIELD_PREFIX)) {
             charsetField = CHARSET_FIELD_PREFIX + charsetField;
         }
-//        setSmtpHost(parametersProvider.getSmtpHost());
-//        setFromField(parametersProvider.getFromField());
-//        setToField(parametersProvider.getToField());
-//        setSubjectPrefix(parametersProvider.getSubjectPrefix());
-//        setCharset(parametersProvider.getMailCharset());
-//        setXhtml(parametersProvider.getXHTMLReport());
-//        if (parametersProvider.isAuthenticatedSMTPHost()) {
-//            LOGGER.debug("Authenticated SMTP.");
-//            setSmtpUser(parametersProvider.getSmtpUser());
-//            setSmtpPassword(parametersProvider.getSmtpPassword());
-//        }
     }
 
     /**
@@ -181,7 +171,7 @@ public class Mailer implements InitializingBean, IMailer {
                 message.setFrom(new InternetAddress(mailParameters.getFromField()));
                 message.setRecipients(Message.RecipientType.TO, 
                         InternetAddress.parse(mailParameters.getToField(), false));
-                message.setSubject(mailParameters.getSubjectPrefix() + subjectField);
+                message.setSubject(mailParameters.getSubjectPrefix() + " " + subjectField);
                 if (xhtmlFlag) {
                     message.setContent(messageContent, 
                             TEXT_HTML_CONTENT_TYPE + CHARSET_SEP + charsetField);

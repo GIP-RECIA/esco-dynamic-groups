@@ -181,11 +181,11 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
 
         if (checkedMembersStats != null) {
             synchronized (checkedMembersStats) {
-                
+
                 if (checkedMembersStats.checkPerformed()) {
-                    
+
                     LOGGER.info(checkedMembersStats.getLabel() + checkedMembersStats.getEntry());
-                    
+
                     report += reportFormatter.formatEntry(checkedMembersStats.getLabel(), 
                             checkedMembersStats.getEntry());
                     report += reportFormatter.getNewLine();
@@ -242,7 +242,7 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
             report += reportFormatter.getNewLine();
         }
 
-        
+
         // -- Groups stats section.    
         if (groupsStats != null) {
             separateGroupsActivity = true;
@@ -314,13 +314,13 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
 
         // --- Memebers check section.
         if (checkedMembersStats != null) {
-            
+
             // Creates a timer to stop the processus if needed.
             final int durationMinutes = reportingParameters.getMembersCheckingDuration();
             if (durationMinutes > 0) {
                 new CheckingMembersProcessStopper(domainService, durationMinutes);
             }
-            
+
             // generate the report.
             final String membersCheckReport = generateGroupsMembersCheckReport();
 
@@ -605,30 +605,34 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
      * @see org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager#load()
      */
     public void load() { 
-        try {
-            final File file = resourceUtil.getResource(SER_FILE_NAME).getFile();
-            if (file.exists()) {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Loading serialized instance from: " + file.getAbsolutePath());
+        if (reportingParameters.getPersistent()) {
+            try {
+                final File file = resourceUtil.getResource(SER_FILE_NAME).getFile();
+                if (file.exists()) {
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Loading serialized instance from: " + file.getAbsolutePath());
+                    }
+                    final ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
+                    final StatisticsManager previousInstance = (StatisticsManager) ois.readObject();
+                    if (previousInstance != null) {
+                        this.definitionModifications.initializeFrom(previousInstance.definitionModifications);
+                        this.syncReplNotifications.initializeFrom(previousInstance.syncReplNotifications);
+                        this.groupsStats.initializeFrom(previousInstance.groupsStats);
+                        this.undefGroupsStats.initializeFrom(previousInstance.undefGroupsStats);
+                        this.groupsActivityStats.initializeFrom(previousInstance.groupsActivityStats);
+                    }
+                } else {
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Serialization file not found: " + file.getAbsolutePath());
+                    }
                 }
-                final ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
-                final StatisticsManager previousInstance = (StatisticsManager) ois.readObject();
-                if (previousInstance != null) {
-                    this.definitionModifications.initializeFrom(previousInstance.definitionModifications);
-                    this.syncReplNotifications.initializeFrom(previousInstance.syncReplNotifications);
-                    this.groupsStats.initializeFrom(previousInstance.groupsStats);
-                    this.undefGroupsStats.initializeFrom(previousInstance.undefGroupsStats);
-                    this.groupsActivityStats.initializeFrom(previousInstance.groupsActivityStats);
-                }
-            } else {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Serialization file not found: " + file.getAbsolutePath());
-                }
+            } catch (IOException ioe) {
+                LOGGER.error(ioe, ioe);
+            } catch (ClassNotFoundException cnfe) {
+                LOGGER.error(cnfe, cnfe);
             }
-        } catch (IOException ioe) {
-            LOGGER.error(ioe, ioe);
-        } catch (ClassNotFoundException cnfe) {
-            LOGGER.error(cnfe, cnfe);
+        } else {
+            LOGGER.debug("Reporting is not persistent : loading disabled.");
         }
 
     }
@@ -638,6 +642,7 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
      * @see org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager#save()
      */
     public void save() {
+        if (reportingParameters.getPersistent()) {
         try {
             final File file = resourceUtil.getResource(SER_FILE_NAME).getFile();
             if (LOGGER.isDebugEnabled()) {
@@ -647,6 +652,9 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
             oos.writeObject(this);
         } catch (IOException ioe) {
             LOGGER.error(ioe, ioe);
+        }
+        } else {
+            LOGGER.debug("Reporting is not persistent : saving disabled.");
         }
     }
 

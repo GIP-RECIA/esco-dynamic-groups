@@ -1,16 +1,12 @@
-
 * parametrer la serialization du statisticsManager.
 
-* Rendre impossible l'ajout de membres subjets aux groupes dynamiques.
- 
-
-* Cassification
+OK * Cassification
 
 * tâche ant pour la verification de propositions logiques
 
 * Verifier ce qui se passe lorsque le type dynamique est retiré d'un groupe.
 
- * revoir la réinitialization de tous les groupes
+OK revoir la réinitialization de tous les groupes
     - verifier que le client LDAP n'est pas démarré
     - récupérer les groupes via le type.
     - effectuer une comparaison plutôt qu'un vidage/remplissage.
@@ -79,3 +75,5 @@ OK * Rapport uniquement de la vérification des membres au démarrage.
 OK * Reflechir aux problèmes de synchronization lors de la modification ou lors de la creation.
 
 * recuperation du timezone suffix dans le cookieManager (i18n ou pas de creation de cookie).
+
+OK parameterer les options de compilation.
