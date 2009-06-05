@@ -93,7 +93,7 @@ public abstract class DGParametersSection implements Serializable {
      * @param defaultValue The default value to use if the property is not found.
      * @return The positive  Integer value if available and valid in the properties, 0 otherwise.
      */
-    protected Integer parsePositiveIntegerSafeFromProperty(final Properties properties, 
+    protected Integer parsePositiveIntegerFromPropertySafe(final Properties properties, 
             final String key, final int defaultValue) {
         Integer value =  PropertyParser.instance().parsePositiveIntegerFromPropertySafe(getLogger(), 
                 configurationFile, properties, key);
@@ -116,7 +116,7 @@ public abstract class DGParametersSection implements Serializable {
      * @param defaultValue The default value to use if the property is not found.
      * @return The positive  Integer value if available and valid in the properties, 0 otherwise.
      */
-    protected Integer parseStrictPositiveIntegerSafeFromProperty(final Properties properties, 
+    protected Integer parseStrictPositiveIntegerFromPropertySafe(final Properties properties, 
             final String key, final int defaultValue) {
         Integer value =  PropertyParser.instance().parseStrictPositiveIntegerFromPropertySafe(getLogger(), 
                 configurationFile, properties, key);
@@ -147,7 +147,7 @@ public abstract class DGParametersSection implements Serializable {
      * @param defaultValue The default value to use if the key is not in the Properties instance.
      * @return The String value if available in the properties, null otherwise.
      */
-    protected String parseStringSafeFromProperty(final Properties properties, 
+    protected String parseStringFromPropertySafe(final Properties properties, 
             final String key, 
             final String defaultValue) {
         return PropertyParser.instance().parseStringFromPropertySafe(properties, key, defaultValue);

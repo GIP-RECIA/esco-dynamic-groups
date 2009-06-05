@@ -43,6 +43,13 @@
 	<target name="esco-dg.display" description="Displays the user properties">
 		<property name = "esco-dg.classpath.value" refid="esco-dg.classpath"/>
 		<echo >
+			
+			esco-dg.compile.debug                  = ${esco-dg.compile.debug}
+			esco-dg.compile.deprecation            = ${esco-dg.compile.deprecation}
+			esco-dg.compile.target                 = ${esco-dg.compile.target}
+			esco-dg.compile.source                 = ${esco-dg.compile.source}
+			esco-dg.compile.optimize               = ${esco-dg.compile.optimize}
+			
 			esco-dg.lib.dir                        = ${esco-dg.lib.dir}
 			esco-dg.classes.dir                    = ${esco-dg.classes.dir}
 			esco-dg.build.dir                      = ${esco-dg.build.dir}
@@ -82,12 +89,14 @@
 	<target name="esco-dg.compile" description="Compilation of the aspects.">
 		<mkdir dir="${esco-dg.build.dir}"/>
 		<javac  srcdir="${esco-dg.src.dir}"
+			    debug="${esco-dg.compile.debug}"
+	      	    deprecation="${esco-dg.compile.deprecation}"
+	            target="${esco-dg.compile.target}"
+			    source="${esco-dg.compile.source}"
+				optimize="${esco-dg.compile.optimize}"
 				includes="org/esco/dynamicgroups/**"
 				excludes="org/esco/dynamicgroups/ldap/**"
 				destdir="${esco-dg.build.dir}"
-				debug="true"
-				deprecation="true"
-				optimize="true"
 				classpathref="esco-dg.classpath">
 		 </javac>
 	</target>

@@ -93,11 +93,11 @@ public class MailParametersSection extends DGParametersSection {
         setMailDisabled(parseBooleanFromPropertySafe(params, mailDisabledKey, DEFAULT_MAIL_DISABLED));
         if (!isMailDisabled()) {
             setSmtpHost(parseStringFromProperty(params, mailSMTPKey));
-            setSubjectPrefix(parseStringSafeFromProperty(params, mailSubjPrefixKey, ""));
+            setSubjectPrefix(parseStringFromPropertySafe(params, mailSubjPrefixKey, ""));
             setToField(parseStringFromProperty(params, mailToKey));
             setFromField(parseStringFromProperty(params, mailFromKey));
-            setSmtpUser(parseStringSafeFromProperty(params, mailSmtpUserKey, ""));
-            setMailCharset(parseStringSafeFromProperty(params, mailCharsetKey, DEFAULT_CHARSET));
+            setSmtpUser(parseStringFromPropertySafe(params, mailSmtpUserKey, ""));
+            setMailCharset(parseStringFromPropertySafe(params, mailCharsetKey, DEFAULT_CHARSET));
            
             if (isAuthenticatedSMTPHost()) {
                 setSmtpPassword(parseStringFromProperty(params, mailSmtpPasswdKey));

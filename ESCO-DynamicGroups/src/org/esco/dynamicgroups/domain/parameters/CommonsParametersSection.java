@@ -23,6 +23,9 @@ public class CommonsParametersSection extends DGParametersSection {
 
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(CommonsParametersSection.class);
+    
+    /** Default locale. */
+    private static final String DEF_LOCALE = "en";
 
     /** The locale to use. */
     private Locale locale;
@@ -60,7 +63,7 @@ public class CommonsParametersSection extends DGParametersSection {
         final String xHTMLKey = PROPERTIES_PREFIX + "xhtml";
         
         // Retrieves the values.
-        setLocale(new Locale(parseStringFromProperty(params, localeKey)));
+        setLocale(new Locale(parseStringFromPropertySafe(params, localeKey, DEF_LOCALE)));
         setXHTML(parseBooleanFromProperty(params, xHTMLKey));
     }
 
