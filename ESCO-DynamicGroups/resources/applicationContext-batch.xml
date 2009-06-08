@@ -42,8 +42,12 @@
 		<property name="i18n" ref="i18n"/>
 	</bean>
 	
-	<bean id="PropositionCodec" class="org.esco.dynamicgroups.domain.definition.PropositionCodec">
+	<bean id="propositionCodec" class="org.esco.dynamicgroups.domain.definition.PropositionCodec">
 		<property name="i18n" ref= "i18n"/>
 		<property name="atomValidator" ref="atomValidator"/>
+	</bean>
+	<bean id="stressTestGenerator" class="org.esco.dynamicgroups.util.StressTestGeneratorBatch">
+		<property name="propositionCodec" ref="propositionCodec"/>
+		<property name="parametersProvider" ref="parametersProvider"/>
 	</bean>
 </beans>
