@@ -1,7 +1,5 @@
 * parametrer la serialization du statisticsManager.
 
-OK * Cassification
-
 * tâche ant pour la verification de propositions logiques
 
 * Verifier ce qui se passe lorsque le type dynamique est retiré d'un groupe.
@@ -77,3 +75,5 @@ OK * Reflechir aux problèmes de synchronization lors de la modification ou lors
 * recuperation du timezone suffix dans le cookieManager (i18n ou pas de creation de cookie).
 
 OK parameterer les options de compilation.
+
+OK * Cassification
