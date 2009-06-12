@@ -164,7 +164,7 @@ public class ESCOSyncReplClient implements InitializingBean {
                 final LDAPSearchConstraints constraints =  new LDAPSearchConstraints();
                 final LDAPControl syncRequestCtrl = 
                     new SyncRequestControl(SyncRequestControl.REFRESH_AND_PERSIST, 
-                            false, cookieManager.getCurrentCookie());
+                            false, cookieManager.getCookie());
                 constraints.setControls(syncRequestCtrl);
                 constraints.setMaxResults(0);
 

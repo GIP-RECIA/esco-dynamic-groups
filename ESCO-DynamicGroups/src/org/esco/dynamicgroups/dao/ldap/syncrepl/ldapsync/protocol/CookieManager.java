@@ -19,8 +19,11 @@ import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.domain.parameters.LDAPPersonsParametersSection;
 import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
 import org.esco.dynamicgroups.exceptions.DynamicGroupsException;
-import org.esco.dynamicgroups.util.ServletContextResourcesUtil;
+import org.esco.dynamicgroups.util.IResourceProvider;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.util.Assert;
 
 /**
@@ -29,7 +32,7 @@ import org.springframework.util.Assert;
  * 4 févr. 2009
  *
  */
-public class CookieManager implements InitializingBean, Serializable {
+public class CookieManager implements InitializingBean, ApplicationListener, Serializable {
 
     /** Serial version UID.*/
     private static final long serialVersionUID = 7772446526416999140L;
@@ -39,7 +42,7 @@ public class CookieManager implements InitializingBean, Serializable {
 
     /** Value used to denote an invalid RID. */
     private static final int INVALID_RID = -1;
-    
+
     /** CSN entry in the cookie. */
     private static final String CSN_ENTRY = "csn=";
 
@@ -60,29 +63,32 @@ public class CookieManager implements InitializingBean, Serializable {
 
     /** The user parameters provider. */
     private ParametersProvider parametersProvider;
-    
+
     /** The LDAP Parameters. */
     private LDAPPersonsParametersSection ldapParameters;
 
     /** The cookie file. */
-    private File cookieFile;
-    
+    private transient File cookieFile;
+
     /** Change counter to determine when to save the cookie. */
     private int changesCount;
 
-    /** The last cookie. */
-    private byte[] currentCookie;
+    /** The last recieved cookie. */
+    private byte[] recievedCookie;
     
+    /** Cookie created by the cookie manager. */
+    private byte[] createdCookie;
+
     /** Util class to read and write the cookie under the servlet context. */
-    private ServletContextResourcesUtil resourceUtil;
+    private IResourceProvider resourceProvider;
 
     /**
      * Builds an instance of CookieManager.
      */
     private CookieManager() {
-       super();
+        super();
     }
-    
+
     /**
      * Checks the beans injection.
      * @throws Exception
@@ -91,11 +97,24 @@ public class CookieManager implements InitializingBean, Serializable {
     public void afterPropertiesSet() throws Exception {
         Assert.notNull(this.parametersProvider, "The property parametersProvider in the class " 
                 + getClass().getName() + " can't be null.");
-        Assert.notNull(this.resourceUtil, "The property resourceUtil in the class " 
+        Assert.notNull(this.resourceProvider, "The property resourceProvider in the class " 
                 + getClass().getName() + " can't be null.");
         ldapParameters = (LDAPPersonsParametersSection) parametersProvider.getPersonsParametersSection();
+
         
-        initializeCookie(); 
+    }
+    
+
+    /**
+     * Listen for an application event.
+     * @param event The event.
+     * @see org.springframework.context.ApplicationListener#
+     * onApplicationEvent(org.springframework.context.ApplicationEvent)
+     */
+    public void onApplicationEvent(final ApplicationEvent event) {
+        if (event instanceof ContextRefreshedEvent) {
+            initializeCookie(); 
+        }
     }
     
     /**
@@ -105,7 +124,15 @@ public class CookieManager implements InitializingBean, Serializable {
      */
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "{" + new String(currentCookie) + "}";
+        return getClass().getSimpleName() + "{" + new String(recievedCookie) + "}";
+    }
+
+    /**
+     * Tests if there is a cookie.
+     * @return True if the current cookie is not null.
+     */
+    public synchronized boolean hasRecievedCookie() {
+        return recievedCookie != null;
     }
 
     /**
@@ -113,18 +140,19 @@ public class CookieManager implements InitializingBean, Serializable {
      * @param cookie The cookie to write.
      */
     private void write(final byte[] cookie) {
-        try {
-            
-            
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Writing the cookie into the file: " + getCookieFile().getCanonicalPath());
+        if (cookie != null) {
+            try {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Writing the cookie into the file: " + getCookieFile().getCanonicalPath());
+                }
+
+                final PrintWriter writer = new PrintWriter(getCookieFile());
+                writer.println(new String(cookie));
+                writer.close();
+            } catch (IOException e) {
+                LOGGER.error(e, e);
             }
 
-            final PrintWriter writer = new PrintWriter(getCookieFile());
-            writer.println(new String(cookie));
-            writer.close();
-        } catch (IOException e) {
-            LOGGER.error(e, e);
         }
     }
 
@@ -161,25 +189,28 @@ public class CookieManager implements InitializingBean, Serializable {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Initializing the cookie - file: " + getCookieFile().getAbsolutePath());
         }
-        
-        currentCookie = read();
+
+        // Tries to load the cookie file.
+        recievedCookie = read();
         final int rid = ldapParameters.getSyncReplRID();
         final String cookieFileName = ldapParameters.getSyncReplCookieFile();
-        if (currentCookie == null) {
-            currentCookie = buildNewCookie();
-        } else {
-
+        if (recievedCookie != null) {
             // Checks that the rid is not changed. 
             final int previousRID = extractRID();
             if (rid != previousRID) {
+                // The rid has changed from the cookie file, so a new cookie is created.
                 LOGGER.warn(" The rid extract from the cookie file: " + cookieFileName 
                         + " (" + previousRID + ") is different from the rid given as a parameter ("
                         + rid + ") using the rid: " + rid + ".");
-                currentCookie = buildNewCookie();
+                
+               createNewCookie();
             } 
+        } else {
+            // No cookie file : a new cookie is created.
+            createNewCookie();
         }
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Cookie initialized: " + new String(currentCookie) + ".");
+            LOGGER.debug("Cookie initialized: " + new String(recievedCookie) + ".");
         }
     }
 
@@ -189,7 +220,7 @@ public class CookieManager implements InitializingBean, Serializable {
      * -1 otherwise.
      */
     private Integer extractRID() {
-        final String cookieText = new String(currentCookie);
+        final String cookieText = new String(recievedCookie);
         final int ridPos = cookieText.indexOf(RID_ENTRY);
         if (ridPos > 0) {
             final String ridValue = cookieText.substring(ridPos + RID_ENTRY.length());
@@ -206,36 +237,36 @@ public class CookieManager implements InitializingBean, Serializable {
 
     /**
      * Builds a new cookie.
-     * @return The new cookie.
      */
-    private byte[] buildNewCookie() {
+    private void createNewCookie() {
         final Date date = Calendar.getInstance().getTime();
         final String dateEntry = DATE_FORMATER.format(date);
         final String cookie = CSN_ENTRY + dateEntry + DEFAULT_CSN_SUFFIX 
-            + CSN_RID_FIELDS_SEP + RID_ENTRY + ldapParameters.getSyncReplRID();
+        + CSN_RID_FIELDS_SEP + RID_ENTRY + ldapParameters.getSyncReplRID();
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Creating a new cookie: " + cookie);
         }
 
-        return cookie.getBytes();
+        createdCookie = cookie.getBytes();
     }
 
     /**
      * Updates the las cookie.
-     * @param newCookie The new value for the cookie.
+     * @param newRecievedCookie The new value for the cookie.
      */
-    public synchronized void updateCurrentCookie(final byte[] newCookie) {
-        if (newCookie != null) {
-            this.currentCookie = newCookie;
+    public synchronized void updateCurrentCookie(final byte[] newRecievedCookie) {
+        if (newRecievedCookie != null) {
+            this.recievedCookie = newRecievedCookie;
             changesCount++;
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Number of changes: " + changesCount + " Cookie updated: " + new String(currentCookie) );
-                LOGGER.debug("Cookie updated: " + new String(currentCookie));
+                LOGGER.debug("Number of changes: " + changesCount 
+                        + " Cookie updated: " + new String(newRecievedCookie) );
+                LOGGER.debug("Cookie updated: " + new String(newRecievedCookie));
             }
-            
+
             if (changesCount % ldapParameters.getSyncReplCookieSaveModulo() == 0) {
-                write(currentCookie);
+                write(newRecievedCookie);
                 changesCount = 0;
             }
         }
@@ -245,15 +276,18 @@ public class CookieManager implements InitializingBean, Serializable {
      * Saves the cookie associated to a SyncDone control.
      */
     public synchronized void saveCurrentCookie() {
-        write(currentCookie);
+        write(recievedCookie);
     }
 
     /**
      * Loads the cookie from a file into a SyncDone control.
-     * @return The current value of currentCookie.
+     * @return The current value of recievedCookie.
      */
-    public synchronized byte[] getCurrentCookie() {
-        return currentCookie;
+    public synchronized byte[] getCookie() {
+        if (recievedCookie != null) {
+            return recievedCookie;
+        }
+        return createdCookie;
     }
 
     /**
@@ -263,10 +297,10 @@ public class CookieManager implements InitializingBean, Serializable {
     public File getCookieFile() {
         if (cookieFile == null) {
             try {
-                cookieFile = resourceUtil.getResource(ldapParameters.getSyncReplCookieFile()).getFile();
+                cookieFile = resourceProvider.getResource(ldapParameters.getSyncReplCookieFile()).getFile();
             } catch (IOException e) {
-               LOGGER.fatal(e, e);
-               throw new DynamicGroupsException(e);
+                LOGGER.fatal(e, e);
+                throw new DynamicGroupsException(e);
             }
         }
         return cookieFile;
@@ -288,21 +322,19 @@ public class CookieManager implements InitializingBean, Serializable {
         this.parametersProvider = parametersProvider;
     }
 
-       /**
-     * Getter for resourceUtil.
-     * @return resourceUtil.
+    /**
+     * Getter for resourceProvider.
+     * @return resourceProvider.
      */
-    public ServletContextResourcesUtil getResourceUtil() {
-        return resourceUtil;
+    public IResourceProvider getResourceProvider() {
+        return resourceProvider;
     }
 
     /**
-     * Setter for resourceUtil.
-     * @param resourceUtil the new value for resourceUtil.
+     * Setter for resourceProvider.
+     * @param resourceProvider the new value for resourceProvider.
      */
-    public void setResourceUtil(final ServletContextResourcesUtil resourceUtil) {
-        this.resourceUtil = resourceUtil;
+    public void setResourceProvider(final IResourceProvider resourceProvider) {
+        this.resourceProvider = resourceProvider;
     }
-
- 
 }

@@ -54,7 +54,7 @@ InitializingBean {
 
     /** The dynamic attributes. */
     private Set<String> dynamicAttributes;
-    
+
     /** The users parameters provider. */
     private ParametersProvider parametersProvider;
 
@@ -63,27 +63,27 @@ InitializingBean {
 
     /** The Database DAO Service to use. */
     private IDBDAOService daoService;
-    
+
     /** Service used to retrives the members from the logic defintion 
      * of the group. */
     private IMembersFromDefinitionDAO membersFromDefinitionService;
 
     /** Listener for the repository. */
     private IRepositoryListener repositoryListener;
-    
+
     /** The statistics manager to use. */
     private IStatisticsManager statisticsManager;
-    
+
     /** Reporting manager. */
     private IReportingManager reportingManager; 
-    
+
     /** Flag to determine if the memebrs of the dynamic groups should be checked on startup. */
     private boolean checkMembersOnStartup;
-    
+
     /** Flag to determine if the verification of the dynamic group memebrs
      * should be reported. */
     private boolean reportCheckMemebersOnStartup;
-    
+
     /** Stop the checking process for the members of dynamic groups. */
     private AtomicBoolean stopCheckingProcess  = new AtomicBoolean();
 
@@ -91,7 +91,7 @@ InitializingBean {
      * Builds an instance of ESCODomainServiceImpl.
      */
     public ESCODomainServiceImpl() {
-      super();
+        super();
     }
 
     /**
@@ -102,7 +102,7 @@ InitializingBean {
     public void afterPropertiesSet() throws Exception {
 
         final String cantBeNull = " can't be null.";
-        
+
         Assert.notNull(this.groupsService, 
                 "The property groupService in the class " + this.getClass().getName() 
                 + cantBeNull);
@@ -114,7 +114,7 @@ InitializingBean {
         Assert.notNull(this.repositoryListener, 
                 "The property repositoryListener in the class " + this.getClass().getName() 
                 + cantBeNull);
-        
+
         Assert.notNull(this.membersFromDefinitionService, 
                 "The property membersFromDefinitionService in the class " + this.getClass().getName() 
                 + cantBeNull);
@@ -126,25 +126,25 @@ InitializingBean {
         Assert.notNull(this.statisticsManager, 
                 "The property statisticsManager in the class " + this.getClass().getName() 
                 + cantBeNull);
-        
+
         Assert.notNull(this.reportingManager, 
                 "The property reportingManager in the class " + this.getClass().getName() 
                 + cantBeNull);
-        
+
         IDynamicAttributesProvider dynAttProvider = 
             (IDynamicAttributesProvider) parametersProvider.getPersonsParametersSection();
         dynamicAttributes = dynAttProvider.getDynamicAttributes();
-        
+
         final GroupsParametersSection groupsParameters = 
             (GroupsParametersSection) parametersProvider.getGroupsParametersSection();
-        
+
         checkMembersOnStartup = groupsParameters.getCheckMembersOnStartup();
-        
+
         final ReportingParametersSection reportingParameters =
-                (ReportingParametersSection) parametersProvider.getReportingParametersSection();
-        
+            (ReportingParametersSection) parametersProvider.getReportingParametersSection();
+
         reportCheckMemebersOnStartup = reportingParameters.getCountInvalidOrMissingMembers();
-        
+
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Instance of ESCODomainServiceImpl initialized - Attributes: " 
                     + dynamicAttributes + ".");
@@ -162,22 +162,22 @@ InitializingBean {
         if (event instanceof ContextRefreshedEvent) {
             if (!repositoryListener.isListening()) {
                 statisticsManager.load();
-                
+
                 if (checkMembersOnStartup) {
                     LOGGER.info("Starting to check the members of dynamic groups.");
-                            
+
                     startMembersCheckingProcess();
                     LOGGER.info("Members of dynamic groups checked.");
                     if (reportCheckMemebersOnStartup) {
                         reportingManager.doReportingForGroupsMembersCheck();
                     }
                 }
-                
+
                 repositoryListener.listen();
                 LOGGER.info("-----------------------------------------------");
                 LOGGER.info("- Dynamic groups system for grouper started.");
                 LOGGER.info("-----------------------------------------------");
-                
+
             }
         } else if (event instanceof ContextClosedEvent) {
             if (repositoryListener.isListening()) {
@@ -196,7 +196,7 @@ InitializingBean {
      * @see org.esco.dynamicgroups.domain.IDomainService#addToDynamicGroups(org.esco.dynamicgroups.IEntryDTO)
      */
     public synchronized void addToDynamicGroups(final IEntryDTO entry) {
-        
+
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Request to create the dynamic groups memberships for the user: " + entry.getId());
         }
@@ -213,7 +213,7 @@ InitializingBean {
      * @see org.esco.dynamicgroups.domain.IDomainService#updateDynamicGroups(IEntryDTO)
      */
     public synchronized void updateDynamicGroups(final IEntryDTO entry) {
-        
+
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Request to Update the dynamic groups for the user: " + entry.getId());
         }
@@ -252,27 +252,26 @@ InitializingBean {
         // wich uses a=v in its definition.
         for (String attributeName : dynamicAttributes) {
             String[] attributeValues = entry.getAttributeValues(attributeName);
-            if (attributeValues == null) {
-                attributeValues = UNDEF_VALUE;
-            }
+            if (attributeValues != null) {
 
-            final Set<DynGroup> candidatGroupsForAtt = 
-                daoService.getGroupsForAttributeValues(attributeName, attributeValues);
 
-            for (DynGroup candidatGroupForAtt : candidatGroupsForAtt) {
+                final Set<DynGroup> candidatGroupsForAtt = 
+                    daoService.getGroupsForAttributeValues(attributeName, attributeValues);
 
-                if (!candidatGroups.containsKey(candidatGroupForAtt.getGroupUUID())) {
-                    candidatGroups.put(candidatGroupForAtt.getGroupUUID(), 
-                            new DynGroupOccurences(candidatGroupForAtt));
+                for (DynGroup candidatGroupForAtt : candidatGroupsForAtt) {
+
+                    if (!candidatGroups.containsKey(candidatGroupForAtt.getGroupUUID())) {
+                        candidatGroups.put(candidatGroupForAtt.getGroupUUID(), 
+                                new DynGroupOccurences(candidatGroupForAtt));
+                    }
+                    candidatGroups.get(candidatGroupForAtt.getGroupUUID()).incrementOccurences();
                 }
-                candidatGroups.get(candidatGroupForAtt.getGroupUUID()).incrementOccurences();
             }
         }
 
 
         // The retained groups are those which the number of occurences is equal to
         // the number of attributes used in their definition (the group definition are in a conjonctive form).
-        //final Subject subject = SubjectFinder.findById(entry.getId());
         final Map<String, DynGroup> retainedCandidatGroups = new HashMap<String, DynGroup>(); 
         final Set<DynGroup> conjunctiveCompInds = new HashSet<DynGroup>();
 
@@ -318,20 +317,20 @@ InitializingBean {
      * @param definition The dfinition associated to the group to initialize.
      */
     private void initialize(final DynamicGroupDefinition definition) {
-        
+
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Initialization of the group with the definition: " + definition);
         }
-        
+
         final Set<String> userIds = membersFromDefinitionService.getMembers(definition);
         groupsService.resetGroupMembers(definition);
         // Adds the members to the list.
         if (userIds.size() > 0) {
             groupsService.addToGroup(definition.getGroupUUID(), userIds);
         }
-       
+
     }
-    
+
     /**
      * Checks all the groups.
      * @see org.esco.dynamicgroups.domain.IDomainService#startMembersCheckingProcess()
@@ -341,29 +340,29 @@ InitializingBean {
             LOGGER.debug("Starting the checking of the dynamic groups.");
         }
         stopCheckingProcess.set(false);
-        
-        
-      
+
+
+
         // Gets the list of the dynamic groups definitions.
         // This list is shuffled for the case that only a part of the list is control.
         final List<DynamicGroupDefinition> definitions = new ArrayList<DynamicGroupDefinition>();
         definitions.addAll(groupsService.getAllDynamicGroupDefinitions());
         Collections.shuffle(definitions);
-        
+
         final Iterator<DynamicGroupDefinition> definitionsIter = definitions.iterator();
-        
+
         // The definitions are checked until the end of the list or the processus is stopped.
         while (definitionsIter.hasNext() && !stopCheckingProcess.get()) {
             final DynamicGroupDefinition definition = definitionsIter.next();
             final Set<String> expectedMembers = membersFromDefinitionService.getMembers(definition);
             groupsService.checkGroupMembers(definition, expectedMembers);
         }
-        
+
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Dynamic groups checking finished.");
         }
     }
-    
+
     /**
      * Stops the checking of the members ah the dynamic groups.
      */
@@ -373,8 +372,8 @@ InitializingBean {
         }
         stopCheckingProcess.set(true);
     }
-   
-    
+
+
     /**
      * Getter for groupsService.
      * @return groupsService.

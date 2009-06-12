@@ -1,10 +1,11 @@
 /**
  * 
  */
-package org.esco.dynamicgroups.dao.ldap.syncrepl.client.util;
+package org.esco.dynamicgroups.dao.ldap.syncrepl.client.util.logger;
 
 import com.novell.ldap.LDAPMessage;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 /**
@@ -39,14 +40,24 @@ public class ModuloSyncReplMessagesLogger implements ISyncReplMessagesLogger {
     /**
      * Log the message every modulo call.
      * @param message The LDAP message.
-     * @see org.esco.dynamicgroups.dao.ldap.syncrepl.client.util.ISyncReplMessagesLogger#log(LDAPMessage)
+     * @see org.esco.dynamicgroups.dao.ldap.syncrepl.client.util.logger.ISyncReplMessagesLogger#log(LDAPMessage)
      */
-    @Override
     public void log(final LDAPMessage message) {
-        callsCount = (callsCount + 1) % modulo;  
-       if (callsCount == 0) {
-           logger.info(modulo + " SyncReplMessages recieved.");
-       }
+        log(Level.INFO, message, ".");
     }
-
+    
+    /**
+     * Logs an LDAP Message.
+     * @param level The Priority for the logging. 
+     * @param ldapMessage The LDAP Message. 
+     * @param logMessage The log message.
+     * @see org.esco.dynamicgroups.dao.ldap.syncrepl.client.util.logger.ISyncReplMessagesLogger#
+     * log(org.apache.log4j.Level, com.novell.ldap.LDAPMessage, java.lang.String)
+     */
+    public void log(final Level level, final LDAPMessage ldapMessage, final String logMessage) {
+        callsCount = (callsCount + 1) % modulo;  
+        if (callsCount == 0) {
+            logger.log(Level.INFO, modulo + " SyncReplMessages recieved" + logMessage);
+        }
+    }
 }

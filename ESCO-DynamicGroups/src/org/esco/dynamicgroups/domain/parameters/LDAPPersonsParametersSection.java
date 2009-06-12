@@ -40,7 +40,10 @@ public class LDAPPersonsParametersSection extends DGParametersSection implements
     private static final int DEF_SYNC_REPL_MESSAGES_LOG_MODULO = 0;
     
     /** Default value for the use of an ssl connection. */
-    private static final Boolean DEF_USE_SSL = false;
+    private static final boolean DEF_USE_SSL = false;
+    
+    /** Default value for skip until first cookie flag. */
+    private static final boolean DEF_SKIP_UNTIL_COOKIE = false;
 
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(LDAPPersonsParametersSection.class);
@@ -98,6 +101,9 @@ public class LDAPPersonsParametersSection extends DGParametersSection implements
     
     /** The path of the keystore to use in the case of an ssl connection. */
     private String keystorePath;
+    
+    /** Flag used to skip the message until the first cookie.*/
+    private boolean skipMessagesUntilFirstCookie;
 
     /**
      * Constructor for LDAPPersonsParametersSection.
@@ -142,6 +148,8 @@ public class LDAPPersonsParametersSection extends DGParametersSection implements
         final String synreplCookieFileKey = PROPERTIES_PREFIX + "syncrepl.cookie.file";
         final String synreplCookieSaveModuloKey = PROPERTIES_PREFIX + "syncrepl.cookie.save.modulo";
         final String syncReplMessagesLogModuloKey = PROPERTIES_PREFIX + "syncrepl.client.messages.log.modulo";
+        final String skipMessagesUntilFirstCookieKey = PROPERTIES_PREFIX 
+            + "syncrepl.client.messages.skip.until.first.cookie";
 
         // Retrieves the values.
         setLdapHost(parseStringFromProperty(params, ldapHostKey));
@@ -170,6 +178,8 @@ public class LDAPPersonsParametersSection extends DGParametersSection implements
         setSyncReplCookieFile(parseStringFromPropertySafe(params, synreplCookieFileKey, DEF_COOKIE_FILE));
         setSyncReplCookieSaveModulo(parseStrictPositiveIntegerFromPropertySafe(params, synreplCookieSaveModuloKey, 
                 DEF_SYNCREPL_MODULO));
+        setSkipMessagesUntilFirstCookie(parseBooleanFromPropertySafe(params, 
+                skipMessagesUntilFirstCookieKey, DEF_SKIP_UNTIL_COOKIE));
 
     }
 
@@ -204,6 +214,8 @@ public class LDAPPersonsParametersSection extends DGParametersSection implements
         toStringFormatMultipleEntries(sb, getLdapSearchAttributes());
         toStringFormatProperty(sb, "SyncRepl Client idle: ", getSyncreplClientIdle());
         toStringFormatProperty(sb, "SyncRepl cookie file: ", getSyncReplCookieFile());
+        toStringFormatProperty(sb, "Skip messages until first cookie: ", getSkipMessagesUntilFirstCookie());
+        
         toStringFormatProperty(sb, "SyncRepl cookie save modulo: ", getSyncReplCookieSaveModulo());
         
         toStringFormatSingleEntry(sb, "}");
@@ -524,5 +536,21 @@ public class LDAPPersonsParametersSection extends DGParametersSection implements
      */
     public void setSyncReplMessagesLogModulo(final int syncReplMessagesLogModulo) {
         this.syncReplMessagesLogModulo = syncReplMessagesLogModulo;
+    }
+
+    /**
+     * Getter for skipMessagesUntilFirstCookie.
+     * @return skipMessagesUntilFirstCookie.
+     */
+    public boolean getSkipMessagesUntilFirstCookie() {
+        return skipMessagesUntilFirstCookie;
+    }
+
+    /**
+     * Setter for skipMessagesUntilFirstCookie.
+     * @param skipMessagesUntilFirstCookie the new value for skipMessagesUntilFirstCookie.
+     */
+    public void setSkipMessagesUntilFirstCookie(final boolean skipMessagesUntilFirstCookie) {
+        this.skipMessagesUntilFirstCookie = skipMessagesUntilFirstCookie;
     }
 }

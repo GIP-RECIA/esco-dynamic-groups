@@ -1,9 +1,10 @@
 /**
  * 
  */
-package org.esco.dynamicgroups.dao.ldap.syncrepl.client.util;
+package org.esco.dynamicgroups.dao.ldap.syncrepl.client.util.logger;
 
 import java.io.Serializable;
+
 
 /**
  * Interface for the factories of Loggers for the SyncRepl Messages.

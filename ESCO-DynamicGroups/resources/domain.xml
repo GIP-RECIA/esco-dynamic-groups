@@ -45,7 +45,7 @@
 		<property name="i18n" ref="i18n"/>
 	</bean>
 	
-	<bean id="PropositionCodec" class="org.esco.dynamicgroups.domain.definition.PropositionCodec">
+	<bean id="propositionCodec" class="org.esco.dynamicgroups.domain.definition.PropositionCodec">
 		<property name="i18n" ref= "i18n"/>
 		<property name="atomValidator" ref="atomValidator"/>
 	</bean>
@@ -64,7 +64,7 @@
 		<property name="reportFormatter" ref="reportFormatter"/>
 		<property name="groupsService" ref="groupsService"/>
 		<property name="domainService" ref="domainService"/>
-		<property name="resourceUtil" ref="resourceUtil"/>
+		<property name="resourceProvider" ref="resourceProviderManager"/>
 	</bean>
 	
 	<bean id="statisticsManagerProvider" class="org.esco.dynamicgroups.domain.reporting.statistics.StatisticsManagerProviderForHooks">
@@ -81,6 +81,7 @@
      	<property name="mailer" ref="mailer"/>
      	<property name="i18n" ref="i18n"/>
      	<property name="reportFormatter" ref="reportFormatter"/>
+     	<property name="parametersProvider" ref="parametersProvider"/>
 	</bean>
 	<bean name="reportingJob" class="org.springframework.scheduling.quartz.JobDetailBean">
   		<property name="jobClass" value="org.esco.dynamicgroups.domain.reporting.ReportingJob"/>

@@ -20,7 +20,7 @@ import org.esco.dynamicgroups.domain.beans.I18NManager;
 import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
 import org.esco.dynamicgroups.domain.parameters.ReportingParametersSection;
 import org.esco.dynamicgroups.domain.reporting.IReportFormatter;
-import org.esco.dynamicgroups.util.ServletContextResourcesUtil;
+import org.esco.dynamicgroups.util.IResourceProvider;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
@@ -80,7 +80,7 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
     private transient IGroupsDAOService groupsService;
 
     /**Util class to serialize and load the instance.*/
-    private transient ServletContextResourcesUtil resourceUtil;
+    private transient IResourceProvider resourceProvider;
 
     /**
      * Builds an instance of StatisticsManager.
@@ -110,8 +110,8 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
                 "The property reportFormatter in the class " + this.getClass().getName() 
                 + canNotBeNull);
 
-        Assert.notNull(this.resourceUtil, 
-                "The property resourceUtil in the class " + this.getClass().getName() 
+        Assert.notNull(this.resourceProvider, 
+                "The property resourceProvider in the class " + this.getClass().getName() 
                 + canNotBeNull);
 
         Assert.notNull(this.groupsService, 
@@ -124,28 +124,30 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
 
         reportingParameters = (ReportingParametersSection) parametersProvider.getReportingParametersSection();
 
-        if (reportingParameters.getCountUndefiedGroups()) {
-            undefGroupsStats = new UndefinedGroupStatsEntry(groupsService, i18n);
-        }
+        if (reportingParameters.getEnabled()) {
+            if (reportingParameters.getCountUndefiedGroups()) {
+                undefGroupsStats = new UndefinedGroupStatsEntry(groupsService, i18n);
+            }
 
-        if (reportingParameters.getCountDefinitionModifications()) {
-            definitionModifications = new DefinitionModificationsStatsEntry(i18n);
-        }
+            if (reportingParameters.getCountDefinitionModifications()) {
+                definitionModifications = new DefinitionModificationsStatsEntry(i18n);
+            }
 
-        if (reportingParameters.getCountSyncReplNotifications()) {
-            syncReplNotifications = new SyncReplNotificationsStatsEntry(i18n);
-        }
+            if (reportingParameters.getCountSyncReplNotifications()) {
+                syncReplNotifications = new SyncReplNotificationsStatsEntry(i18n);
+            }
 
-        if (reportingParameters.getCountGroupCreationDeletion()) {
-            groupsStats = new GroupsCreatedOrDeletedStatsEntry(i18n);
-        }
+            if (reportingParameters.getCountGroupCreationDeletion()) {
+                groupsStats = new GroupsCreatedOrDeletedStatsEntry(i18n);
+            }
 
-        if (reportingParameters.getCountGroupsActivity()) {
-            groupsActivityStats = new GroupsActivityStatsEntry(i18n);
-        }
+            if (reportingParameters.getCountGroupsActivity()) {
+                groupsActivityStats = new GroupsActivityStatsEntry(i18n);
+            }
 
-        if (reportingParameters.getCountInvalidOrMissingMembers()) {
-            checkedMembersStats = new CheckedMembersStatsEntry(i18n);
+            if (reportingParameters.getCountInvalidOrMissingMembers()) {
+                checkedMembersStats = new CheckedMembersStatsEntry(i18n);
+            }
         }
     }
 
@@ -605,36 +607,37 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
      * @see org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager#load()
      */
     public void load() { 
-        if (reportingParameters.getPersistent()) {
-            try {
-                final File file = resourceUtil.getResource(SER_FILE_NAME).getFile();
-                if (file.exists()) {
-                    if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("Loading serialized instance from: " + file.getAbsolutePath());
+        if (reportingParameters.getEnabled()) {
+            if (reportingParameters.getPersistent()) {
+                try {
+                    final File file = resourceProvider.getResource(SER_FILE_NAME).getFile();
+                    if (file.exists()) {
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug("Loading serialized instance from: " + file.getAbsolutePath());
+                        }
+                        final ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
+                        final StatisticsManager previousInstance = (StatisticsManager) ois.readObject();
+                        if (previousInstance != null) {
+                            this.definitionModifications.initializeFrom(previousInstance.definitionModifications);
+                            this.syncReplNotifications.initializeFrom(previousInstance.syncReplNotifications);
+                            this.groupsStats.initializeFrom(previousInstance.groupsStats);
+                            this.undefGroupsStats.initializeFrom(previousInstance.undefGroupsStats);
+                            this.groupsActivityStats.initializeFrom(previousInstance.groupsActivityStats);
+                        }
+                    } else {
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug("Serialization file not found: " + file.getAbsolutePath());
+                        }
                     }
-                    final ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
-                    final StatisticsManager previousInstance = (StatisticsManager) ois.readObject();
-                    if (previousInstance != null) {
-                        this.definitionModifications.initializeFrom(previousInstance.definitionModifications);
-                        this.syncReplNotifications.initializeFrom(previousInstance.syncReplNotifications);
-                        this.groupsStats.initializeFrom(previousInstance.groupsStats);
-                        this.undefGroupsStats.initializeFrom(previousInstance.undefGroupsStats);
-                        this.groupsActivityStats.initializeFrom(previousInstance.groupsActivityStats);
-                    }
-                } else {
-                    if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("Serialization file not found: " + file.getAbsolutePath());
-                    }
+                } catch (IOException ioe) {
+                    LOGGER.error(ioe, ioe);
+                } catch (ClassNotFoundException cnfe) {
+                    LOGGER.error(cnfe, cnfe);
                 }
-            } catch (IOException ioe) {
-                LOGGER.error(ioe, ioe);
-            } catch (ClassNotFoundException cnfe) {
-                LOGGER.error(cnfe, cnfe);
+            } else {
+                LOGGER.debug("Reporting is not persistent : loading disabled.");
             }
-        } else {
-            LOGGER.debug("Reporting is not persistent : loading disabled.");
         }
-
     }
 
     /**
@@ -642,36 +645,22 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
      * @see org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager#save()
      */
     public void save() {
-        if (reportingParameters.getPersistent()) {
-        try {
-            final File file = resourceUtil.getResource(SER_FILE_NAME).getFile();
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Serialization of the instance into the file: " + file.getAbsolutePath());
+        if (reportingParameters.getEnabled()) {
+            if (reportingParameters.getPersistent()) {
+                try {
+                    final File file = resourceProvider.getResource(SER_FILE_NAME).getFile();
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Serialization of the instance into the file: " + file.getAbsolutePath());
+                    }
+                    final ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file));
+                    oos.writeObject(this);
+                } catch (IOException ioe) {
+                    LOGGER.error(ioe, ioe);
+                }
+            } else {
+                LOGGER.debug("Reporting is not persistent : saving disabled.");
             }
-            final ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file));
-            oos.writeObject(this);
-        } catch (IOException ioe) {
-            LOGGER.error(ioe, ioe);
         }
-        } else {
-            LOGGER.debug("Reporting is not persistent : saving disabled.");
-        }
-    }
-
-    /**
-     * Getter for resourceUtil.
-     * @return resourceUtil.
-     */
-    public ServletContextResourcesUtil getResourceUtil() {
-        return resourceUtil;
-    }
-
-    /**
-     * Setter for resourceUtil.
-     * @param resourceUtil the new value for resourceUtil.
-     */
-    public void setResourceUtil(final ServletContextResourcesUtil resourceUtil) {
-        this.resourceUtil = resourceUtil;
     }
 
     /**
@@ -688,5 +677,21 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
      */
     public void setDomainService(final IDomainService domainService) {
         this.domainService = domainService;
+    }
+
+    /**
+     * Getter for resourceProvider.
+     * @return resourceProvider.
+     */
+    public IResourceProvider getResourceProvider() {
+        return resourceProvider;
+    }
+
+    /**
+     * Setter for resourceProvider.
+     * @param resourceProvider the new value for resourceProvider.
+     */
+    public void setResourceProvider(final IResourceProvider resourceProvider) {
+        this.resourceProvider = resourceProvider;
     }
 }
