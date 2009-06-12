@@ -111,7 +111,7 @@ public class LDAPConnectionManager implements InitializingBean, Serializable {
         if (lc == null) {
             return false;
         }
-        return lc.isConnected() && lc.isConnectionAlive();
+        return lc.isConnected();
     }
     
     /**

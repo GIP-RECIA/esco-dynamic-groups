@@ -15,17 +15,17 @@ import org.springframework.web.context.support.ServletContextResource;
  * 29 mai 2009
  *
  */
-public class ServletContextResourcesUtil implements ServletContextAware {
+public class ServletContextResourcesProvider implements ServletContextAware, IResourceProvider {
     
     /** The servlet context. */
     private ServletContext servletContext;
     
-
     /**
-     * Builds an instance of ServletContextResourcesUtil.
+     * Builds an instance of ServletContextResourcesProvider.
      */
-    public ServletContextResourcesUtil() {
+    public ServletContextResourcesProvider() {
         super();
+        ResourceProviderManager.register(this);
     }
     
     /**

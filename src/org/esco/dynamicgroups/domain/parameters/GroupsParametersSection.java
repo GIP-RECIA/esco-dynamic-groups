@@ -20,6 +20,9 @@ public class GroupsParametersSection extends DGParametersSection {
     private static final long serialVersionUID = 9168255829280261203L;
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(GroupsParametersSection.class);
+    
+    /** Default value for thr flag to remove a deleted user from all its groups. */
+    private static final boolean DEF_REMOVE_FROM_ALL_GROUPS = true;
    
     /** The id of the subject source. */
     private String grouperSubjectsSourceId;
@@ -76,7 +79,7 @@ public class GroupsParametersSection extends DGParametersSection {
         final String grouperSubjSourceKey = PROPERTIES_PREFIX + "grouper.subjects.source";
         final String createGrouperTypeKey = PROPERTIES_PREFIX + "grouper.create.type";
         final String checkMbOnStartupKey = PROPERTIES_PREFIX + "grouper.check.all.members.on.startup";
-        final String grouperDefKey = PROPERTIES_PREFIX + "grouper.definiton.field";
+        final String grouperDefKey = PROPERTIES_PREFIX + "grouper.definition.field";
         final String grouperUserKey = PROPERTIES_PREFIX + "grouper.user";
         final String removeFromAllGroupsKey = PROPERTIES_PREFIX + "grouper.remove.from.all.groups";
         
@@ -88,7 +91,8 @@ public class GroupsParametersSection extends DGParametersSection {
         setCheckMembersOnStartup(parseBooleanFromProperty(params, checkMbOnStartupKey)); 
         setGrouperDefinitionField(parseStringFromProperty(params, grouperDefKey));
         setGrouperUser(parseStringFromProperty(params, grouperUserKey));
-        setRemoveFromAllGroups(parseBooleanFromProperty(params, removeFromAllGroupsKey)); 
+        setRemoveFromAllGroups(parseBooleanFromPropertySafe(params, removeFromAllGroupsKey, 
+                DEF_REMOVE_FROM_ALL_GROUPS)); 
     }
 
    
@@ -106,7 +110,7 @@ public class GroupsParametersSection extends DGParametersSection {
         toStringFormatProperty(sb, "Grouper Type: ", getGrouperType());
         toStringFormatProperty(sb, "Grouper definition field: ", getGrouperDefinitionField());
         toStringFormatProperty(sb, "Create grouper type (if not present): ", getCreateGrouperType());
-        toStringFormatProperty(sb, "Reset dynamic groups on startup: ", getCheckMembersOnStartup());
+        toStringFormatProperty(sb, "Check dynamic groups on startup: ", getCheckMembersOnStartup());
         toStringFormatProperty(sb, "Grouper user: ", getGrouperUser());
         toStringFormatProperty(sb, "remove from all groups: ", getRemoveFromAllGroups());
         toStringFormatSingleEntry(sb, "}");

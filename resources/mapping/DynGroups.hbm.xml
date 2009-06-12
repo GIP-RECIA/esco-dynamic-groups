@@ -9,7 +9,7 @@
         	<generator class="native"/>
         </id>
         <property name="groupUUID" column="GRP_UUID"  index="INDEX_GRP_UUID"/>
-        <property name="groupDefinition" column="GRP_DEF"/>
+        <property name="groupDefinition" column="GRP_DEF" type="text"/>
         <property name="attributesNb" column="GRP_ATT_NB"/>
         <property name="indirectedGroupId" column="GRP_CONJ_COMP_OF" index="INDEX_GRP_CONJ_COMP_OF"/>
     </class>

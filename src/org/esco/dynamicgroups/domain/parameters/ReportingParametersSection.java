@@ -29,6 +29,12 @@ public class ReportingParametersSection extends DGParametersSection {
     /** Default value for the persitency of the reporting values. */
     private static final boolean DEF_PERSISTENT = false;
     
+    /** Default value for the enabled flag. */
+    private static final boolean DEF_ENABLED = true;
+    
+    /** Flag to enable the reporting. */
+    private boolean enabled;
+    
     /** The cron expression used to send the reports. */
     private String reportCronExpression;
 
@@ -87,6 +93,7 @@ public class ReportingParametersSection extends DGParametersSection {
         
         
         // keys used to retrieve the values in the properties instance. 
+        final String enabledKey = PROPERTIES_PREFIX + "reporting.enabled";
         final String reportCronExprKey = PROPERTIES_PREFIX + "reporting.cron.expression";
         final String countDefModKey = PROPERTIES_PREFIX + "reporting.handle.definition.modifications";
         final String countSyncReplKey = PROPERTIES_PREFIX + "reporting.handle.syncrepl.notifications";
@@ -98,15 +105,21 @@ public class ReportingParametersSection extends DGParametersSection {
         final String persistentKey = PROPERTIES_PREFIX + "reporting.persistent";
       
         // Retrieves the values.
-        setReportCronExpression(parseStringFromProperty(params, reportCronExprKey));
-        setCountDefinitionModifications(parseBooleanFromProperty(params, countDefModKey));
-        setCountSyncReplNotifications(parseBooleanFromProperty(params, countSyncReplKey));
-        setCountGroupCreationDeletion(parseBooleanFromProperty(params, countGroupKey));
-        setCountUndefiedGroups(parseBooleanFromProperty(params, countUndefGroupKey));
-        setCountGroupsActivity(parseBooleanFromProperty(params, countGroupActivityKey));
-        setCountInvalidOrMissingMembers(parseBooleanFromProperty(params, countInvalidOrMissingMembKey));
-        setMembersCheckingDuration(parsePositiveIntegerFromPropertySafe(params, mbCheckDurationKey, DEF_MB_CHK_DUR));
-        setPersistent(parseBooleanFromPropertySafe(params, persistentKey, DEF_PERSISTENT));
+        setEnabled(parseBooleanFromPropertySafe(params, enabledKey, DEF_ENABLED));
+        if (getEnabled()) {
+            setReportCronExpression(parseStringFromProperty(params, reportCronExprKey));
+            setCountDefinitionModifications(parseBooleanFromProperty(params, countDefModKey));
+            setCountSyncReplNotifications(parseBooleanFromProperty(params, countSyncReplKey));
+            setCountGroupCreationDeletion(parseBooleanFromProperty(params, countGroupKey));
+            setCountUndefiedGroups(parseBooleanFromProperty(params, countUndefGroupKey));
+            setCountGroupsActivity(parseBooleanFromProperty(params, countGroupActivityKey));
+            setCountInvalidOrMissingMembers(parseBooleanFromProperty(params, countInvalidOrMissingMembKey));
+            setMembersCheckingDuration(parsePositiveIntegerFromPropertySafe(params, mbCheckDurationKey, 
+                    DEF_MB_CHK_DUR));
+            setPersistent(parseBooleanFromPropertySafe(params, persistentKey, DEF_PERSISTENT));
+        } else {
+            LOGGER.debug("Reporting is disabled, parameters are not loaded.");
+        }
     }
 
    
@@ -120,16 +133,18 @@ public class ReportingParametersSection extends DGParametersSection {
         final StringBuilder sb = new StringBuilder();
         toStringFormatSingleEntry(sb, getClass().getSimpleName() + "#{\n");
         
-        toStringFormatProperty(sb, "Cron expression: ", getReportCronExpression());
-        toStringFormatProperty(sb, "Persistent: ", getPersistent());
-        toStringFormatProperty(sb, "Count SyncRepl notifications: ", getCountSyncReplNotifications());
-        toStringFormatProperty(sb, "Count def mods: ", getCountDefinitionModifications());
-        toStringFormatProperty(sb, "Count groups creation/deletion: ", getCountGroupCreationDeletion());
-        toStringFormatProperty(sb, "Count groups activity: ", getCountGroupsActivity());
-        toStringFormatProperty(sb, "Count undefined groups: ", getCountUndefiedGroups());
-        toStringFormatProperty(sb, "Count invalid or missing members: ", getCountInvalidOrMissingMembers());
-        toStringFormatProperty(sb, "Members checking duration: ", getMembersCheckingDuration());
-        
+        toStringFormatProperty(sb, "Enabled: ", getEnabled());
+        if (getEnabled()) {
+            toStringFormatProperty(sb, "Cron expression: ", getReportCronExpression());
+            toStringFormatProperty(sb, "Persistent: ", getPersistent());
+            toStringFormatProperty(sb, "Count SyncRepl notifications: ", getCountSyncReplNotifications());
+            toStringFormatProperty(sb, "Count def mods: ", getCountDefinitionModifications());
+            toStringFormatProperty(sb, "Count groups creation/deletion: ", getCountGroupCreationDeletion());
+            toStringFormatProperty(sb, "Count groups activity: ", getCountGroupsActivity());
+            toStringFormatProperty(sb, "Count undefined groups: ", getCountUndefiedGroups());
+            toStringFormatProperty(sb, "Count invalid or missing members: ", getCountInvalidOrMissingMembers());
+            toStringFormatProperty(sb, "Members checking duration: ", getMembersCheckingDuration());
+        }
 
         toStringFormatSingleEntry(sb, "}");
         return sb.toString();
@@ -277,5 +292,21 @@ public class ReportingParametersSection extends DGParametersSection {
      */
     public void setPersistent(final boolean persistent) {
         this.persistent = persistent;
+    }
+
+    /**
+     * Getter for enabled.
+     * @return enabled.
+     */
+    public boolean getEnabled() {
+        return enabled;
+    }
+
+    /**
+     * Setter for enabled.
+     * @param enabled the new value for enabled.
+     */
+    public void setEnabled(final boolean enabled) {
+        this.enabled = enabled;
     }
 }

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.esco.dynamicgroups.dao.ldap.syncrepl.client.util;
+package org.esco.dynamicgroups.dao.ldap.syncrepl.client.util.logger;
 
 import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.domain.parameters.LDAPPersonsParametersSection;
@@ -39,7 +39,7 @@ public class SyncReplMessagesLoggerFactoryImpl implements ISyncReplMessagesLogge
     /**
      * Creates a SyncRepl messages logger.
      * @return The SyncRepl messages logger.
-     * @see org.esco.dynamicgroups.dao.ldap.syncrepl.client.util.ISyncReplMessagesLoggerFactory#createLogger()
+     * @see org.esco.dynamicgroups.dao.ldap.syncrepl.client.util.logger.ISyncReplMessagesLoggerFactory#createLogger()
      */
     public ISyncReplMessagesLogger createLogger() {
         if (ldapParameters.getSyncReplMessagesLogModulo() == 0) {

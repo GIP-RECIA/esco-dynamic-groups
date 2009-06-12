@@ -6,6 +6,8 @@ package org.esco.dynamicgroups.domain.reporting;
 import java.util.Calendar;
 
 import org.esco.dynamicgroups.domain.beans.I18NManager;
+import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
+import org.esco.dynamicgroups.domain.parameters.ReportingParametersSection;
 import org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager;
 import org.esco.dynamicgroups.util.IMailer;
 import org.springframework.beans.factory.InitializingBean;
@@ -31,7 +33,7 @@ public class ReportingManager implements IReportingManager, InitializingBean {
     /** The key for the report subject for the checking process 
      * of the dynamic groups members. */
     private static final String REPORT_SUBJ_MB_CHECK = "report.subject.members.check";
-    
+
     /** Title for the report of the checking process of the dynamic groups
      * members. */
     private static final String REPORT_TITLE_MB_CHECK = "report.title.members.check";
@@ -47,6 +49,12 @@ public class ReportingManager implements IReportingManager, InitializingBean {
 
     /** The I18n manager. */
     private I18NManager i18n;
+
+    /** The user paramters provider. */
+    private ParametersProvider parametersProvider;
+
+    /** The reporting parameters. */
+    private ReportingParametersSection reportingParameters;
 
     /** The report formatter to use. */
     private IReportFormatter reportFormatter;
@@ -65,7 +73,7 @@ public class ReportingManager implements IReportingManager, InitializingBean {
      * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
      */
     public void afterPropertiesSet() throws Exception {
-        
+
         Assert.notNull(this.statisticsManager, "The property statisticsManager in the class "
                 + getClass() + " can't be null.");
 
@@ -78,6 +86,13 @@ public class ReportingManager implements IReportingManager, InitializingBean {
         Assert.notNull(this.mailer, "The property mailer in the class "
                 + getClass() + " can't be null.");
 
+        Assert.notNull(this.parametersProvider, "The property parametersProvider in the class "
+                + getClass() + " can't be null.");
+
+        reportingParameters = (ReportingParametersSection) parametersProvider.getReportingParametersSection();
+
+
+
     }
 
     /**
@@ -85,45 +100,49 @@ public class ReportingManager implements IReportingManager, InitializingBean {
      * @see org.esco.dynamicgroups.domain.reporting.IReportingManager#doReporting()
      */
     public void doReporting() {
+        if (reportingParameters.getEnabled()) {
 
-        String mailContent = reportFormatter.getHearder();
-        mailContent += reportFormatter.formatTitleLevel1(i18n.getI18nMessage(REPORT_TITLE));
-        mailContent += reportFormatter.getNewLine();
-        mailContent += reportFormatter.getNewLine();
-        mailContent += reportFormatter.highlight(i18n.getI18nMessage(REPORT_EXEC_DATE));
-        mailContent += reportFormatter.format(Calendar.getInstance().getTime());
-        mailContent += reportFormatter.getNewLine();
-        mailContent += reportFormatter.getSeparation();
-        mailContent += reportFormatter.getNewLine();
+            String mailContent = reportFormatter.getHearder();
+            mailContent += reportFormatter.formatTitleLevel1(i18n.getI18nMessage(REPORT_TITLE));
+            mailContent += reportFormatter.getNewLine();
+            mailContent += reportFormatter.getNewLine();
+            mailContent += reportFormatter.highlight(i18n.getI18nMessage(REPORT_EXEC_DATE));
+            mailContent += reportFormatter.format(Calendar.getInstance().getTime());
+            mailContent += reportFormatter.getNewLine();
+            mailContent += reportFormatter.getSeparation();
+            mailContent += reportFormatter.getNewLine();
 
-        mailContent += statisticsManager.generateReport();
+            mailContent += statisticsManager.generateReport();
 
-        mailContent += reportFormatter.getFooter();
-        mailer.sendMail(i18n.getI18nMessage(REPORT_SUBJ), mailContent);
-        statisticsManager.reset();
+            mailContent += reportFormatter.getFooter();
+            mailer.sendMail(i18n.getI18nMessage(REPORT_SUBJ), mailContent);
+            statisticsManager.reset();
+        } 
 
     }
-    
+
     /**
      * Generates the report for the check of the groups members.
      * @see org.esco.dynamicgroups.domain.reporting.IReportingManager#doReportingForGroupsMembersCheck()
      */
     public void doReportingForGroupsMembersCheck() {
-        String mailContent = reportFormatter.getHearder();
-        mailContent += reportFormatter.formatTitleLevel1(i18n.getI18nMessage(REPORT_TITLE_MB_CHECK));
-        mailContent += reportFormatter.getNewLine();
-        mailContent += reportFormatter.getNewLine();
-        mailContent += reportFormatter.highlight(i18n.getI18nMessage(REPORT_EXEC_DATE));
-        mailContent += reportFormatter.format(Calendar.getInstance().getTime());
-        mailContent += reportFormatter.getNewLine();
-        mailContent += reportFormatter.getSeparation();
-        mailContent += reportFormatter.getNewLine();
+        if (reportingParameters.getEnabled()) {
+            String mailContent = reportFormatter.getHearder();
+            mailContent += reportFormatter.formatTitleLevel1(i18n.getI18nMessage(REPORT_TITLE_MB_CHECK));
+            mailContent += reportFormatter.getNewLine();
+            mailContent += reportFormatter.getNewLine();
+            mailContent += reportFormatter.highlight(i18n.getI18nMessage(REPORT_EXEC_DATE));
+            mailContent += reportFormatter.format(Calendar.getInstance().getTime());
+            mailContent += reportFormatter.getNewLine();
+            mailContent += reportFormatter.getSeparation();
+            mailContent += reportFormatter.getNewLine();
 
-        mailContent += statisticsManager.generateGroupsMembersCheckReport();
+            mailContent += statisticsManager.generateGroupsMembersCheckReport();
 
-        mailContent += reportFormatter.getFooter();
-        mailer.sendMail(i18n.getI18nMessage(REPORT_SUBJ_MB_CHECK), mailContent);
-        statisticsManager.reset();
+            mailContent += reportFormatter.getFooter();
+            mailer.sendMail(i18n.getI18nMessage(REPORT_SUBJ_MB_CHECK), mailContent);
+            statisticsManager.reset();
+        }
     }
 
     /**
@@ -192,5 +211,23 @@ public class ReportingManager implements IReportingManager, InitializingBean {
      */
     public void setReportFormatter(final IReportFormatter reportFormatter) {
         this.reportFormatter = reportFormatter;
+    }
+
+
+    /**
+     * Getter for parametersProvider.
+     * @return parametersProvider.
+     */
+    public ParametersProvider getParametersProvider() {
+        return parametersProvider;
+    }
+
+
+    /**
+     * Setter for parametersProvider.
+     * @param parametersProvider the new value for parametersProvider.
+     */
+    public void setParametersProvider(final ParametersProvider parametersProvider) {
+        this.parametersProvider = parametersProvider;
     }
 }

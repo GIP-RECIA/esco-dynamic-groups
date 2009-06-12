@@ -26,6 +26,9 @@ public class CommonsParametersSection extends DGParametersSection {
     
     /** Default locale. */
     private static final String DEF_LOCALE = "en";
+    
+    /** Default value for the xhtml format. */
+    private static final boolean DEF_XHTML = true;
 
     /** The locale to use. */
     private Locale locale;
@@ -64,7 +67,7 @@ public class CommonsParametersSection extends DGParametersSection {
         
         // Retrieves the values.
         setLocale(new Locale(parseStringFromPropertySafe(params, localeKey, DEF_LOCALE)));
-        setXHTML(parseBooleanFromProperty(params, xHTMLKey));
+        setXHTML(parseBooleanFromPropertySafe(params, xHTMLKey, DEF_XHTML));
     }
 
 

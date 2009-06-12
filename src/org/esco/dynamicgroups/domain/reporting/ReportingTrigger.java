@@ -29,7 +29,12 @@ public class ReportingTrigger extends CronTriggerBean {
     public ReportingTrigger(final ParametersProvider parametersProvider) throws ParseException { 
         final ReportingParametersSection reportingParameters = 
             (ReportingParametersSection) parametersProvider.getReportingParametersSection();
-       setCronExpression(reportingParameters.getReportCronExpression()); 
+       if (reportingParameters.getEnabled()) {
+           setCronExpression(reportingParameters.getReportCronExpression());
+       } else {
+           setCronExpression("0 1 10 * * ?");
+       }
+       
     }
     
   

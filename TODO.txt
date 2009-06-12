@@ -4,6 +4,14 @@
 
 * Verifier ce qui se passe lorsque le type dynamique est retiré d'un groupe.
 
+* tester la desactivation du reporting
+
+* help du ant avec la description des cibles
+
+* Vérifier dans les rapports les groupes sans définition et les groupes supprimés
+
+* deploy distant avec ant.
+
 OK revoir la réinitialization de tous les groupes
     - verifier que le client LDAP n'est pas démarré
     - récupérer les groupes via le type.

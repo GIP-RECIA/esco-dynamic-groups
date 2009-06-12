@@ -63,7 +63,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
     /** The Grouper session util instance. */
     private GrouperSessionUtil sessionUtil;
 
-   
+
     /** The user parameters provider. */
     private ParametersProvider parametersProvider;
 
@@ -284,17 +284,17 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
         final GrouperSession session = sessionUtil.createSession();
 
         final Group group = retrieveGroup(session, groupDefinition.getGroupUUID());
-        
+
         if (group != null) {
 
             final String groupName = group.getName();
-            
+
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Checking group: " + groupName);
             }
 
             statisticsManager.handleGroupMembersChecked(groupName);
-            
+
 
             // Builds the actual members of the group in order to compare
             // with the expected one.
@@ -306,7 +306,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
                 try {
                     final Subject subj = ((Member) o).getSubject();
                     actualMembers.add(subj.getId());
-                   
+
                 } catch (SubjectNotFoundException e) {
                     LOGGER.error(e, e);
                 }
@@ -670,50 +670,51 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Creates the memberships for the user: " + userId);
         }
-        final GrouperSession session = sessionUtil.createSession();
+        if (groups.size() > 0) {
+            final GrouperSession session = sessionUtil.createSession();
 
 
-        try {
-            final Subject subject = SubjectFinder.findById(userId);
-            // Adds the new memberships.
-            for (String  newGroup : groups.keySet()) {
-                final Group group = retrieveGroup(session, newGroup);
-                if (group != null) {
+            try {
+                final Subject subject = SubjectFinder.findById(userId);
+                // Adds the new memberships.
+                for (String  newGroup : groups.keySet()) {
+                    final Group group = retrieveGroup(session, newGroup);
+                    if (group != null) {
 
-                    if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("Create memberships user: " + userId 
-                                + " added to the group: " + group.getName());
-                    }
-                    if (!group.hasImmediateMember(subject)) {
-                        group.addMember(subject);
-                        statisticsManager.handleMemberAdded(group.getName(), userId);
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug("Create memberships user: " + userId 
+                                    + " added to the group: " + group.getName());
+                        }
+                        if (!group.hasImmediateMember(subject)) {
+                            group.addMember(subject);
+                            statisticsManager.handleMemberAdded(group.getName(), userId);
+                        }
                     }
                 }
-            }
-            sessionUtil.stopSession(session);
+                sessionUtil.stopSession(session);
 
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Memberships for the user: " + userId + " created.");
-            }
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Memberships for the user: " + userId + " created.");
+                }
 
-        } catch (SubjectNotFoundException e) {
-            sessionUtil.stopSession(session);
-            LOGGER.error(e, e);
-            throw new DynamicGroupsException(e);
-        } catch (SubjectNotUniqueException e) {
-            sessionUtil.stopSession(session);
-            LOGGER.error(e, e);
-            throw new DynamicGroupsException(e);
-        } catch (InsufficientPrivilegeException e) {
-            sessionUtil.stopSession(session);
-            LOGGER.error(e, e);
-            throw new DynamicGroupsException(e);
-        } catch (MemberAddException e) {
-            sessionUtil.stopSession(session);
-            LOGGER.error(e, e);
-            throw new DynamicGroupsException(e);
+            } catch (SubjectNotFoundException e) {
+                sessionUtil.stopSession(session);
+                LOGGER.error(e, e);
+                throw new DynamicGroupsException(e);
+            } catch (SubjectNotUniqueException e) {
+                sessionUtil.stopSession(session);
+                LOGGER.error(e, e);
+                throw new DynamicGroupsException(e);
+            } catch (InsufficientPrivilegeException e) {
+                sessionUtil.stopSession(session);
+                LOGGER.error(e, e);
+                throw new DynamicGroupsException(e);
+            } catch (MemberAddException e) {
+                sessionUtil.stopSession(session);
+                LOGGER.error(e, e);
+                throw new DynamicGroupsException(e);
+            }
         }
-
     }
 
     /**

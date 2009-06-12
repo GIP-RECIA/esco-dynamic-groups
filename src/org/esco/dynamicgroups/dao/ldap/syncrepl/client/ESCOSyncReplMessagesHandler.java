@@ -6,12 +6,15 @@ import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPMessage;
 import com.novell.ldap.LDAPSearchResult;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.esco.dynamicgroups.dao.ldap.syncrepl.client.util.ISyncReplMessagesLogger;
-import org.esco.dynamicgroups.dao.ldap.syncrepl.client.util.ISyncReplMessagesLoggerFactory;
+import org.esco.dynamicgroups.dao.ldap.syncrepl.client.util.logger.ISyncReplMessagesLogger;
+import org.esco.dynamicgroups.dao.ldap.syncrepl.client.util.logger.ISyncReplMessagesLoggerFactory;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.CookieManager;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncInfoMessage;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncStateControl;
+import org.esco.dynamicgroups.domain.parameters.LDAPPersonsParametersSection;
+import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
 import org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
@@ -26,10 +29,10 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
 
     /** Serial version UID.*/
     private static final long serialVersionUID = -6625007312797809743L;
-    
+
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(ESCOSyncReplMessagesHandler.class); 
-    
+
     /** Add Action.*/
     private ISyncReplTriggeredAction addAction;
 
@@ -41,41 +44,47 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
 
     /** Present Action.*/
     private ISyncReplTriggeredAction presentAction;
-    
+
     /** The statistics manager. */
     private IStatisticsManager statisticsManager;
-    
+
     /** The messages logger. */
     private ISyncReplMessagesLogger messagesLogger;
 
-    /** The messages logger. */
+    /** The messages logger factory. */
     private ISyncReplMessagesLoggerFactory messagesLoggerFactory;
-    
+
     /** The cookie manager. */
     private CookieManager cookieManager;
-    
+
     /** The string representation of the message handler. */
     private String stringRepresentation;
-  
+
+    /** Parameters provider. */
+    private ParametersProvider parametersProvider;
+
+    /** The LDAP Parameters. */
+    private LDAPPersonsParametersSection ldapParameters;
+
     /**
      * Constructor for ESCOSyncReplMessagesHandler.
      */
     public ESCOSyncReplMessagesHandler() {
-      super();
+        super();
     }
-    
+
     /**
      * Checks the properties after the Spring injection.
      * @throws Exception
      * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
      */
     public void afterPropertiesSet() throws Exception {
-        
+
         final String cantBeNull = " can't be null.";
         Assert.notNull(this.addAction, 
                 "The property addAction in the class " + this.getClass().getName() 
                 + cantBeNull);
-        
+
         Assert.notNull(this.modifyAction, 
                 "The property modifyAction in the class " + this.getClass().getName() 
                 + cantBeNull);
@@ -87,7 +96,7 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
         Assert.notNull(this.presentAction, 
                 "The property presentAction in the class " + this.getClass().getName() 
                 + cantBeNull);
-        
+
         Assert.notNull(this.statisticsManager, 
                 "The property statisticsManager in the class " + this.getClass().getName() 
                 + cantBeNull);
@@ -95,15 +104,19 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
         Assert.notNull(this.cookieManager, 
                 "The property cookieManager in the class " + this.getClass().getName() 
                 + cantBeNull);
-        
+
         Assert.notNull(this.messagesLoggerFactory, 
                 "The property messagesLoggerFactory in the class " + this.getClass().getName() 
                 + cantBeNull);
-        
+
+        Assert.notNull(this.parametersProvider, 
+                "The property parametersProvider in the class " + this.getClass().getName() 
+                + cantBeNull);
+        ldapParameters = (LDAPPersonsParametersSection) parametersProvider.getPersonsParametersSection();
         messagesLogger = messagesLoggerFactory.createLogger();
-        
+
     }
-    
+
     /**
      * Gives the string representation of the handler.
      * @return The string representation.
@@ -113,13 +126,13 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
     public String toString() {
         if (stringRepresentation == null) {
             stringRepresentation = getClass().getSimpleName() + "#{Add action: "
-                + addAction + "; Modify action: " + modifyAction 
-                + "; Delete action: " + deleteAction 
-                + "; Present action: " + presentAction + "}";
+            + addAction + "; Modify action: " + modifyAction 
+            + "; Delete action: " + deleteAction 
+            + "; Present action: " + presentAction + "}";
         }
         return stringRepresentation;
     }
-    
+
     /**
      * Handles a given message.
      * @param message The message to handle.
@@ -127,24 +140,34 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
      * #processLDAPMessage(com.novell.ldap.LDAPMessage)
      */
     public void processLDAPMessage(final LDAPMessage message) {
-        messagesLogger.log(message);
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Handling the message tag: " + message.getTag());
-        }
-        if (message instanceof LDAPSearchResult) {
-            handleLDAPSearchResult((LDAPSearchResult) message);
-        } else if (message instanceof SyncInfoMessage) {
-            cookieManager.updateCurrentCookie(((SyncInfoMessage) message).getCookie());
+        if (ldapParameters.getSkipMessagesUntilFirstCookie() && !cookieManager.hasRecievedCookie()) {
+            // The messages are skipped until the first cookie.
+            if (message instanceof SyncInfoMessage) {
+                cookieManager.updateCurrentCookie(((SyncInfoMessage) message).getCookie());
+            }
+            messagesLogger.log(Level.INFO, message, " (Messages skipped until the first cookie).");
+        } else {
+            // The message is actually processed.
+            
+            messagesLogger.log(message);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Handling the message tag: " + message.getTag());
+            }
+            if (message instanceof LDAPSearchResult) {
+                handleLDAPSearchResult((LDAPSearchResult) message);
+            } else if (message instanceof SyncInfoMessage) {
+                cookieManager.updateCurrentCookie(((SyncInfoMessage) message).getCookie());
+            }
         }
     }
-    
+
     /**
      * Handles an LDAPSearchResult message.
      * @param searchResultMessage The message to handle.
      */
     protected void handleLDAPSearchResult(final LDAPSearchResult searchResultMessage) {
         final SyncStateControl control = retrieveSyncStateControl(searchResultMessage);
-        
+
         if (control != null) {
             LOGGER.debug("A SyncStateControl is present in the message.");
             cookieManager.updateCurrentCookie(control.getCookie());
@@ -162,9 +185,9 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
         } else {
             LOGGER.debug("No SyncStateControl in the message.");
         }
-        
+
     }
-    
+
     /**
      * Retrieves a SyncStateControl if present in a message.
      * @param message The considered message.
@@ -193,7 +216,7 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
      */
     public ISyncReplTriggeredAction getModifyAction() {
         return modifyAction;
- 
+
     }
 
     /**
@@ -212,7 +235,7 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
         return presentAction;
     }
 
-    
+
     /**
      * Setter for addAction.
      * @param addAction the new value for addAction.
@@ -307,5 +330,21 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
      */
     public void setMessagesLoggerFactory(final ISyncReplMessagesLoggerFactory messagesLoggerFactory) {
         this.messagesLoggerFactory = messagesLoggerFactory;
+    }
+
+    /**
+     * Getter for parametersProvider.
+     * @return parametersProvider.
+     */
+    public ParametersProvider getParametersProvider() {
+        return parametersProvider;
+    }
+
+    /**
+     * Setter for parametersProvider.
+     * @param parametersProvider the new value for parametersProvider.
+     */
+    public void setParametersProvider(final ParametersProvider parametersProvider) {
+        this.parametersProvider = parametersProvider;
     }
 }
