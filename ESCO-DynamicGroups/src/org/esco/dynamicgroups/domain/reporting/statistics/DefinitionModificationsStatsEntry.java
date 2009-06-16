@@ -112,7 +112,6 @@ public class DefinitionModificationsStatsEntry implements IDefinitionModificatio
      * @see org.esco.dynamicgroups.domain.reporting.statistics.IDefinitionModificationsStatsEntry#
      * handleDefinitionModification(String, String, String)
      */
-    @Override
     public void handleDefinitionModification(final String groupName,
             final String previousDefinition, final String newDefinition) {
             nbModifiedDefinitions++;

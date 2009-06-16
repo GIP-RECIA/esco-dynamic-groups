@@ -52,7 +52,6 @@ public class AtomicPropositionValidatorFromList
      * of the SyncRepl request.
      * @see org.esco.dynamicgroups.domain.definition.IAtomicPropositionValidator#isValid(AtomicProposition)
      */
-    @Override
     public boolean isValid(final AtomicProposition atom) {
         for (String attribute : ldapAttributes) {
             if (attribute.equals(atom.getAttribute())) {
@@ -67,7 +66,6 @@ public class AtomicPropositionValidatorFromList
      * @throws Exception
      * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
      */
-    @Override
     public void afterPropertiesSet() throws Exception {
         Assert.notNull(parametersProvider, "The property parametersProvider in the class " 
                 + getClass().getName() + " can't be null.");

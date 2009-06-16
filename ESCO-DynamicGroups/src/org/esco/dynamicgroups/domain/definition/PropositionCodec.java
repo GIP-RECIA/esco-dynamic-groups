@@ -79,7 +79,6 @@ public class PropositionCodec implements InitializingBean {
      * @throws Exception
      * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
      */
-    @Override
     public void afterPropertiesSet() throws Exception {
         Assert.notNull(atomValidator, 
                 "The property atomValidator in the class " + getClass().getName()

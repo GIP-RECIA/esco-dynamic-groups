@@ -29,7 +29,7 @@ $Id: sources.example.xml,v 1.7 2008/11/22 21:39:14 mchyzer Exp $
 
       <init-param>
          <param-name>PROVIDER_URL</param-name>
-         <param-value>ldap://localhost:389</param-value>
+         <param-value>ldap://mahler:389</param-value>
       </init-param>
 
       <init-param>

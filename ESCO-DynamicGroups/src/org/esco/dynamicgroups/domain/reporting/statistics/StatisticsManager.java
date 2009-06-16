@@ -227,7 +227,6 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
      * @return The lines of the report.
      * @see org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager#generateReport()
      */
-    @Override
     public String generateReport() {
         String report = "";
         boolean separateGroupsActivity = false;
@@ -347,7 +346,6 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
      * @see org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager#
      * handleDefinitionModification(String, String, String)
      */
-    @Override
     public void handleDefinitionModification(final String groupName,
             final String previousDefinition,
             final String newDefinition) {
@@ -384,7 +382,6 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
      * Resets the statistics manager.
      * @see org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager#reset()
      */
-    @Override
     public void reset() {
 
         if (definitionModifications != null) {

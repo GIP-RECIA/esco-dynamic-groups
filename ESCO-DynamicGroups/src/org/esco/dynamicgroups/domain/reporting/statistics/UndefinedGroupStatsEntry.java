@@ -74,7 +74,6 @@ public class UndefinedGroupStatsEntry implements IUndefinedGroupStatsEntry {
      * @return The string that contains the label for the entry.
      * @see org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsEntry#getLabel()
      */
-    @Override
     public String getLabel() {
         return i18n.getI18nMessage(UNDEF_GROUPS_KEY);
     }
@@ -93,7 +92,6 @@ public class UndefinedGroupStatsEntry implements IUndefinedGroupStatsEntry {
      * 
      * @see org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsEntry#reset()
      */
-    @Override
     public void reset() {
         undefinedGroups = null;
     }

@@ -12,7 +12,7 @@
        <property name="cp3" refid="ui.class.path" />
   	 
 <!--    <ant antfile="build.xml" target="webapp" dir="${contrib.dir}/penn-auth"  inheritrefs="true" />-->
-<!--  	<ant antfile="build.xml" target="webapp" dir="${contrib.dir}/yale-cas-auth" inheritrefs="true"/>-->
+<!--    <ant antfile="build.xml" target="webapp" dir="${contrib.dir}/yale-cas-auth" inheritrefs="true"/>-->
 
         <echo> ESCO dynamic groups hooks</echo>
         <copy file="web.spring.xml" tofile="${temp.dir}/80.web.spring.filtered.xml" filtering="true" overwrite="true"/>
