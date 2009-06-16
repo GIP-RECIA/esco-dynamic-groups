@@ -243,7 +243,6 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
      * @return The set of definitions.
      * @see org.esco.dynamicgroups.dao.grouper.IGroupsDAOService#getAllDynamicGroupDefinitions()
      */
-    @Override
     public Set<DynamicGroupDefinition> getAllDynamicGroupDefinitions() {
         final GrouperSession session = sessionUtil.createSession();
 

@@ -12,6 +12,12 @@
 
 * deploy distant avec ant.
 
+ServletResource=> ResourceProvider (fait tout le travail)
+
+Desactivation du cron si reporting disabled
+
+
+
 OK revoir la réinitialization de tous les groupes
     - verifier que le client LDAP n'est pas démarré
     - récupérer les groupes via le type.

@@ -4,7 +4,6 @@
 package org.esco.dynamicgroups.domain.beans;
 
 import java.io.Serializable;
-import java.util.Locale;
 
 import org.esco.dynamicgroups.domain.parameters.CommonsParametersSection;
 import org.esco.dynamicgroups.domain.parameters.ParametersProvider;

@@ -5,6 +5,7 @@ package org.esco.dynamicgroups.util;
 
 import javax.servlet.ServletContext;
 
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.web.context.ServletContextAware;
 import org.springframework.web.context.support.ServletContextResource;
@@ -33,7 +34,6 @@ public class ServletContextResourcesProvider implements ServletContextAware, IRe
      * @param servletContext The servlet context.
      * @see org.springframework.web.context.ServletContextAware#setServletContext(javax.servlet.ServletContext)
      */
-    @Override
     public void setServletContext(final ServletContext servletContext) {
         this.servletContext = servletContext;
     }
@@ -45,7 +45,10 @@ public class ServletContextResourcesProvider implements ServletContextAware, IRe
      * @return The resource.
      */
     public Resource getResource(final String path) {
-        return new ServletContextResource(servletContext, path);
+        if (servletContext != null) {
+            return new ServletContextResource(servletContext, path);
+        }
+        return new  FileSystemResource(path);
     }
 
 }

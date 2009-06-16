@@ -34,7 +34,6 @@ public class AllMessagesSyncReplMessageLogger implements ISyncReplMessagesLogger
      * @param message The LDAP message.
      * @see org.esco.dynamicgroups.dao.ldap.syncrepl.client.util.logger.ISyncReplMessagesLogger#log(LDAPMessage)
      */
-    @Override
     public void log(final LDAPMessage message) {
         log(Level.INFO, message, "SyncReplMessage recieved");
     }
