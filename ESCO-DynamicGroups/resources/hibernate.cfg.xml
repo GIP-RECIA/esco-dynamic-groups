@@ -6,7 +6,7 @@
 	
 	<session-factory>
 		<property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
-		<property name="hibernate.connection.url">jdbc:mysql://sati/dyngroups</property>
+		<property name="hibernate.connection.url">jdbc:mysql://localhost/dyngroups</property>
 		<property name="hibernate.connection.username">grouper</property>
 		<property name="hibernate.connection.password">grouper</property>
 		<property name="hibernate.connection.autocommit">false</property>

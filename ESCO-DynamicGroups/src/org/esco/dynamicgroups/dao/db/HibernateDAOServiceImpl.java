@@ -491,7 +491,12 @@ public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport impleme
         queryString.append(" AND da.attributeName = '" );
         queryString.append(attributeName);
         queryString.append("'");
+        
+        queryString.append(" AND gva.group.groupId = dg.groupId");
       
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(queryString.toString());
+        }
         
         // To handle the groups defined on the attribute values and those defined on 
         // their negation.

@@ -14,6 +14,7 @@ import edu.internet2.middleware.grouper.exception.GroupAddException;
 import edu.internet2.middleware.grouper.exception.GroupModifyException;
 import edu.internet2.middleware.grouper.exception.InsufficientPrivilegeException;
 import edu.internet2.middleware.grouper.exception.SchemaException;
+import edu.internet2.middleware.grouper.exception.StemAddException;
 import edu.internet2.middleware.grouper.exception.StemNotFoundException;
 
 import java.util.ArrayList;
@@ -47,10 +48,13 @@ public class StressTestGeneratorBatch implements InitializingBean {
     private static final String ST_BEAN = "stressTestGenerator";
 
     /** Number of groups to generate. */
-    private static final int NB_GROUPS = 1000;
+    private static final int NB_GROUPS = 100;
+    
+    /** Number of groups per stem. */
+    private static final int NB_GROUPS_PER_STEM = 200;
 
     /** Prefix for the group names. */
-    private static final String GROUP_PREFIX = "dg_sress_test_3_";
+    private static final String GROUP_PREFIX = "dg_stress_test_5_";
 
     /** Name of the stem where the groups are created. */
     private static final String ST_ROOT_STEM = "esco:st";
@@ -6811,18 +6815,28 @@ public class StressTestGeneratorBatch implements InitializingBean {
         try {
 
 
-            final Stem stem = StemFinder.findByName(session, ST_ROOT_STEM);
+            final Stem stRootStem = StemFinder.findByName(session, ST_ROOT_STEM);
             sessionUtil.stopSession(session);
             final GroupType type = GroupTypeFinder.find(grouperParameters.getGrouperType());
             final String defField = grouperParameters.getGrouperDefinitionField();
+            session = sessionUtil.createSession();
+            Stem currentStem = null;
+            int currentStemCount = 0;
+            
+            
             for (int i = 0; i < NB_GROUPS; i++) {
-
+                
                 session = sessionUtil.createSession();
+                if ((i % NB_GROUPS_PER_STEM) == 0 || currentStem == null) {
+                    currentStem = stRootStem.addChildStem("st_" + currentStemCount++, "st_" + i);
+                }
+                
+                
                 final String name = ST_ROOT_STEM + ":" + GROUP_PREFIX + i;
                 final String ext = GROUP_PREFIX + i;
                 LOGGER.debug("Creating group " + ext);
 
-                final Group group = stem.addChildGroup(ext, ext);
+                final Group group = currentStem.addChildGroup(ext, ext);
                 group.setDescription(ext);
                 group.addType(type, true);
                 final int defIndex = i % validPropositions.size();
@@ -6861,6 +6875,8 @@ public class StressTestGeneratorBatch implements InitializingBean {
         } catch (SchemaException e) {
             LOGGER.fatal(e, e);
         } catch (GroupAddException e) {
+            LOGGER.fatal(e, e);
+        } catch (StemAddException e) {
             LOGGER.fatal(e, e);
         }
 
