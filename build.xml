@@ -32,11 +32,12 @@
 	<!-- Path Section -->
 	<path id="esco-dg.classpath">
 	   <pathelement path="${esco-dg.build.dir}"/>
+		<pathelement path="${basedir}"/>
 		<pathelement location="${esco-dg.prop.dir}"/>
 		<fileset dir="${esco-dg.lib.dir}" includes="**/*.jar" />
 	</path>
 		
-	<taskdef resource="net/sf/antcontrib/antlib.xml" classpath="${esco-dg.grouper-dg.lib}/ant-contrib-1.0b3.jar"/>
+	<taskdef resource="net/sf/antcontrib/antlib.xml" classpath="${esco-dg.lib.dir}/ant-contrib-1.0b3.jar"/>
 			
 	
 	<!-- Displays tsome properties. -->	

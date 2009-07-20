@@ -42,15 +42,10 @@ import org.springframework.util.Assert;
  * 13 janv. 2009
  *
  */
-public class ESCODomainServiceImpl 
-implements IDomainService, ApplicationListener, 
-InitializingBean {
+public class ESCODomainServiceImpl implements IDomainService, ApplicationListener, InitializingBean {
 
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(ESCODomainServiceImpl.class);
-
-    /** Value of an undefined attribute. */
-    private static final String[] UNDEF_VALUE = {"___UNDEF_VALUE_DYNGRP___"}; 
 
     /** The dynamic attributes. */
     private Set<String> dynamicAttributes;

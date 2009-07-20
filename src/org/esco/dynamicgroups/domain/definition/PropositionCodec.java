@@ -175,6 +175,12 @@ public class PropositionCodec implements InitializingBean {
      * if the coded string is valid, otherwise the result contains the invalid string.
      */
     private DecodedPropositionResult decodeDisjunction(final String coded) {
+        
+        if (countOpenBacket(coded) != countCloseBacket(coded)) {
+            return new DecodedPropositionResult(coded, 
+                    i18n.getI18nMessage(BRACKET_ERROR, coded));
+        }
+        
         final String content = extractContent(coded);
         int pos = getSplitPosition(content);
         if (pos == 0) {
@@ -200,10 +206,16 @@ public class PropositionCodec implements InitializingBean {
      * coded string is valid, null otherwise.
      */    
     private DecodedPropositionResult decodeConjunction(final String coded) {
+        
+        if (countOpenBacket(coded) != countCloseBacket(coded)) {
+            return new DecodedPropositionResult(coded, 
+                    i18n.getI18nMessage(BRACKET_ERROR, coded));
+        }
+        
         final String content = extractContent(coded);
         int pos = getSplitPosition(content);
         if (pos == 0) {
-            return null;
+            return new DecodedPropositionResult(coded, i18n.getI18nMessage(INVALID_PROP) + coded);
         }
         final String firstPart = content.substring(0, pos).trim();
         final String secondPart = content.substring(pos + 1).trim();
