@@ -1,16 +1,15 @@
 * parametrer la serialization du statisticsManager.
 
-* tâche ant pour la verification de propositions logiques
+[OK] * tâche ant pour la verification de propositions logiques
 
+* Prendre en compte la suppression d'un groupe dynamique.
 * Verifier ce qui se passe lorsque le type dynamique est retiré d'un groupe.
 
 * tester la desactivation du reporting
 
-* help du ant avec la description des cibles
+[OK] * help du ant avec la description des cibles
 
 * Vérifier dans les rapports les groupes sans définition et les groupes supprimés
-
-* deploy distant avec ant.
 
 ServletResource=> ResourceProvider (fait tout le travail)
 

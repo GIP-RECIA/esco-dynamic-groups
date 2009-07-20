@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<project name="ESCO-DynammicGroups" default="esco-dg.deploy" basedir=".">
+<project name="ESCO-DynammicGroups" default="esco-dg.help" basedir=".">
     <description>PAGS Groups for Grouper</description>
 	
 	<!-- Properties Section -->
@@ -224,6 +224,22 @@
 	    </java>
 	
 			
+	</target>
+
+	<!-- Help target -->
+	<target name="esco-dg.help" description="Displays the available tagets">
+		<echo>
+            esco-dg.display         Displays the properties (Debug purpose).
+            esco-dg.help            This task.
+            esco-dg.check-config    Checks the presence of the configuration files.
+            esco-dg.compile         Compilation target.
+            esco-dg.clean           Deletes all the files produced by the compilation target.   
+            esco-dg.build           Creates the jar.
+            esco-dg.deploy          Copy the files into the Grouper's custom ui directory.
+            esco-dg.test-definition Test a logic defintion. Exemple: 
+                                    ant -Ddefinition="And(objectClass=ENTEleve, ENTEleveClasses=*$632)" esco-dg.test-definition
+            
+		</echo>
 	</target>
 
 	
