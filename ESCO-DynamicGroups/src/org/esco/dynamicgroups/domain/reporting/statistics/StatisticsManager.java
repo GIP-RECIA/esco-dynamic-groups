@@ -25,6 +25,136 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
 /**
+ * Bundle for the statistics informations.
+ * @author GIP RECIA - A. Deman
+ * 24 juil. 2009
+ *
+ */
+class StatsBundle {
+    /** The statistics regarding the modifications of definition. */
+    private IDefinitionModificationsStatsEntry definitionModifications;
+
+    /** The SyncRepl notifications statistics. */
+    private ISyncReplNotificationsStats syncReplNotifications;
+
+    /** The groups statistics. */
+    private IGroupCreatedOrDeletedStatsEntry groupsStats;
+
+    /** Statistics for the undefined groups. */
+    private IUndefinedGroupStatsEntry undefGroupsStats;
+
+    /** Statistics for the groups activity. */
+    private IGroupsActivityStatsEntry groupsActivityStats;
+
+    /** Statistics for the check of invalid or missing members. */
+    private ICheckedMembersStatsEntry checkedMembersStats;
+
+    /**
+     * Builds an instance of StatsBundle.
+     */
+    public StatsBundle() {
+        super();
+    }
+    
+    /**
+     * Getter for definitionModifications.
+     * @return definitionModifications.
+     */
+    public IDefinitionModificationsStatsEntry getDefinitionModifications() {
+        return definitionModifications;
+    }
+
+    /**
+     * Setter for statsBundle.getDefinitionModifications().
+     * @param definitionModifications the new value for statsBundle.getDefinitionModifications().
+     */
+    public void setDefinitionModifications(final IDefinitionModificationsStatsEntry definitionModifications) {
+        this.definitionModifications = definitionModifications;
+    }
+
+    /**
+     * Getter for syncReplNotifications.
+     * @return syncReplNotifications.
+     */
+    public ISyncReplNotificationsStats getSyncReplNotifications() {
+        return syncReplNotifications;
+    }
+
+    /**
+     * Setter for syncReplNotifications.
+     * @param syncReplNotifications the new value for syncReplNotifications.
+     */
+    public void setSyncReplNotifications(final ISyncReplNotificationsStats syncReplNotifications) {
+        this.syncReplNotifications = syncReplNotifications;
+    }
+
+    /**
+     * Getter for groupsStats.
+     * @return groupsStats.
+     */
+    public IGroupCreatedOrDeletedStatsEntry getGroupsStats() {
+        return groupsStats;
+    }
+
+    /**
+     * Setter for groupsStats.
+     * @param groupsStats the new value for groupsStats.
+     */
+    public void setGroupsStats(final IGroupCreatedOrDeletedStatsEntry groupsStats) {
+        this.groupsStats = groupsStats;
+    }
+
+    /**
+     * Getter for undefGroupsStats.
+     * @return undefGroupsStats.
+     */
+    public IUndefinedGroupStatsEntry getUndefGroupsStats() {
+        return undefGroupsStats;
+    }
+
+    /**
+     * Setter for undefGroupsStats.
+     * @param undefGroupsStats the new value for undefGroupsStats.
+     */
+    public void setUndefGroupsStats(final IUndefinedGroupStatsEntry undefGroupsStats) {
+        this.undefGroupsStats = undefGroupsStats;
+    }
+
+    /**
+     * Getter for groupsActivityStats.
+     * @return groupsActivityStats.
+     */
+    public IGroupsActivityStatsEntry getGroupsActivityStats() {
+        return groupsActivityStats;
+    }
+
+    /**
+     * Setter for groupsActivityStats.
+     * @param groupsActivityStats the new value for groupsActivityStats.
+     */
+    public void setGroupsActivityStats(final IGroupsActivityStatsEntry groupsActivityStats) {
+        this.groupsActivityStats = groupsActivityStats;
+    }
+
+    /**
+     * Getter for checkedMembersStats.
+     * @return checkedMembersStats.
+     */
+    public ICheckedMembersStatsEntry getCheckedMembersStats() {
+        return checkedMembersStats;
+    }
+
+    /**
+     * Setter for checkedMembersStats.
+     * @param checkedMembersStats the new value for checkedMembersStats.
+     */
+    public void setCheckedMembersStats(final ICheckedMembersStatsEntry checkedMembersStats) {
+        this.checkedMembersStats = checkedMembersStats;
+    }
+
+   
+}
+/**
  * Reference implementation of the statistics manager.
  * The underlying managers are not thread safe, so it is the responsability of this manager. 
  * @author GIP RECIA - A. Deman
@@ -32,6 +162,7 @@ import org.springframework.util.Assert;
  *
  */
 public class StatisticsManager implements IStatisticsManager, InitializingBean {
+   
 
     /** Serial version UID.*/
     private static final long serialVersionUID = -825908954001800235L;
@@ -51,23 +182,8 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
     /** The I18N Manager. */
     private transient I18NManager i18n;
 
-    /** The statistics regarding the modifications of definition. */
-    private IDefinitionModificationsStatsEntry definitionModifications;
-
-    /** The SyncRepl notifications statistics. */
-    private ISyncReplNotificationsStats syncReplNotifications;
-
-    /** The groups statistics. */
-    private IGroupCreatedOrDeletedStatsEntry groupsStats;
-
-    /** Statistics for the undefined groups. */
-    private IUndefinedGroupStatsEntry undefGroupsStats;
-
-    /** Statistics for the groups activity. */
-    private IGroupsActivityStatsEntry groupsActivityStats;
-
-    /** Statistics for the check of invalid or missing members. */
-    private ICheckedMembersStatsEntry checkedMembersStats;
+    /** Bundle of statistic data. */
+    private StatsBundle statsBundle;
 
     /** The report formatter to use. */
     private transient IReportFormatter reportFormatter;
@@ -126,27 +242,27 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
 
         if (reportingParameters.getEnabled()) {
             if (reportingParameters.getCountUndefiedGroups()) {
-                undefGroupsStats = new UndefinedGroupStatsEntry(groupsService, i18n);
+                statsBundle.setUndefGroupsStats(new UndefinedGroupStatsEntry(groupsService, i18n));
             }
 
             if (reportingParameters.getCountDefinitionModifications()) {
-                definitionModifications = new DefinitionModificationsStatsEntry(i18n);
+                statsBundle.setDefinitionModifications(new DefinitionModificationsStatsEntry(i18n));
             }
 
             if (reportingParameters.getCountSyncReplNotifications()) {
-                syncReplNotifications = new SyncReplNotificationsStatsEntry(i18n);
+                statsBundle.setSyncReplNotifications(new SyncReplNotificationsStatsEntry(i18n));
             }
 
             if (reportingParameters.getCountGroupCreationDeletion()) {
-                groupsStats = new GroupsCreatedOrDeletedStatsEntry(i18n);
+                statsBundle.setGroupsStats(new GroupsCreatedOrDeletedStatsEntry(i18n));
             }
 
             if (reportingParameters.getCountGroupsActivity()) {
-                groupsActivityStats = new GroupsActivityStatsEntry(i18n);
+                statsBundle.setGroupsActivityStats(new GroupsActivityStatsEntry(i18n));
             }
 
             if (reportingParameters.getCountInvalidOrMissingMembers()) {
-                checkedMembersStats = new CheckedMembersStatsEntry(i18n);
+                statsBundle.setCheckedMembersStats(new CheckedMembersStatsEntry(i18n));
             }
         }
     }
@@ -181,17 +297,18 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
 
         String report = "";
 
-        if (checkedMembersStats != null) {
-            synchronized (checkedMembersStats) {
+        if (statsBundle.getCheckedMembersStats() != null) {
+            synchronized (statsBundle.getCheckedMembersStats()) {
 
-                if (checkedMembersStats.checkPerformed()) {
+                if (statsBundle.getCheckedMembersStats().checkPerformed()) {
 
-                    LOGGER.info(checkedMembersStats.getLabel() + checkedMembersStats.getEntry());
+                    LOGGER.info(statsBundle.getCheckedMembersStats().getLabel() 
+                            + statsBundle.getCheckedMembersStats().getEntry());
 
-                    report += reportFormatter.formatEntry(checkedMembersStats.getLabel(), 
-                            checkedMembersStats.getEntry());
+                    report += reportFormatter.formatEntry(statsBundle.getCheckedMembersStats().getLabel(), 
+                            statsBundle.getCheckedMembersStats().getEntry());
                     report += reportFormatter.getNewLine();
-                    final Set<String> invalidGroups = checkedMembersStats.getInvalidGroups();
+                    final Set<String> invalidGroups = statsBundle.getCheckedMembersStats().getInvalidGroups();
                     final int paddSimple = 3;
                     final int paddDouble = paddSimple * 2;
 
@@ -201,15 +318,17 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
                         report += reportFormatter.getNewLine();
 
                         MissingOrInvalidMembersEntry invalidMbInfos = 
-                            checkedMembersStats.getCheckingResult(invalidGroup);
+                            statsBundle.getCheckedMembersStats().getCheckingResult(invalidGroup);
 
                         if (invalidMbInfos.hasInvalidMembers()) {
-                            report += reportFormatter.padd(checkedMembersStats.getInvalidMembersLabel() 
+                            report += reportFormatter.padd(
+                                    statsBundle.getCheckedMembersStats().getInvalidMembersLabel() 
                                     + invalidMbInfos.getInvalidMembers(), paddDouble);
                         }
 
                         if (invalidMbInfos.hasMissingMembers()) {
-                            report += reportFormatter.padd(checkedMembersStats.getMissingMembersLabel() 
+                            report += reportFormatter.padd(
+                                    statsBundle.getCheckedMembersStats().getMissingMembersLabel() 
                                     + invalidMbInfos.getMissingMembers(), paddDouble);
                         }
                         report += reportFormatter.getNewLine();
@@ -232,11 +351,12 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
         boolean separateGroupsActivity = false;
 
         // --- SyncRepl Notifications section.
-        if (syncReplNotifications != null) {
-            synchronized (syncReplNotifications) {
-                LOGGER.info(syncReplNotifications.getLabel() + syncReplNotifications.getEntry());
-                report += reportFormatter.formatEntry(syncReplNotifications.getLabel(), "");
-                report += reportFormatter.formatList(syncReplNotifications.getNotifications());
+        if (statsBundle.getSyncReplNotifications() != null) {
+            synchronized (statsBundle.getSyncReplNotifications()) {
+                LOGGER.info(statsBundle.getSyncReplNotifications().getLabel() 
+                        + statsBundle.getSyncReplNotifications().getEntry());
+                report += reportFormatter.formatEntry(statsBundle.getSyncReplNotifications().getLabel(), "");
+                report += reportFormatter.formatList(statsBundle.getSyncReplNotifications().getNotifications());
             }
             report += reportFormatter.getNewLine();
             report += reportFormatter.getSeparation();
@@ -244,43 +364,45 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
         }
 
 
-        // -- Groups stats section.    
-        if (groupsStats != null) {
+        // -- Groups statsBundle section.    
+        if (statsBundle.getGroupsStats() != null) {
             separateGroupsActivity = true;
-            synchronized (groupsStats) {
-                LOGGER.info(groupsStats.getLabel() + groupsStats.getEntry());
-                report += reportFormatter.formatEntry(groupsStats.getLabel(), 
-                        groupsStats.getEntry());
+            synchronized (statsBundle.getGroupsStats()) {
+                LOGGER.info(statsBundle.getGroupsStats().getLabel() + statsBundle.getGroupsStats().getEntry());
+                report += reportFormatter.formatEntry(statsBundle.getGroupsStats().getLabel(), 
+                        statsBundle.getGroupsStats().getEntry());
                 report += reportFormatter.getNewLine();
                 report += reportFormatter.getNewLine();
             }
         }
 
         // --- Modifications of definition section.
-        if (definitionModifications != null) {
+        if (statsBundle.getDefinitionModifications() != null) {
             separateGroupsActivity = true;
-            synchronized (definitionModifications) {
-                LOGGER.info(definitionModifications.getLabel() + definitionModifications.getEntry());
-                report += reportFormatter.formatEntry(definitionModifications.getLabel(), 
-                        definitionModifications.getEntry());
+            synchronized (statsBundle.getDefinitionModifications()) {
+                LOGGER.info(statsBundle.getDefinitionModifications().getLabel()
+                        + statsBundle.getDefinitionModifications().getEntry());
+                report += reportFormatter.formatEntry(statsBundle.getDefinitionModifications().getLabel(), 
+                        statsBundle.getDefinitionModifications().getEntry());
                 report += reportFormatter.getNewLine();
                 report += reportFormatter.getNewLine();
             }
         }
 
         // --- Dynamic groups without a members definitions.
-        if (undefGroupsStats != null) {
+        if (statsBundle.getUndefGroupsStats() != null) {
             separateGroupsActivity = true;
-            synchronized (undefGroupsStats) {
-                LOGGER.info(undefGroupsStats.getLabel() + undefGroupsStats.getEntry());
-                LOGGER.info(undefGroupsStats.getUndefinedGroupNames());
-                report += reportFormatter.formatEntry(undefGroupsStats.getLabel(), 
-                        undefGroupsStats.getEntry());
+            synchronized (statsBundle.getUndefGroupsStats()) {
+                LOGGER.info(statsBundle.getUndefGroupsStats().getLabel() 
+                        + statsBundle.getUndefGroupsStats().getEntry());
+                LOGGER.info(statsBundle.getUndefGroupsStats().getUndefinedGroupNames());
+                report += reportFormatter.formatEntry(statsBundle.getUndefGroupsStats().getLabel(), 
+                        statsBundle.getUndefGroupsStats().getEntry());
 
-                if (undefGroupsStats.hasUndefinedGroup()) {
+                if (statsBundle.getUndefGroupsStats().hasUndefinedGroup()) {
                     report += reportFormatter.getNewLine();
-                    report += reportFormatter.format(undefGroupsStats.getUndefGroupNamesLabel());
-                    report += reportFormatter.formatList(undefGroupsStats.getUndefinedGroupNames());
+                    report += reportFormatter.format(statsBundle.getUndefGroupsStats().getUndefGroupNamesLabel());
+                    report += reportFormatter.formatList(statsBundle.getUndefGroupsStats().getUndefinedGroupNames());
                 }
             }
             report += reportFormatter.getNewLine();
@@ -290,7 +412,7 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
         boolean separateMembersCheck = separateGroupsActivity;
 
         // --- Activity of dynamic groups section.
-        if (groupsActivityStats != null) {
+        if (statsBundle.getGroupsActivityStats() != null) {
             separateMembersCheck = true;
             if (separateGroupsActivity) {
                 report += reportFormatter.getNewLine();
@@ -298,15 +420,17 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
                 report += reportFormatter.getNewLine();
             }
 
-            synchronized (groupsActivityStats) {
-                LOGGER.info(groupsActivityStats.getLabel() + groupsActivityStats.getEntry());
+            synchronized (statsBundle.getGroupsActivityStats()) {
+                LOGGER.info(statsBundle.getGroupsActivityStats().getLabel() 
+                        + statsBundle.getGroupsActivityStats().getEntry());
 
-                report += reportFormatter.formatEntry(groupsActivityStats.getLabel(), groupsActivityStats.getEntry());
+                report += reportFormatter.formatEntry(statsBundle.getGroupsActivityStats().getLabel(), 
+                        statsBundle.getGroupsActivityStats().getEntry());
 
-                if (groupsActivityStats.hasActiveGroup()) {
+                if (statsBundle.getGroupsActivityStats().hasActiveGroup()) {
                     report += reportFormatter.getNewLine();
-                    report += reportFormatter.format(groupsActivityStats.getActiveGroupsLabel());
-                    report += reportFormatter.formatList(groupsActivityStats.getActiveGroups());
+                    report += reportFormatter.format(statsBundle.getGroupsActivityStats().getActiveGroupsLabel());
+                    report += reportFormatter.formatList(statsBundle.getGroupsActivityStats().getActiveGroups());
                 }
             }
             report += reportFormatter.getNewLine();
@@ -314,7 +438,7 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
 
 
         // --- Memebers check section.
-        if (checkedMembersStats != null) {
+        if (statsBundle.getCheckedMembersStats() != null) {
 
             // Creates a timer to stop the processus if needed.
             final int durationMinutes = reportingParameters.getMembersCheckingDuration();
@@ -349,9 +473,10 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
     public void handleDefinitionModification(final String groupName,
             final String previousDefinition,
             final String newDefinition) {
-        if (definitionModifications != null) {
-            synchronized (definitionModifications) {
-                definitionModifications.handleDefinitionModification(groupName, previousDefinition, newDefinition);
+        if (statsBundle.getDefinitionModifications() != null) {
+            synchronized (statsBundle.getDefinitionModifications()) {
+                statsBundle.getDefinitionModifications().handleDefinitionModification(groupName, 
+                        previousDefinition, newDefinition);
             }
         }
     }
@@ -363,16 +488,16 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
      * handleSyncReplNotifications(SyncStateControl)
      */
     public void handleSyncReplNotifications(final SyncStateControl control) {
-        if (syncReplNotifications != null) {
-            synchronized (syncReplNotifications) {
+        if (statsBundle.getSyncReplNotifications() != null) {
+            synchronized (statsBundle.getSyncReplNotifications()) {
                 if (control.isAdd()) {
-                    syncReplNotifications.handeAddAction();
+                    statsBundle.getSyncReplNotifications().handeAddAction();
                 } else if (control.isModify()) {
-                    syncReplNotifications.handeModifyAction();
+                    statsBundle.getSyncReplNotifications().handeModifyAction();
                 } else if (control.isDelete()) {
-                    syncReplNotifications.handeDeleteAction();
+                    statsBundle.getSyncReplNotifications().handeDeleteAction();
                 } else {
-                    syncReplNotifications.handePresentAction();
+                    statsBundle.getSyncReplNotifications().handePresentAction();
                 }
             }
         }
@@ -384,38 +509,38 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
      */
     public void reset() {
 
-        if (definitionModifications != null) {
-            synchronized (definitionModifications) {
-                definitionModifications.reset();
+        if (statsBundle.getDefinitionModifications() != null) {
+            synchronized (statsBundle.getDefinitionModifications()) {
+                statsBundle.getDefinitionModifications().reset();
             }
         }
 
-        if (syncReplNotifications != null) {
-            synchronized (syncReplNotifications) {
-                syncReplNotifications.reset();
+        if (statsBundle.getSyncReplNotifications() != null) {
+            synchronized (statsBundle.getSyncReplNotifications()) {
+                statsBundle.getSyncReplNotifications().reset();
             }
         }
 
-        if (groupsStats != null) {
-            synchronized (groupsStats) {
-                groupsStats.reset();
+        if (statsBundle.getGroupsStats() != null) {
+            synchronized (statsBundle.getGroupsStats()) {
+                statsBundle.getGroupsStats().reset();
             }
         }
-        if (undefGroupsStats != null) {
-            synchronized (undefGroupsStats) {
-                undefGroupsStats.reset();
-            }
-        }
-
-        if (groupsActivityStats != null) {
-            synchronized (groupsActivityStats) {
-                groupsActivityStats.reset();
+        if (statsBundle.getUndefGroupsStats() != null) {
+            synchronized (statsBundle.getUndefGroupsStats()) {
+                statsBundle.getUndefGroupsStats().reset();
             }
         }
 
-        if (checkedMembersStats != null) {
-            synchronized (checkedMembersStats) {
-                checkedMembersStats.reset();
+        if (statsBundle.getGroupsActivityStats() != null) {
+            synchronized (statsBundle.getGroupsActivityStats()) {
+                statsBundle.getGroupsActivityStats();
+            }
+        }
+
+        if (statsBundle.getCheckedMembersStats() != null) {
+            synchronized (statsBundle.getCheckedMembersStats()) {
+                statsBundle.getCheckedMembersStats().reset();
             }
         }
     }
@@ -426,9 +551,9 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
      * @see org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager#handleCreatedGroup(String)
      */
     public void handleCreatedGroup(final String groupName) {
-        if (groupsStats != null) {
-            synchronized (groupsStats) {
-                groupsStats.handleCreatedGroup(groupName);
+        if (statsBundle.getGroupsStats() != null) {
+            synchronized (statsBundle.getGroupsStats()) {
+                statsBundle.getGroupsStats().handleCreatedGroup(groupName);
             }
         }
     }
@@ -439,9 +564,9 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
      * @see org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager#handleDeletedGroup(String)
      */
     public void handleDeletedGroup(final String groupName) {
-        if (groupsStats != null) {
-            synchronized (groupsStats) {
-                groupsStats.handleDeletedGroup(groupName);
+        if (statsBundle.getGroupsStats() != null) {
+            synchronized (statsBundle.getGroupsStats()) {
+                statsBundle.getGroupsStats().handleDeletedGroup(groupName);
             }
         }
     }
@@ -453,9 +578,9 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
      * @see org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager#handleMemberAdded(String, String)
      */
     public void handleMemberAdded(final String groupName, final String userId) {
-        if (groupsActivityStats != null) {
-            synchronized (groupsActivityStats) {
-                groupsActivityStats.handleAddedUser(groupName, userId);
+        if (statsBundle.getGroupsActivityStats() != null) {
+            synchronized (statsBundle.getGroupsActivityStats()) {
+                statsBundle.getGroupsActivityStats().handleAddedUser(groupName, userId);
             }
         }
     }
@@ -467,9 +592,9 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
      * @see org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager#handleMemberRemoved(String, String)
      */
     public void handleMemberRemoved(final String groupName, final String userId) {
-        if (groupsActivityStats != null) {
-            synchronized (groupsActivityStats) {
-                groupsActivityStats.handleRemovedUser(groupName, userId);
+        if (statsBundle.getGroupsActivityStats() != null) {
+            synchronized (statsBundle.getGroupsActivityStats()) {
+                statsBundle.getGroupsActivityStats().handleRemovedUser(groupName, userId);
             }
         }
     }
@@ -480,9 +605,9 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
      * @param userId The id of the invalid memeber.
      */
     public void handleInvalidMember(final String groupName, final String userId) {
-        if (checkedMembersStats != null) {
-            synchronized (checkedMembersStats) {
-                checkedMembersStats.handleInvalidMember(groupName, userId);
+        if (statsBundle.getCheckedMembersStats() != null) {
+            synchronized (statsBundle.getCheckedMembersStats()) {
+                statsBundle.getCheckedMembersStats().handleInvalidMember(groupName, userId);
             }
         }
     }
@@ -493,9 +618,9 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
      * @param userId The id of the missing member.
      */
     public void handleMissingMember(final String groupName, final String userId) {
-        if (checkedMembersStats != null) {
-            synchronized (checkedMembersStats) {
-                checkedMembersStats.handleMissingMember(groupName, userId);
+        if (statsBundle.getCheckedMembersStats() != null) {
+            synchronized (statsBundle.getCheckedMembersStats()) {
+                statsBundle.getCheckedMembersStats().handleMissingMember(groupName, userId);
             }
         }
     }
@@ -506,9 +631,9 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
      * @see org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager#handleGroupMembersChecked(String)
      */
     public void handleGroupMembersChecked(final String groupName) {
-        if (checkedMembersStats != null) {
-            synchronized (checkedMembersStats) {
-                checkedMembersStats.handleCheckedGroup(groupName);
+        if (statsBundle.getCheckedMembersStats() != null) {
+            synchronized (statsBundle.getCheckedMembersStats()) {
+                statsBundle.getCheckedMembersStats().handleCheckedGroup(groupName);
             }
         }
     }
@@ -517,9 +642,9 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
      * Handles the start of the members verification process.
      */
     public void handleStartOfMembersCheckingProcess() {
-        if (checkedMembersStats != null) {
-            synchronized (checkedMembersStats) { 
-                checkedMembersStats.handleStartOfProcess();
+        if (statsBundle.getCheckedMembersStats() != null) {
+            synchronized (statsBundle.getCheckedMembersStats()) { 
+                statsBundle.getCheckedMembersStats().handleStartOfProcess();
             }
         }
     }
@@ -528,9 +653,9 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
      * Handles the end of the  members verification process.
      */
     public void handleEndOfMembersCheckingProcess() {
-        if (checkedMembersStats != null) {
-            synchronized (checkedMembersStats) {
-                checkedMembersStats.handleEndOfProcess();
+        if (statsBundle.getCheckedMembersStats() != null) {
+            synchronized (statsBundle.getCheckedMembersStats()) {
+                statsBundle.getCheckedMembersStats().handleEndOfProcess();
             }
         }
     }
@@ -568,22 +693,6 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
     }
 
     /**
-     * Getter for groupsStats.
-     * @return groupsStats.
-     */
-    public IGroupCreatedOrDeletedStatsEntry getGroupsStats() {
-        return groupsStats;
-    }
-
-    /**
-     * Setter for groupsStats.
-     * @param groupsStats the new value for groupsStats.
-     */
-    public void setGroupsStats(final IGroupCreatedOrDeletedStatsEntry groupsStats) {
-        this.groupsStats = groupsStats;
-    }
-
-    /**
      * Getter for groupsService.
      * @return groupsService.
      */
@@ -614,12 +723,18 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
                         }
                         final ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
                         final StatisticsManager previousInstance = (StatisticsManager) ois.readObject();
+                        ois.close();
                         if (previousInstance != null) {
-                            this.definitionModifications.initializeFrom(previousInstance.definitionModifications);
-                            this.syncReplNotifications.initializeFrom(previousInstance.syncReplNotifications);
-                            this.groupsStats.initializeFrom(previousInstance.groupsStats);
-                            this.undefGroupsStats.initializeFrom(previousInstance.undefGroupsStats);
-                            this.groupsActivityStats.initializeFrom(previousInstance.groupsActivityStats);
+                            statsBundle.getDefinitionModifications().initializeFrom(
+                                    previousInstance.statsBundle.getDefinitionModifications());
+                            statsBundle.getSyncReplNotifications().initializeFrom(
+                                    previousInstance.statsBundle.getSyncReplNotifications());
+                            statsBundle.getGroupsStats().initializeFrom(
+                                    previousInstance.statsBundle.getGroupsStats());
+                            statsBundle.getUndefGroupsStats().initializeFrom(
+                                    previousInstance.statsBundle.getUndefGroupsStats());
+                            statsBundle.getGroupsActivityStats().initializeFrom(
+                                    previousInstance.statsBundle.getGroupsActivityStats());
                         }
                     } else {
                         if (LOGGER.isDebugEnabled()) {
@@ -651,6 +766,7 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
                     }
                     final ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file));
                     oos.writeObject(this);
+                    oos.close();
                 } catch (IOException ioe) {
                     LOGGER.error(ioe, ioe);
                 }

@@ -3,7 +3,6 @@
  */
 package org.esco.dynamicgroups.dao.ldap.syncrepl.client.util.logger;
 
-import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.domain.parameters.LDAPPersonsParametersSection;
 import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
 import org.springframework.beans.factory.InitializingBean;
@@ -20,9 +19,6 @@ public class SyncReplMessagesLoggerFactoryImpl implements ISyncReplMessagesLogge
     /** Serial version UID.*/
     private static final long serialVersionUID = 2685440191301993955L;
     
-    /** Logger. */
-    private static final Logger LOGGER = Logger.getLogger(SyncReplMessagesLoggerFactoryImpl.class);
-
     /** Provider for the user parameters. */
     private ParametersProvider parametersProvider;
 

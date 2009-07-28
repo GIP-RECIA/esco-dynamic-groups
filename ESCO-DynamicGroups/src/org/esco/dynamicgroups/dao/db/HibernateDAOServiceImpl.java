@@ -6,6 +6,7 @@ package org.esco.dynamicgroups.dao.db;
 
 import edu.internet2.middleware.grouper.Group;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -35,7 +36,10 @@ import org.springframework.util.Assert;
  * 12 janv. 2009
  *
  */
-public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport implements IDBDAOService {
+public class HibernateDAOServiceImpl extends AbstractHibernateDAOSupport implements IDBDAOService, Serializable {
+
+    /** Serial versin UID. */
+    private static final long serialVersionUID = 4195252879885105837L;
 
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(HibernateDAOServiceImpl.class);

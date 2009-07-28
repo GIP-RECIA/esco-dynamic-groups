@@ -10,6 +10,7 @@ import edu.internet2.middleware.subject.SubjectType;
 import edu.internet2.middleware.subject.provider.SourceManager;
 import edu.internet2.middleware.subject.provider.SubjectTypeEnum;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
 
@@ -23,8 +24,11 @@ import org.apache.log4j.Logger;
  * 29 janv. 2009
  *
  */
-public class ESCODeletedSubjectImpl implements Subject {
+public class ESCODeletedSubjectImpl implements Subject, Serializable {
    
+    /** Serial version UID.*/
+    private static final long serialVersionUID = 6438801573249217982L;
+
     /** The LOGGER to use. */
     private static final Logger LOGGER = Logger.getLogger(ESCODeletedSubjectImpl.class);
     

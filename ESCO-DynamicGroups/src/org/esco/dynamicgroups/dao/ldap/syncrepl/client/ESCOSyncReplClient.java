@@ -8,6 +8,7 @@ import com.novell.ldap.LDAPSearchConstraints;
 import com.novell.ldap.LDAPSearchQueue;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Set;
 
@@ -29,7 +30,10 @@ import org.springframework.util.Assert;
  * 17 avr. 08
  *
  */
-public class ESCOSyncReplClient implements InitializingBean {
+public class ESCOSyncReplClient implements Serializable, InitializingBean {
+
+    /** Serial version UID.*/
+    private static final long serialVersionUID = -3854237483388730172L;
 
     /** Number of idle loops between two marks. */
     private static final int MARK_INTERVAL = 10;
@@ -63,10 +67,10 @@ public class ESCOSyncReplClient implements InitializingBean {
     private LDAPConnectionManager connectionManager;
 
     /** The connection to the LDAP. */
-    private LDAPConnection lc;
+    private transient LDAPConnection lc;
 
     /** The LDAP search queue. */
-    private LDAPSearchQueue queue;
+    private transient LDAPSearchQueue queue;
 
     /** Counter for the idle loops. */
     private int idleCount;

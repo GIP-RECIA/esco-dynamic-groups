@@ -57,7 +57,8 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
     /** The statistics manager.*/
     private transient IStatisticsManager statisticsManager;
 
-    /** The domain service to use to handle thy operations associated to the dynamic groups. */
+    /** The domain service, used to handle the
+     *  operations associated to the dynamic groups. */
     private transient IDomainService domainService;
 
     /**
@@ -103,25 +104,57 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
             statisticsManager.handleCreatedGroup(group.getName());
         }
     }
-
     /**
-     * Post commit Delete hook point.
+     * Post delete hook point.
      * @param hooksContext The hook context.
-     * @param postCommitDeleteBean The availbale Grouper information.
-     * @see edu.internet2.middleware.grouper.hooks.GroupHooks#groupPostCommitDelete(HooksContext, HooksGroupBean)
+     * @param postDeleteBean The availbale Grouper information.
      */
     @Override
-    public void groupPostCommitDelete(final HooksContext hooksContext, 
-            final HooksGroupBean postCommitDeleteBean) {
-
-        final Group group = postCommitDeleteBean.getGroup();
+    public void groupPostDelete(final HooksContext hooksContext, 
+            final HooksGroupBean postDeleteBean) {
+        
+        final Group group = postDeleteBean.getGroup();
 
         if (isDynamicGroup(group)) {
-            domainService.handleDeletedGroup(group.getName());
+            domainService.handleDeletedGroup(group.getUuid());
             statisticsManager.handleDeletedGroup(group.getName());
+            
         }
-
     }
+//
+//    /**
+//     * Post commit Delete hook point.
+//     * @param hooksContext The hook context.
+//     * @param postCommitDeleteBean The availbale Grouper information.
+//     * @see edu.internet2.middleware.grouper.hooks.GroupHooks#groupPostCommitDelete(HooksContext, HooksGroupBean)
+//     */
+//    @Override
+//    public void groupPostCommitDelete(final HooksContext hooksContext, 
+//            final HooksGroupBean postCommitDeleteBean) {
+//
+//        final Group group = postCommitDeleteBean.getGroup();
+//
+//        if (isDynamicGroup(group)) {
+//            domainService.handleDeletedGroup(group.getName());
+//            statisticsManager.handleDeletedGroup(group.getName());
+//        }
+//    }
+//    
+//    
+//    /**
+//     * called right before a group delete.
+//     * @param hooksContext
+//     * @param preDeleteBean
+//     */
+//    @Override
+//    public void groupPreDelete(final HooksContext hooksContext, 
+//            final HooksGroupBean preDeleteBean) {
+//        final Group group = preDeleteBean.getGroup();
+//        if (isDynamicGroup(group)) {
+//            System.out.println("ICI");
+//        }
+//    }
+    
 
     /**
      * Pre update hook point.

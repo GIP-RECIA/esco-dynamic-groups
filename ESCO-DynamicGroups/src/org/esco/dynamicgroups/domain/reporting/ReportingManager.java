@@ -48,7 +48,7 @@ public class ReportingManager implements IReportingManager, InitializingBean {
     private IMailer mailer;
 
     /** The I18n manager. */
-    private I18NManager i18n;
+    private transient I18NManager i18n;
 
     /** The user paramters provider. */
     private ParametersProvider parametersProvider;

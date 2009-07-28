@@ -1,6 +1,7 @@
 
 package org.esco.dynamicgroups.util;
 
+import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Date;
@@ -27,7 +28,10 @@ import org.springframework.util.Assert;
  * 30 avr. 2009
  *
  */
-public class Mailer implements InitializingBean, IMailer {
+public class Mailer implements InitializingBean, IMailer, Serializable {
+
+    /** Serial version UID.*/
+    private static final long serialVersionUID = 956844351908462134L;
 
     /** Content type for the messages. */
     private static final String TEXT_HTML_CONTENT_TYPE = "text/html";

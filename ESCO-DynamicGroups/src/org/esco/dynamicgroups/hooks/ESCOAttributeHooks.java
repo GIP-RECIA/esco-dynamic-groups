@@ -12,6 +12,8 @@ import edu.internet2.middleware.grouper.hooks.logic.HookVeto;
 import java.io.Serializable;
 
 import org.apache.log4j.Logger;
+import org.esco.dynamicgroups.domain.DomainServiceProviderForHooks;
+import org.esco.dynamicgroups.domain.IDomainService;
 import org.esco.dynamicgroups.domain.definition.DecodedPropositionResult;
 import org.esco.dynamicgroups.domain.definition.PropositionCodec;
 import org.esco.dynamicgroups.domain.parameters.GroupsParametersSection;
@@ -34,6 +36,10 @@ public class ESCOAttributeHooks extends AttributeHooks implements Serializable {
 
     /** The definition field. */
     private String definitionField;
+    
+    /** The domain service, used to handle thy operations associated to the dynamic groups. */
+    private transient IDomainService domainService;
+
 
     /**
      * Builds an instance of ESCOAttributeHooks.
@@ -43,12 +49,22 @@ public class ESCOAttributeHooks extends AttributeHooks implements Serializable {
         final GroupsParametersSection grouperParameters = 
             (GroupsParametersSection) parametersProvider.getGroupsParametersSection();
         definitionField = grouperParameters.getGrouperDefinitionField();
+        domainService = DomainServiceProviderForHooks.instance().getDomainService();
+        
+        if (LOGGER.isInfoEnabled()) {
+            final StringBuilder sb = new StringBuilder("Creation of an hooks of class: ");
+            sb.append(getClass().getSimpleName());
+            sb.append(" - Definition field: ");
+            sb.append(definitionField);
+            sb.append(".");
+            LOGGER.info(sb.toString());
+        }
     }
 
     /**
      * Tests and veto if needed a modification of an attribute that contains the logic definition of a group.
      * @param hooksContext The hook context.
-     * @param preUpdateBean The available Grouper informations.
+     * @param preUpdateBean The available Grouper information.
      * @see edu.internet2.middleware.grouper.hooks.AttributeHooks#attributePreUpdate(HooksContext, HooksAttributeBean)
      */
     @Override
@@ -56,6 +72,28 @@ public class ESCOAttributeHooks extends AttributeHooks implements Serializable {
         checkAttribute(preUpdateBean.getAttribute());
     }
     
+
+    /**
+     * Handles the fact that a dynamic groups becomes a static group.
+     * @param hooksContext The hook context.
+     * @param postDeleteBean The available Grouper information.
+     */
+    @Override
+    public void attributePostDelete(final HooksContext hooksContext, 
+            final HooksAttributeBean postDeleteBean) {
+        
+        final Attribute attribute = postDeleteBean.getAttribute();
+        
+        if (definitionField.equals(attribute.getAttrName())) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Dynamic group - attribute deleted for the group: " 
+                        + attribute.getGroupUuid());
+            }
+            
+            domainService.handleDeletedGroup(attribute.getGroupUuid());
+        }
+    }
+
   
     /**
      * Tests if the coded proposition is valid.
@@ -71,6 +109,7 @@ public class ESCOAttributeHooks extends AttributeHooks implements Serializable {
 
         }
     }
+    
 
     /**
      * 
