@@ -1,21 +1,18 @@
 * parametrer la serialization du statisticsManager.
 
-[OK] * tâche ant pour la verification de propositions logiques
+OK tâche ant pour la verification de propositions logiques
 
-* Prendre en compte la suppression d'un groupe dynamique.
-* Verifier ce qui se passe lorsque le type dynamique est retiré d'un groupe.
+OK Prendre en compte la suppression d'un groupe dynamique.
+OK Verifier ce qui se passe lorsque le type dynamique est retiré d'un groupe.
 
 * tester la desactivation du reporting
+* Desactivation du cron si reporting disabled
 
 [OK] * help du ant avec la description des cibles
 
 * Vérifier dans les rapports les groupes sans définition et les groupes supprimés
 
 ServletResource=> ResourceProvider (fait tout le travail)
-
-Desactivation du cron si reporting disabled
-
-
 
 OK revoir la réinitialization de tous les groupes
     - verifier que le client LDAP n'est pas démarré

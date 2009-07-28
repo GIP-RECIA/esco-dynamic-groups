@@ -32,7 +32,7 @@ public class I18NManager implements Serializable, InitializingBean {
     private CommonsParametersSection commonsParameters;
     
     /** The message source instance. */
-    private MessageSource messageSource;
+    private transient MessageSource messageSource;
 
     
     /**

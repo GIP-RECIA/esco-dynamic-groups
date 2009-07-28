@@ -29,13 +29,13 @@ public class SyncReplClientListenerImpl implements IRepositoryListener, Initiali
     private static final long serialVersionUID = -5712448170582262878L;
 
     /** The ldap replication client. */
-    private ESCOSyncReplClient syncReplClient;
+    private transient ESCOSyncReplClient syncReplClient;
     
     /** The handler for the exception. */
     private IUncaughtExceptionHandlerFactory exceptionHandlerFactory;
     
     /** The thread for the listener. */
-    private Thread thread;
+    private transient Thread thread;
     
     
 

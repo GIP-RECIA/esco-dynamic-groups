@@ -48,9 +48,9 @@ public interface IDomainService {
     
     /**
      * Deletes a group.
-     * @param groupName The name of the group to delete.
+     * @param groupUUID The uuid of the group to delete.
      */
-    void handleDeletedGroup(final String groupName);
+    void handleDeletedGroup(final String groupUUID);
     
     /**
      * Starts the checking of the members ah the dynamic groups.

@@ -3,6 +3,8 @@
  */
 package org.esco.dynamicgroups.util;
 
+import java.io.Serializable;
+
 import javax.servlet.ServletContext;
 
 import org.springframework.core.io.FileSystemResource;
@@ -16,7 +18,10 @@ import org.springframework.web.context.support.ServletContextResource;
  * 29 mai 2009
  *
  */
-public class ServletContextResourcesProvider implements ServletContextAware, IResourceProvider {
+public class ServletContextResourcesProvider implements ServletContextAware, IResourceProvider, Serializable {
+    
+    /** Serial version UID.*/
+    private static final long serialVersionUID = 5640258458049553452L;
     
     /** The servlet context. */
     private ServletContext servletContext;

@@ -3,6 +3,8 @@
  */
 package org.esco.dynamicgroups.domain.definition;
 
+import java.io.Serializable;
+
 import org.esco.dynamicgroups.domain.beans.I18NManager;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
@@ -13,8 +15,11 @@ import org.springframework.util.Assert;
  * 16 janv. 2009
  *
  */
-public class PropositionCodec implements InitializingBean {
+public class PropositionCodec implements InitializingBean, Serializable {
     
+    /** Serial Version UID.*/
+    private static final long serialVersionUID = -67872885435776773L;
+
     /** Singleton. */
     private static PropositionCodec instance;
     
@@ -64,7 +69,7 @@ public class PropositionCodec implements InitializingBean {
     private IAtomicPropositionValidator atomValidator;
     
     /** I18N manager. */
-    private I18NManager i18n;
+    private transient I18NManager i18n;
    
     /**
      * Builds an instance of PropositionCodec.

@@ -10,6 +10,8 @@ import edu.internet2.middleware.subject.Subject;
 import edu.internet2.middleware.subject.SubjectNotFoundException;
 import edu.internet2.middleware.subject.SubjectNotUniqueException;
 
+import java.io.Serializable;
+
 import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.exceptions.DynamicGroupsException;
 
@@ -19,8 +21,11 @@ import org.esco.dynamicgroups.exceptions.DynamicGroupsException;
  * 28 juil. 08
  *
  */
-public class GrouperSessionUtil  {
+public class GrouperSessionUtil implements Serializable {
     
+    /** Serial version UID.*/
+    private static final long serialVersionUID = -4531189184916034497L;
+
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(GrouperSessionUtil.class);
     

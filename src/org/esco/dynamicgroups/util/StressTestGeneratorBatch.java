@@ -62,6 +62,7 @@ public class StressTestGeneratorBatch implements InitializingBean {
     /** Logger to use. */
     private static final Logger LOGGER = Logger.getLogger(StressTestGeneratorBatch.class);
 
+    /** Def. */
     private static final String[] CANDIDAT_DEFINITIONS = {
         
         // Parents de LDV
@@ -6919,6 +6920,17 @@ public class StressTestGeneratorBatch implements InitializingBean {
         final ThreadLocal<ApplicationContext> appCtx = new ThreadLocal<ApplicationContext>();
         appCtx.set(new FileSystemXmlApplicationContext(BATCH_CTX_FILE));
         final BeanFactory beanFactory = appCtx.get();
+//        final IDomainService ds = (IDomainService) beanFactory.getBean("domainService");
+//        final File file = new File("toto.ser");
+//        
+//        final ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file));
+//        oos.writeObject(ds);
+//        oos.close();
+//        
+//        
+//        final ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
+//        final IDomainService previousInstance = (IDomainService) ois.readObject();
+//        ois.close();
         final StressTestGeneratorBatch st = (StressTestGeneratorBatch) beanFactory.getBean(ST_BEAN);   
         st.generate();
         System.exit(0);

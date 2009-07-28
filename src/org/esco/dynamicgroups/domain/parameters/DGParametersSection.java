@@ -30,7 +30,6 @@ public abstract class DGParametersSection implements Serializable {
     
     /** Padding to use int the toString methods. */
     protected static final String TO_STRING_PAD_TRIPLE = TO_STRING_PAD_SIMPLE + TO_STRING_PAD_DOUBLE;
-
     
     /** The default value for the configuration file. */
     private static final String UNDEF_CONF_FILE = "<Undefined file>";

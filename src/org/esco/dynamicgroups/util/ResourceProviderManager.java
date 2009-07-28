@@ -3,6 +3,8 @@
  */
 package org.esco.dynamicgroups.util;
 
+import java.io.Serializable;
+
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
@@ -12,7 +14,10 @@ import org.springframework.core.io.Resource;
  * 8 juin 2009
  *
  */
-public class ResourceProviderManager implements IResourceProvider {
+public class ResourceProviderManager implements IResourceProvider, Serializable {
+    
+    /** Serial version UID.*/
+    private static final long serialVersionUID = -6231608603279692988L;
     
     /** Servlet context resource. */
     private static ServletContextResourcesProvider servletContextResourceUtil;

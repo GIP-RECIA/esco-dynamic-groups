@@ -4,6 +4,7 @@
 package org.esco.dynamicgroups.domain;
 
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -42,7 +43,10 @@ import org.springframework.util.Assert;
  * 13 janv. 2009
  *
  */
-public class ESCODomainServiceImpl implements IDomainService, ApplicationListener, InitializingBean {
+public class ESCODomainServiceImpl implements IDomainService, ApplicationListener, InitializingBean, Serializable {
+
+    /** Serial version UID.*/
+    private static final long serialVersionUID = -3401330996095711695L;
 
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(ESCODomainServiceImpl.class);
@@ -446,11 +450,11 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
 
     /**
      * Deletes a group.
-     * @param groupName The name of the group to delete.
+     * @param groupUUID The uuid of the group to delete.
      * @see org.esco.dynamicgroups.domain.IDomainService#handleDeletedGroup(java.lang.String)
      */
-    public void handleDeletedGroup(final String groupName) {
-        this.daoService.deleteDynGroup(groupName);
+    public void handleDeletedGroup(final String groupUUID) {
+        this.daoService.deleteDynGroup(groupUUID);
     }
 
     /**

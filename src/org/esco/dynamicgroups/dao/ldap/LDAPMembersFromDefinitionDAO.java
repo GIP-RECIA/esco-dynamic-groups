@@ -69,10 +69,10 @@ public class LDAPMembersFromDefinitionDAO implements IMembersFromDefinitionDAO, 
     private LDAPConnectionManager connectionManager;
 
     /** The LDAP Connection. */
-    private LDAPConnection connection;
+    private transient LDAPConnection connection;
 
     /** The LDAP search constaints. */
-    private LDAPSearchConstraints constraints;
+    private transient LDAPSearchConstraints constraints;
 
     /**
      * Builds an instance of DynamicGroupInitializer.

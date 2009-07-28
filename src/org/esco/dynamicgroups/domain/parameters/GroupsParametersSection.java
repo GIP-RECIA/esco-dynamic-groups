@@ -18,6 +18,7 @@ public class GroupsParametersSection extends DGParametersSection {
   
     /** Serial version UID. */
     private static final long serialVersionUID = 9168255829280261203L;
+    
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(GroupsParametersSection.class);
     

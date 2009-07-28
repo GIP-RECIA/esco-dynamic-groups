@@ -46,9 +46,9 @@ public class ESCOHooksInstaller implements Serializable, ApplicationListener {
     public void onApplicationEvent(final ApplicationEvent event) {
         if (event instanceof ContextRefreshedEvent) {
             if (!initialized) {
-                LOGGER.info("Installing the group hooks " + ESCOGroupHooks.class);
+                LOGGER.info("!!! NOT Installing the group hooks " + ESCOGroupHooks.class);
                 GrouperHooksUtils.addHookManual(GrouperHookType.GROUP.getPropertyFileKey(), ESCOGroupHooks.class);
-                LOGGER.info("Installing the attributes hooks " + ESCOAttributeHooks.class);
+                LOGGER.info("!!! NOT Installing the attributes hooks " + ESCOAttributeHooks.class);
                 GrouperHooksUtils.addHookManual(GrouperHookType.ATTRIBUTE.getPropertyFileKey(), 
                         ESCOAttributeHooks.class);
                 initialized = true;
