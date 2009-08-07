@@ -13,12 +13,12 @@ import org.springframework.web.context.ServletContextAware;
 import org.springframework.web.context.support.ServletContextResource;
 
 /**
- * Util class to get the resources under the Servlet context.
+ * Util class to get the resources under the Servlet context or under a batch context.
  * @author GIP RECIA - A. Deman
  * 29 mai 2009
  *
  */
-public class ServletContextResourcesProvider implements ServletContextAware, IResourceProvider, Serializable {
+public class ResourcesProviderImpl implements ServletContextAware, IResourcesProvider, Serializable {
     
     /** Serial version UID.*/
     private static final long serialVersionUID = 5640258458049553452L;
@@ -27,11 +27,10 @@ public class ServletContextResourcesProvider implements ServletContextAware, IRe
     private ServletContext servletContext;
     
     /**
-     * Builds an instance of ServletContextResourcesProvider.
+     * Builds an instance of ResourcesProviderImpl.
      */
-    public ServletContextResourcesProvider() {
+    public ResourcesProviderImpl() {
         super();
-        ResourceProviderManager.register(this);
     }
     
     /**

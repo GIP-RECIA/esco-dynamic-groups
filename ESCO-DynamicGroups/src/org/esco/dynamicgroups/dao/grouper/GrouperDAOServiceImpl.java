@@ -132,7 +132,7 @@ public class GrouperDAOServiceImpl implements IGroupsDAOService, InitializingBea
      * @see org.esco.dynamicgroups.dao.grouper.IGroupsDAOService#addToGroup(String, Set)
      */
     public void addToGroup(final String groupUUID, final Set<String> userIds) {
-
+       
         final GrouperSession session  = sessionUtil.createSession();
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Adding users: " + userIds + " to the group: " + groupUUID + ".");

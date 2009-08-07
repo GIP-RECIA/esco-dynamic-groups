@@ -141,6 +141,7 @@ public class LDAPMembersFromDefinitionDAO implements IMembersFromDefinitionDAO, 
                 }
 
             } catch (LDAPException e) {
+                translateToLdapFilter(definition);
                 LOGGER.error(e, e);
             }
         }

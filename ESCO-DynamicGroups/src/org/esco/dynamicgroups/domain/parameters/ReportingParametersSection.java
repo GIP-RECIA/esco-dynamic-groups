@@ -36,7 +36,7 @@ public class ReportingParametersSection extends DGParametersSection {
     private boolean enabled;
     
     /** The cron expression used to send the reports. */
-    private String reportCronExpression;
+    private String reportCronExpression = "";
 
     /** Flag to determine if the modifications of definition have to handled in 
      * the statistics. */

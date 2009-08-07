@@ -30,7 +30,7 @@ public class ReportingJob extends QuartzJobBean {
      * Builds an instance of ReportingJob.
      */
     public ReportingJob() {
-        super();
+       super();
     }
  
     /**
@@ -42,6 +42,7 @@ public class ReportingJob extends QuartzJobBean {
     @Override
     protected void executeInternal(final JobExecutionContext ctx)
     throws JobExecutionException {
+        
         boolean validState = true;
         if (reportingManager == null) {
             LOGGER.error("Invalid state for the instance of " 
@@ -51,6 +52,7 @@ public class ReportingJob extends QuartzJobBean {
         }
         
         if (validState) {
+            LOGGER.debug("Launching the reporting job.");
            reportingManager.doReporting();
         } else {
             LOGGER.warn("Reporting disabled : invalid state.");

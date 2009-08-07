@@ -48,8 +48,7 @@ public class ModuloDecoratorAppender extends AppenderSkeleton implements Appende
     /**
      * @see org.apache.log4j.Appender#close()
      */
-    @Override
-    public void close() {
+        public void close() {
         synchronized (decoratedAppenders) {
             @SuppressWarnings("unchecked")
             final Enumeration appendersIt = decoratedAppenders.getAllAppenders();
@@ -205,7 +204,6 @@ public class ModuloDecoratorAppender extends AppenderSkeleton implements Appende
     /**
      * {@inheritDoc}
      */
-    @Override
     public boolean requiresLayout() {
       return false;
     }

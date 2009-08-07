@@ -64,7 +64,7 @@
 		<property name="reportFormatter" ref="reportFormatter"/>
 		<property name="groupsService" ref="groupsService"/>
 		<property name="domainService" ref="domainService"/>
-		<property name="resourceProvider" ref="resourceProviderManager"/>
+		<property name="resourcesProvider" ref="resourcesProvider"/>
 	</bean>
 	
 	<bean id="statisticsManagerProvider" class="org.esco.dynamicgroups.domain.reporting.statistics.StatisticsManagerProviderForHooks">
@@ -83,6 +83,7 @@
      	<property name="reportFormatter" ref="reportFormatter"/>
      	<property name="parametersProvider" ref="parametersProvider"/>
 	</bean>
+	
 	<bean name="reportingJob" class="org.springframework.scheduling.quartz.JobDetailBean">
   		<property name="jobClass" value="org.esco.dynamicgroups.domain.reporting.ReportingJob"/>
   		<property name="jobDataAsMap">
@@ -96,12 +97,14 @@
 		<constructor-arg ref="parametersProvider"/>
 		<property name="jobDetail" ref="reportingJob"/>
 	</bean>
-	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
-  		<property name="triggers">
+	
+	<bean id ="schedulerFactoryBean" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+  	 	<property name="triggers">
     		<list>
       			<ref bean="cronTrigger"/>
     		</list>
   		</property>
+  		
 	</bean>
 	
 	<bean id="repositoryListener" class="org.esco.dynamicgroups.domain.SyncReplClientListenerImpl">

@@ -10,7 +10,7 @@ import org.springframework.core.io.Resource;
  * 8 juin 2009
  *
  */
-public interface IResourceProvider {
+public interface IResourcesProvider {
 
     /**
      * Gives the resource associated to a given path under the servlet
