@@ -22,17 +22,17 @@ import org.esco.dynamicgroups.exceptions.DynamicGroupsException;
  *
  */
 public class GrouperSessionUtil implements Serializable {
-    
+
     /** Serial version UID.*/
     private static final long serialVersionUID = -4531189184916034497L;
 
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(GrouperSessionUtil.class);
-    
+
     /** Subject id used to open the sessions. */
     private String subjectId;
-    
-  
+
+
     /**
      * Builds an instance of GrouperSessionUtil.
      * @param subjectId The subject id used to open sessions.
@@ -53,6 +53,7 @@ public class GrouperSessionUtil implements Serializable {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Starting a new session: " + session.getSessionId());
             }
+
             return session;
 
         } catch (SubjectNotFoundException e) {
@@ -66,6 +67,8 @@ public class GrouperSessionUtil implements Serializable {
             throw new DynamicGroupsException(e);
         }
     }
+
+
 
     /**
      * Closes a grouper session.

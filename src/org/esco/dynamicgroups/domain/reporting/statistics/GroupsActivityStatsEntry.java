@@ -46,16 +46,7 @@ public class GroupsActivityStatsEntry implements IGroupsActivityStatsEntry {
             super();
         }
         
-        /**
-         * Builds an instance of ActivityEntry.
-         * @param addedMembersCount The number of members added.
-         * @param removedMembersCount The number of removed members.
-         */
-        public GroupActivity(final int addedMembersCount, final int removedMembersCount) {
-            this.addedMembersCount = addedMembersCount;
-            this.removedMembersCount = removedMembersCount;
-        }
-        
+              
         /**
          * Getter for addedMembersCount.
          * @return addedMembersCount.

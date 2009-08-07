@@ -19,7 +19,7 @@ import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.domain.parameters.LDAPPersonsParametersSection;
 import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
 import org.esco.dynamicgroups.exceptions.DynamicGroupsException;
-import org.esco.dynamicgroups.util.IResourceProvider;
+import org.esco.dynamicgroups.util.IResourcesProvider;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
@@ -80,7 +80,7 @@ public class CookieManager implements InitializingBean, ApplicationListener, Ser
     private byte[] createdCookie;
 
     /** Util class to read and write the cookie under the servlet context. */
-    private IResourceProvider resourceProvider;
+    private IResourcesProvider resourceProvider;
 
     /**
      * Builds an instance of CookieManager.
@@ -326,7 +326,7 @@ public class CookieManager implements InitializingBean, ApplicationListener, Ser
      * Getter for resourceProvider.
      * @return resourceProvider.
      */
-    public IResourceProvider getResourceProvider() {
+    public IResourcesProvider getResourceProvider() {
         return resourceProvider;
     }
 
@@ -334,7 +334,7 @@ public class CookieManager implements InitializingBean, ApplicationListener, Ser
      * Setter for resourceProvider.
      * @param resourceProvider the new value for resourceProvider.
      */
-    public void setResourceProvider(final IResourceProvider resourceProvider) {
+    public void setResourceProvider(final IResourcesProvider resourceProvider) {
         this.resourceProvider = resourceProvider;
     }
 }

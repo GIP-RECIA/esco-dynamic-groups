@@ -9,13 +9,14 @@
 	<property name="esco-dg.classes.dir" value="${esco-dg.build.dir}classes/"/>
 	<property name="esco-dg.dist.dir" value="dist/"/>
 	<property name="esco-dg.prop.dir" value="resources/"/>
+
 	
 	<property name="esco-dg.src.dir" value="src/"/>
 	<property name="esco-dg.version" value="0.1.0-alpha0"/>
 	<property name="esco-dg.grouper-dg.lib" value="${esco-dg.dist.dir}grouper-esco-dg-hooks-${esco-dg.version}.jar"/>
 	<property name="esco-dg.schema.file" value="${esco-dg.build.dir}schema.ddl"/>
 		
-	
+	<!-- jars to copy for the deployment -->
 	<property name="esco-dg.3part.spring.lib" value="${esco-dg.lib.dir}spring-2.5.5.jar"/>
 	<property name="esco-dg.3part.ldap.lib" value="${esco-dg.lib.dir}ldap.jar"/>
 	
@@ -24,6 +25,10 @@
 	<property name="esco-dg.grouper.custom.ui.classes.dir" value="${esco-dg.grouper.custom.ui.dir}/WEB-INF/classes/"/>
 	<property name="esco-dg.grouper.custom.ui.build.file" value="additional-build.xml"/>
 	<property name="esco-dg.grouper.custom.ui.web.file" value="web.spring.xml"/>
+	
+	<!-- Grouper configuration directory, used to generate a stress test groups set.-->
+	<property name="esco-dg.st.grouper.conf.dir" value="${esco-dg.prop.dir}grouper_api_conf"/>
+	<property name="esco-dg.st.grouper.lib.dir" value="${esco-dg.lib.dir}grouper"/>
 	
 	<property name="esco-dg.conf.hibernate.file" value="${esco-dg.prop.dir}hibernate.cfg.xml"/>
 	<property name="esco-dg.conf.grouper-dg.file" value="${esco-dg.prop.dir}esco-dynamic-groups.properties"/>
@@ -69,6 +74,9 @@
 			esco-dg.grouper.custom.ui.build.file   = ${esco-dg.grouper.custom.ui.build.file}
 			esco-dg.grouper.custom.ui.web.file     = ${esco-dg.grouper.custom.ui.web.file}
 			
+			esco-dg.st.grouper.conf.dir            = ${esco-dg.grouper.conf.dir}	
+			esco-dg.st.grouper.lib.dir             = ${esco-dg.st.grouper.lib.dir}
+			
 			esco-dg.3part.spring.lib               = ${esco-dg.3part.spring.lib}
 			esco-dg.3part.ldap.lib                 = ${esco-dg.3part.ldap.lib}
 			
@@ -102,7 +110,7 @@
 		 </javac>
 	</target>
 	
-	<target name="esco-dg.grouper-dg.build" 
+	<target name="esco-dg.build" 
 			description="Creates the jar for grouper with dynamic groups support." 
 			depends="esco-dg.create.dist.dir, esco-dg.compile" >
 			<jar destfile="${esco-dg.grouper-dg.lib}" basedir="${esco-dg.build.dir}" excludes="**/aop/*">
@@ -183,7 +191,7 @@
 	</target>
 	
 	<target name="esco-dg.deploy" 
-		depends="esco-dg.check-config, esco-dg.grouper-dg.build" 
+		depends="esco-dg.check-config, esco-dg.build" 
 		description="Deploys the files in custom grouper ui directory.">
 		<mkdir dir="${esco-dg.grouper.custom.ui.dir}"/>
 		<copy todir="${esco-dg.grouper.custom.ui.prop.dir}">
@@ -222,8 +230,43 @@
     		classpathref="esco-dg.classpath">
 	      <arg value="${definition}"/>
 	    </java>
+	</target>
 	
-			
+	<!-- Groups creation for stress test -->
+	<target name="esco-dg.stress-test-set"
+			description = "generates groups to test the load resistance"
+				depends="esco-dg.build">
+		
+			<path id="esco-dg.st-classpath">
+				   <pathelement path="${esco-dg.build.dir}"/>
+					<pathelement path="${basedir}"/>
+					<pathelement location="${esco-dg.prop.dir}"/>
+					<pathelement location="${esco-dg.st.grouper.conf.dir}"/>	
+					<fileset dir="${esco-dg.st.grouper.lib.dir}" includes="**/*.jar" />
+					<fileset dir="${esco-dg.lib.dir}" includes="**/*.jar" />
+				</path>
+		 <property name="definitions.file" value=" "/>
+		 <property name="stem" value=" "/>
+		 <property name="prefix" value=" "/>
+		 <property name="nb.groups" value=" "/>
+		 <property name="nb.groups.per.stem" value=" "/>
+		<echo>
+			definitions.file    = ${definitions.file}
+			stem                = ${stem}
+			prefix              = ${prefix}
+			nb.groups           = ${nb.groups}
+			nb.groups.per.stem  = ${nb.groups.per.stem}
+		</echo>	
+		 <java dir="${basedir}" 
+		   	classname="org.esco.dynamicgroups.util.StressTestGeneratorBatch" 
+		   	fork="true" 
+			classpathref="esco-dg.st-classpath">
+		    <arg value="${definitions.file}"/>
+		    <arg value="${stem}"/>
+		    <arg value="${prefix}"/>
+		    <arg value="${nb.groups}"/>
+		    <arg value="${nb.groups.per.stem}"/>
+		  </java>
 	</target>
 
 	<!-- Help target -->
@@ -236,9 +279,15 @@
             esco-dg.clean           Deletes all the files produced by the compilation target.   
             esco-dg.build           Creates the jar.
             esco-dg.deploy          Copy the files into the Grouper's custom ui directory.
-            esco-dg.test-definition Test a logic defintion. Exemple: 
+            esco-dg.init-db         Initialize the database. 
+            esco-dg.test-definition Test a logic defintion and gives the query associated to the backend. Exemple: 
                                     ant -Ddefinition="And(objectClass=ENTEleve, ENTEleveClasses=*$632)" esco-dg.test-definition
             
+            esco-dg.stress-test-set Generates a groups set. Exemple :
+                                    ant esco-dg.stress-test-set -Ddefinitions.file=dg-stress_test-01.dat -Dstem=esco:st3 -Dprefix=st_grp_ -Dnb.groups=1000  -Dnb.groups.per.stem=200
+
+                                    This will generate 1000 groups (st_grp_000...999) dispatched in 5 stems under the stem esco:st, 
+                                    using the members definitions stored in the file  dg-stress_test-01.dat.
 		</echo>
 	</target>
 

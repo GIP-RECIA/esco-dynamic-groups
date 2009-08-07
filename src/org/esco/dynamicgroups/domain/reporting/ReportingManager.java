@@ -91,8 +91,6 @@ public class ReportingManager implements IReportingManager, InitializingBean {
 
         reportingParameters = (ReportingParametersSection) parametersProvider.getReportingParametersSection();
 
-
-
     }
 
     /**

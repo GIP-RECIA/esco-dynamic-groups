@@ -1,0 +1,200 @@
+ENTEleveMajeur=O
+ENTEleveMajeur=N
+ENTEleveEnseignements=MATH*
+ENTEleveEnseignements = PHYSIQUE*
+And(And(And(ENTEleveStatutEleve=SCOLAIRE, ENTEleveEnseignements=MATHEMATIQUES*),  ENTPersonStructRattach=ENTStructureSIREN=19370001000013,ou=structures,dc=esco-centre,dc=fr), ENTEleveClasses=*$701)
+ENTEleveClasses=*$601
+ENTEleveClasses=*$602
+ENTEleveClasses=*$603
+ENTEleveClasses=*$604
+ENTEleveClasses=*$605
+ENTEleveClasses=*$606
+ENTEleveClasses=*$607
+ENTEleveClasses=*$608
+ENTEleveClasses=*$609
+ENTEleveClasses=*$610
+ENTEleveClasses=*$611
+ENTEleveClasses=*$612
+ENTEleveClasses=*$701
+ENTEleveClasses=*$702
+ENTEleveClasses=*$703
+ENTEleveClasses=*$704
+ENTEleveClasses=*$705
+ENTEleveClasses=*$706
+ENTEleveClasses=*$707
+ENTEleveClasses=*$708
+ENTEleveClasses=*$709
+ENTEleveClasses=*$710
+ENTEleveClasses=*$711
+ENTEleveClasses=*$712
+ENTEleveClasses=*$601
+ENTEleveClasses=*$602
+ENTEleveClasses=*$603
+ENTEleveClasses=*$604
+ENTEleveClasses=*$605
+ENTEleveClasses=*$606
+ENTEleveClasses=*$607
+ENTEleveClasses=*$608
+ENTEleveClasses=*$609
+ENTEleveClasses=*$610
+ENTEleveClasses=*$611
+ENTEleveClasses=*$612
+ENTEleveClasses=*$701
+ENTEleveClasses=*$702
+ENTEleveClasses=*$703
+ENTEleveClasses=*$704
+ENTEleveClasses=*$705
+ENTEleveClasses=*$706
+ENTEleveClasses=*$707
+ENTEleveClasses=*$708
+ENTEleveClasses=*$709
+ENTEleveClasses=*$710
+ENTEleveClasses=*$711
+ENTEleveClasses=*$712
+ENTEleveClasses=*$601
+ENTEleveClasses=*$602
+ENTEleveClasses=*$603
+ENTEleveClasses=*$604
+ENTEleveClasses=*$605
+ENTEleveClasses=*$606
+ENTEleveClasses=*$607
+ENTEleveClasses=*$608
+ENTEleveClasses=*$609
+ENTEleveClasses=*$610
+ENTEleveClasses=*$611
+ENTEleveClasses=*$612
+ENTEleveClasses=*$701
+ENTEleveClasses=*$702
+ENTEleveClasses=*$703
+ENTEleveClasses=*$704
+ENTEleveClasses=*$705
+ENTEleveClasses=*$706
+ENTEleveClasses=*$707
+ENTEleveClasses=*$708
+ENTEleveClasses=*$709
+ENTEleveClasses=*$710
+ENTEleveClasses=*$711
+ENTEleveClasses=*$712
+ENTEleveClasses=*$601
+ENTEleveClasses=*$602
+ENTEleveClasses=*$603
+ENTEleveClasses=*$604
+ENTEleveClasses=*$605
+ENTEleveClasses=*$606
+ENTEleveClasses=*$607
+ENTEleveClasses=*$608
+ENTEleveClasses=*$609
+ENTEleveClasses=*$610
+ENTEleveClasses=*$611
+ENTEleveClasses=*$612
+ENTEleveClasses=*$701
+ENTEleveClasses=*$702
+ENTEleveClasses=*$703
+ENTEleveClasses=*$704
+ENTEleveClasses=*$705
+ENTEleveClasses=*$706
+ENTEleveClasses=*$707
+ENTEleveClasses=*$708
+ENTEleveClasses=*$709
+ENTEleveClasses=*$710
+ENTEleveClasses=*$711
+ENTEleveClasses=*$712
+OR(ENTEleveClasses=*$601, ENTEleveClasses=*$602)
+OR(ENTEleveClasses=*$602, ENTEleveClasses=*$603)
+OR(ENTEleveClasses=*$603, ENTEleveClasses=*$604)
+OR(ENTEleveClasses=*$604, ENTEleveClasses=*$605)
+OR(ENTEleveClasses=*$605, ENTEleveClasses=*$606)
+OR(ENTEleveClasses=*$607, ENTEleveClasses=*$608)
+OR(ENTEleveClasses=*$609, ENTEleveClasses=*$610)
+OR(ENTEleveClasses=*$611, ENTEleveClasses=*$622)
+OR(ENTEleveClasses=*$601, ENTEleveClasses=*$701)
+OR(ENTEleveClasses=*$602, ENTEleveClasses=*$702)
+OR(ENTEleveClasses=*$603, ENTEleveClasses=*$703)
+OR(ENTEleveClasses=*$604, ENTEleveClasses=*$704)
+OR(ENTEleveClasses=*$605, ENTEleveClasses=*$705)
+OR(ENTEleveClasses=*$606, ENTEleveClasses=*$706)
+OR(OR(ENTEleveClasses=*$501, ENTEleveClasses=*$601), ENTEleveClasses=*$701)
+OR(OR(ENTEleveClasses=*$502, ENTEleveClasses=*$602), ENTEleveClasses=*$702)
+OR(OR(ENTEleveClasses=*$503, ENTEleveClasses=*$603), ENTEleveClasses=*$703)
+OR(OR(ENTEleveClasses=*$504, ENTEleveClasses=*$604), ENTEleveClasses=*$704)
+OR(OR(ENTEleveClasses=*$505, ENTEleveClasses=*$605), ENTEleveClasses=*$705)
+OR(OR(ENTEleveClasses=*$506, ENTEleveClasses=*$606), ENTEleveClasses=*$706)
+OR(OR(ENTEleveClasses=*$507, ENTEleveClasses=*$607), ENTEleveClasses=*$707)
+OR(OR(ENTEleveClasses=*$508, ENTEleveClasses=*$608), ENTEleveClasses=*$708)
+OR(OR(ENTEleveClasses=*$509, ENTEleveClasses=*$608), ENTEleveClasses=*$709)
+OR(OR(ENTEleveClasses=*$510, ENTEleveClasses=*$610), ENTEleveClasses=*$710)
+OR(OR(ENTEleveClasses=*$511, ENTEleveClasses=*$611), ENTEleveClasses=*$711)
+OR(OR(ENTEleveClasses=*$512, ENTEleveClasses=*$612), ENTEleveClasses=*$712)
+AND(OR(OR(ENTEleveClasses=*$501, ENTEleveClasses=*$601), ENTEleveClasses=*$701), ENTEleveEnseignements=MATH*)
+AND(OR(OR(ENTEleveClasses=*$502, ENTEleveClasses=*$602), ENTEleveClasses=*$702), ENTEleveEnseignements=MATH*)
+AND(OR(OR(ENTEleveClasses=*$503, ENTEleveClasses=*$603), ENTEleveClasses=*$703), ENTEleveEnseignements=MATH*)
+AND(OR(OR(ENTEleveClasses=*$504, ENTEleveClasses=*$604), ENTEleveClasses=*$704), ENTEleveEnseignements=MATH*)
+AND(OR(OR(ENTEleveClasses=*$505, ENTEleveClasses=*$605), ENTEleveClasses=*$705), ENTEleveEnseignements=MATH*)
+AND(OR(OR(ENTEleveClasses=*$506, ENTEleveClasses=*$606), ENTEleveClasses=*$706), ENTEleveEnseignements=MATH*)
+AND(OR(OR(ENTEleveClasses=*$507, ENTEleveClasses=*$607), ENTEleveClasses=*$707), ENTEleveEnseignements=MATH*)
+AND(OR(OR(ENTEleveClasses=*$508, ENTEleveClasses=*$608), ENTEleveClasses=*$708), ENTEleveEnseignements=MATH*)
+AND(OR(OR(ENTEleveClasses=*$509, ENTEleveClasses=*$609), ENTEleveClasses=*$709), ENTEleveEnseignements=MATH*)
+AND(OR(OR(ENTEleveClasses=*$510, ENTEleveClasses=*$610), ENTEleveClasses=*$710), ENTEleveEnseignements=MATH*)
+AND(OR(OR(ENTEleveClasses=*$511, ENTEleveClasses=*$611), ENTEleveClasses=*$711), ENTEleveEnseignements=MATH*)
+AND(OR(OR(ENTEleveClasses=*$512, ENTEleveClasses=*$612), ENTEleveClasses=*$712), ENTEleveEnseignements=MATH*)
+AND(OR(OR(ENTEleveClasses=*$501, ENTEleveClasses=*$601), ENTEleveClasses=*$701), ENTEleveMajeur=N)
+AND(OR(OR(ENTEleveClasses=*$502, ENTEleveClasses=*$602), ENTEleveClasses=*$702), ENTEleveMajeur=N)
+AND(OR(OR(ENTEleveClasses=*$503, ENTEleveClasses=*$603), ENTEleveClasses=*$703), ENTEleveMajeur=N)
+AND(OR(OR(ENTEleveClasses=*$504, ENTEleveClasses=*$604), ENTEleveClasses=*$704), ENTEleveMajeur=N)
+AND(OR(OR(ENTEleveClasses=*$505, ENTEleveClasses=*$605), ENTEleveClasses=*$705), ENTEleveMajeur=N)
+AND(OR(OR(ENTEleveClasses=*$506, ENTEleveClasses=*$606), ENTEleveClasses=*$706), ENTEleveMajeur=N)
+AND(OR(OR(ENTEleveClasses=*$507, ENTEleveClasses=*$607), ENTEleveClasses=*$707), ENTEleveMajeur=N)
+AND(OR(OR(ENTEleveClasses=*$508, ENTEleveClasses=*$608), ENTEleveClasses=*$708), ENTEleveMajeur=N)
+AND(OR(OR(ENTEleveClasses=*$509, ENTEleveClasses=*$609), ENTEleveClasses=*$709), ENTEleveMajeur=N)
+AND(OR(OR(ENTEleveClasses=*$510, ENTEleveClasses=*$610), ENTEleveClasses=*$710), ENTEleveMajeur=N)
+AND(OR(OR(ENTEleveClasses=*$511, ENTEleveClasses=*$611), ENTEleveClasses=*$711), ENTEleveMajeur=N)
+AND(OR(OR(ENTEleveClasses=*$512, ENTEleveClasses=*$612), ENTEleveClasses=*$712), ENTEleveMajeur=N)
+AND(OR(OR(ENTEleveClasses=*$501, ENTEleveClasses=*$601), ENTEleveClasses=*$701), ENTEleveMajeur=O)
+AND(OR(OR(ENTEleveClasses=*$502, ENTEleveClasses=*$602), ENTEleveClasses=*$702), ENTEleveMajeur=O)
+AND(OR(OR(ENTEleveClasses=*$503, ENTEleveClasses=*$603), ENTEleveClasses=*$703), ENTEleveMajeur=O)
+AND(OR(OR(ENTEleveClasses=*$504, ENTEleveClasses=*$604), ENTEleveClasses=*$704), ENTEleveMajeur=O)
+AND(OR(OR(ENTEleveClasses=*$505, ENTEleveClasses=*$605), ENTEleveClasses=*$705), ENTEleveMajeur=O)
+AND(OR(OR(ENTEleveClasses=*$506, ENTEleveClasses=*$606), ENTEleveClasses=*$706), ENTEleveMajeur=O)
+AND(OR(OR(ENTEleveClasses=*$507, ENTEleveClasses=*$607), ENTEleveClasses=*$707), ENTEleveMajeur=O)
+AND(OR(OR(ENTEleveClasses=*$508, ENTEleveClasses=*$608), ENTEleveClasses=*$708), ENTEleveMajeur=O)
+AND(OR(OR(ENTEleveClasses=*$509, ENTEleveClasses=*$609), ENTEleveClasses=*$709), ENTEleveMajeur=O)
+AND(OR(OR(ENTEleveClasses=*$510, ENTEleveClasses=*$610), ENTEleveClasses=*$710), ENTEleveMajeur=O)
+AND(OR(OR(ENTEleveClasses=*$511, ENTEleveClasses=*$611), ENTEleveClasses=*$711), ENTEleveMajeur=O)
+AND(OR(OR(ENTEleveClasses=*$512, ENTEleveClasses=*$612), ENTEleveClasses=*$712), ENTEleveMajeur=O)
+OR(AND(OR(OR(ENTEleveClasses=*$501, ENTEleveClasses=*$601), ENTEleveClasses=*$701), ENTEleveMajeur=N), AND(OR(OR(ENTEleveClasses=*$501, ENTEleveClasses=*$601), ENTEleveClasses=*$701), ENTEleveMajeur=O))
+OR(AND(OR(OR(ENTEleveClasses=*$502, ENTEleveClasses=*$602), ENTEleveClasses=*$702), ENTEleveMajeur=N), AND(OR(OR(ENTEleveClasses=*$502, ENTEleveClasses=*$602), ENTEleveClasses=*$702), ENTEleveMajeur=O))
+OR(AND(OR(OR(ENTEleveClasses=*$503, ENTEleveClasses=*$603), ENTEleveClasses=*$703), ENTEleveMajeur=N), AND(OR(OR(ENTEleveClasses=*$503, ENTEleveClasses=*$603), ENTEleveClasses=*$703), ENTEleveMajeur=O))
+OR(AND(OR(OR(ENTEleveClasses=*$504, ENTEleveClasses=*$604), ENTEleveClasses=*$704), ENTEleveMajeur=N), AND(OR(OR(ENTEleveClasses=*$504, ENTEleveClasses=*$604), ENTEleveClasses=*$704), ENTEleveMajeur=O))
+OR(AND(OR(OR(ENTEleveClasses=*$505, ENTEleveClasses=*$605), ENTEleveClasses=*$705), ENTEleveMajeur=N), AND(OR(OR(ENTEleveClasses=*$505, ENTEleveClasses=*$605), ENTEleveClasses=*$705), ENTEleveMajeur=O))
+OR(AND(OR(OR(ENTEleveClasses=*$506, ENTEleveClasses=*$606), ENTEleveClasses=*$706), ENTEleveMajeur=N), AND(OR(OR(ENTEleveClasses=*$506, ENTEleveClasses=*$606), ENTEleveClasses=*$706), ENTEleveMajeur=O))
+OR(AND(OR(OR(ENTEleveClasses=*$507, ENTEleveClasses=*$607), ENTEleveClasses=*$707), ENTEleveMajeur=N), AND(OR(OR(ENTEleveClasses=*$507, ENTEleveClasses=*$607), ENTEleveClasses=*$707), ENTEleveMajeur=O))
+OR(AND(OR(OR(ENTEleveClasses=*$508, ENTEleveClasses=*$608), ENTEleveClasses=*$708), ENTEleveMajeur=N), AND(OR(OR(ENTEleveClasses=*$508, ENTEleveClasses=*$608), ENTEleveClasses=*$708), ENTEleveMajeur=O))
+OR(AND(OR(OR(ENTEleveClasses=*$509, ENTEleveClasses=*$609), ENTEleveClasses=*$709), ENTEleveMajeur=N), AND(OR(OR(ENTEleveClasses=*$509, ENTEleveClasses=*$609), ENTEleveClasses=*$709), ENTEleveMajeur=O))
+OR(AND(OR(OR(ENTEleveClasses=*$510, ENTEleveClasses=*$610), ENTEleveClasses=*$710), ENTEleveMajeur=N), AND(OR(OR(ENTEleveClasses=*$510, ENTEleveClasses=*$610), ENTEleveClasses=*$710), ENTEleveMajeur=O))
+OR(AND(OR(OR(ENTEleveClasses=*$511, ENTEleveClasses=*$611), ENTEleveClasses=*$701), ENTEleveMajeur=N), AND(OR(OR(ENTEleveClasses=*$511, ENTEleveClasses=*$611), ENTEleveClasses=*$711), ENTEleveMajeur=O))
+OR(AND(OR(OR(ENTEleveClasses=*$512, ENTEleveClasses=*$612), ENTEleveClasses=*$712), ENTEleveMajeur=N), AND(OR(OR(ENTEleveClasses=*$512, ENTEleveClasses=*$612), ENTEleveClasses=*$712), ENTEleveMajeur=O))
+AND(OR(OR(ENTEleveClasses=*$501, ENTEleveClasses=*$601), ENTEleveClasses=*$701), NOT(ENTEleveMajeur=N))
+AND(OR(OR(ENTEleveClasses=*$502, ENTEleveClasses=*$602), ENTEleveClasses=*$702), NOT(ENTEleveMajeur=N))
+AND(OR(OR(ENTEleveClasses=*$503, ENTEleveClasses=*$603), ENTEleveClasses=*$703), NOT(ENTEleveMajeur=N))
+AND(OR(OR(ENTEleveClasses=*$504, ENTEleveClasses=*$604), ENTEleveClasses=*$704), NOT(ENTEleveMajeur=N))
+AND(OR(OR(ENTEleveClasses=*$505, ENTEleveClasses=*$605), ENTEleveClasses=*$705), NOT(ENTEleveMajeur=N))
+AND(OR(OR(ENTEleveClasses=*$506, ENTEleveClasses=*$606), ENTEleveClasses=*$706), NOT(ENTEleveMajeur=N))
+AND(OR(OR(ENTEleveClasses=*$507, ENTEleveClasses=*$607), ENTEleveClasses=*$707), NOT(ENTEleveMajeur=N))
+AND(OR(OR(ENTEleveClasses=*$508, ENTEleveClasses=*$608), ENTEleveClasses=*$708), NOT(ENTEleveMajeur=N))
+AND(OR(OR(ENTEleveClasses=*$509, ENTEleveClasses=*$609), ENTEleveClasses=*$709), NOT(ENTEleveMajeur=N))
+AND(OR(OR(ENTEleveClasses=*$510, ENTEleveClasses=*$610), ENTEleveClasses=*$710), NOT(ENTEleveMajeur=N))
+AND(OR(OR(ENTEleveClasses=*$511, ENTEleveClasses=*$611), ENTEleveClasses=*$711), NOT(ENTEleveMajeur=N))
+AND(OR(OR(ENTEleveClasses=*$512, ENTEleveClasses=*$612), ENTEleveClasses=*$712), NOT(ENTEleveMajeur=N))
+AND(OR(OR(ENTEleveClasses=*$501, ENTEleveClasses=*$601), ENTEleveClasses=*$701), NOT(ENTEleveMajeur=O))
+AND(OR(OR(ENTEleveClasses=*$502, ENTEleveClasses=*$602), ENTEleveClasses=*$702), NOT(ENTEleveMajeur=O))
+AND(OR(OR(ENTEleveClasses=*$503, ENTEleveClasses=*$603), ENTEleveClasses=*$703), NOT(ENTEleveMajeur=O))
+AND(OR(OR(ENTEleveClasses=*$504, ENTEleveClasses=*$604), ENTEleveClasses=*$704), NOT(ENTEleveMajeur=O))
+AND(OR(OR(ENTEleveClasses=*$505, ENTEleveClasses=*$605), ENTEleveClasses=*$705), NOT(ENTEleveMajeur=O))
+AND(OR(OR(ENTEleveClasses=*$506, ENTEleveClasses=*$606), ENTEleveClasses=*$706), NOT(ENTEleveMajeur=O))
+AND(OR(OR(ENTEleveClasses=*$507, ENTEleveClasses=*$607), ENTEleveClasses=*$707), NOT(ENTEleveMajeur=O))
+AND(OR(OR(ENTEleveClasses=*$508, ENTEleveClasses=*$608), ENTEleveClasses=*$708), NOT(ENTEleveMajeur=O))
+AND(OR(OR(ENTEleveClasses=*$509, ENTEleveClasses=*$609), ENTEleveClasses=*$709), NOT(ENTEleveMajeur=O))
+AND(OR(OR(ENTEleveClasses=*$510, ENTEleveClasses=*$610), ENTEleveClasses=*$710), NOT(ENTEleveMajeur=O))
+AND(OR(OR(ENTEleveClasses=*$511, ENTEleveClasses=*$611), ENTEleveClasses=*$711), NOT(ENTEleveMajeur=O))
+AND(OR(OR(ENTEleveClasses=*$512, ENTEleveClasses=*$612), ENTEleveClasses=*$712), NOT(ENTEleveMajeur=O))
+ 
