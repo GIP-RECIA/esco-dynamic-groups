@@ -34,7 +34,7 @@ public interface IGroupsDAOService {
      * @param groupName The name of the group/
      * @return True if the group is dynamic.
      */
-    boolean isDynamicGroup(final String groupName);
+//    boolean isDynamicGroup(final String groupName);
     
     /**
      * Gives the list of the dynamic group names whitout a memebership defintion.

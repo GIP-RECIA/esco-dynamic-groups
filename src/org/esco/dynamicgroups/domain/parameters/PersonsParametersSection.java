@@ -19,7 +19,7 @@ import org.apache.log4j.Logger;
  * 27 mai 2009
  *
  */
-public class LDAPPersonsParametersSection extends DGParametersSection implements IDynamicAttributesProvider {
+public class PersonsParametersSection extends DGParametersSection implements IDynamicAttributesProvider {
 
     /** Serial version UID. */
     private static final long serialVersionUID = -4955164877146141642L;
@@ -46,7 +46,7 @@ public class LDAPPersonsParametersSection extends DGParametersSection implements
     private static final boolean DEF_SKIP_UNTIL_COOKIE = false;
 
     /** Logger. */
-    private static final Logger LOGGER = Logger.getLogger(LDAPPersonsParametersSection.class);
+    private static final Logger LOGGER = Logger.getLogger(PersonsParametersSection.class);
 
     /** The LDAP host. */
     private String ldapHost;
@@ -106,9 +106,9 @@ public class LDAPPersonsParametersSection extends DGParametersSection implements
     private boolean skipMessagesUntilFirstCookie;
 
     /**
-     * Constructor for LDAPPersonsParametersSection.
+     * Constructor for PersonsParametersSection.
      */
-    private LDAPPersonsParametersSection() {
+    private PersonsParametersSection() {
         super();
     }
 

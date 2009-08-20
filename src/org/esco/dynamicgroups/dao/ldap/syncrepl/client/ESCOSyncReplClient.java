@@ -19,8 +19,8 @@ import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncDoneContro
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncInfoMessage;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncRequestControl;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncStateControl;
-import org.esco.dynamicgroups.domain.parameters.LDAPPersonsParametersSection;
 import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
+import org.esco.dynamicgroups.domain.parameters.PersonsParametersSection;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
@@ -57,7 +57,7 @@ public class ESCOSyncReplClient implements Serializable, InitializingBean {
     private ParametersProvider parametersProvider;
     
     /** The LDAP Parameters. */
-    private LDAPPersonsParametersSection ldapParameters;
+    private PersonsParametersSection ldapParameters;
 
     /** Messages handler. */
     private ISyncReplMessagesHandler messagesHandler;
@@ -119,7 +119,7 @@ public class ESCOSyncReplClient implements Serializable, InitializingBean {
                 "The property cookieManager in the class " + this.getClass().getName() 
                 + " can't be null.");
         
-        ldapParameters = (LDAPPersonsParametersSection) parametersProvider.getPersonsParametersSection();
+        ldapParameters = (PersonsParametersSection) parametersProvider.getPersonsParametersSection();
        
     }
 

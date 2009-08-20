@@ -7,8 +7,8 @@ import java.io.Serializable;
 
 import org.esco.dynamicgroups.ESCOEntryDTOFactory;
 import org.esco.dynamicgroups.domain.IDomainService;
-import org.esco.dynamicgroups.domain.parameters.LDAPPersonsParametersSection;
 import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
+import org.esco.dynamicgroups.domain.parameters.PersonsParametersSection;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
@@ -56,8 +56,8 @@ public abstract class AbstractSyncReplsTriggeredAction
         Assert.notNull(this.parametersProvider, 
                 "The property parametersProvider in the class " + this.getClass().getName() 
                 + " can't be null.");
-        final LDAPPersonsParametersSection ldapParameters = 
-            (LDAPPersonsParametersSection) parametersProvider.getPersonsParametersSection();
+        final PersonsParametersSection ldapParameters = 
+            (PersonsParametersSection) parametersProvider.getPersonsParametersSection();
         idAttribute = ldapParameters.getLdapUidAttribute();
         entryDTOFactory = new ESCOEntryDTOFactory(idAttribute);
         

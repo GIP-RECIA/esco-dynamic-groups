@@ -9,24 +9,28 @@ import edu.internet2.middleware.grouper.GroupTypeFinder;
 import edu.internet2.middleware.grouper.GrouperSession;
 import edu.internet2.middleware.grouper.Stem;
 import edu.internet2.middleware.grouper.StemFinder;
+import edu.internet2.middleware.grouper.SubjectFinder;
 import edu.internet2.middleware.grouper.exception.AttributeNotFoundException;
 import edu.internet2.middleware.grouper.exception.GroupAddException;
 import edu.internet2.middleware.grouper.exception.GroupModifyException;
+import edu.internet2.middleware.grouper.exception.GrouperSessionException;
 import edu.internet2.middleware.grouper.exception.InsufficientPrivilegeException;
 import edu.internet2.middleware.grouper.exception.SchemaException;
+import edu.internet2.middleware.grouper.exception.SessionException;
 import edu.internet2.middleware.grouper.exception.StemAddException;
 import edu.internet2.middleware.grouper.exception.StemNotFoundException;
+import edu.internet2.middleware.grouper.misc.GrouperSessionHandler;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
-import org.esco.dynamicgroups.dao.grouper.GrouperSessionUtil;
 import org.esco.dynamicgroups.domain.definition.DecodedPropositionResult;
 import org.esco.dynamicgroups.domain.definition.PropositionCodec;
 import org.esco.dynamicgroups.domain.parameters.GroupsParametersSection;
@@ -36,6 +40,42 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.springframework.util.Assert;
+
+/**
+ * Callback used to create the groups.
+ * @author GIP RECIA - A. Deman
+ * 14 août 2009
+ *
+ */
+class CreateGroupsCallback implements GrouperSessionHandler, Serializable {
+    
+    /** Serial version UID.*/
+    private static final long serialVersionUID = 7657254084831471327L;
+    
+    /** Tests test generator. */
+    private StressTestGeneratorBatch stb;
+
+    /**
+     * Builds an instance of CreateGroupsCallback.
+     * @param stb The StressTestGeneratorBatch to use.
+     */
+    public CreateGroupsCallback(final StressTestGeneratorBatch stb) {
+        this.stb = stb;
+    }
+    
+    /**
+     * Creates the groups.
+     * @param session The Grouper session to use.
+     * @return null.
+     * @throws GrouperSessionException
+     * @see edu.internet2.middleware.grouper.misc.GrouperSessionHandler#callback(GrouperSession)
+     */
+    public Object callback(final GrouperSession session)
+            throws GrouperSessionException {
+        stb.createGroupsInternal(session);
+        return null;
+    }
+}
 
 /**
  * Used to generate a stress test groups set.
@@ -77,9 +117,6 @@ public class StressTestGeneratorBatch implements InitializingBean {
 
     /** The propositionCodec. */
     private PropositionCodec propositionCodec;
-
-    /** The grouper session to use. */
-    private GrouperSessionUtil sessionUtil = new GrouperSessionUtil("GrouperSystem");
 
     /** The file name that contains the definition to use. */
     private String definitionFileName = "dg-stress_test-01.dat";
@@ -176,30 +213,43 @@ public class StressTestGeneratorBatch implements InitializingBean {
         }
         return str;
     }
-
     /** 
      * Creates the groups and set their members defintion.
      */
     private void createGroups() {
-        GrouperSession session = sessionUtil.createSession();
+        GrouperSession session = null;
+        try {
+            session = GrouperSession.start(SubjectFinder.findRootSubject(), false);
+            GrouperSession.callbackGrouperSession(session, new CreateGroupsCallback(this));
+                
+        } catch (SessionException e) {
+            LOGGER.error(e, e);
+        } finally {
+            GrouperSession.stopQuietly(session);
+        }
+    }
+
+    /** 
+     * Creates the groups and set their members defintion.
+     * @param session The grouper session to use.
+     */
+    protected void createGroupsInternal(final GrouperSession session) {
         final int nbMaxAttempts = 3;
         try {
 
 
             final Stem stRootStem = StemFinder.findByName(session, stressTestRootStem);
-            sessionUtil.stopSession(session);
             final GroupType type = GroupTypeFinder.find(grouperParameters.getGrouperType());
             final String defField = grouperParameters.getGrouperDefinitionField();
-            session = sessionUtil.createSession();
             Stem currentStem = null;
             
             for (int i = 0; i < nbGroups; i++) {
 
-                session = sessionUtil.createSession();
                 final String cptStr = generateNumberString(i);
 
                 if ((i % nbGroupsPerStem) == 0 || currentStem == null) {
                     currentStem = stRootStem.addChildStem("st_" + cptStr, "st_" + cptStr);
+                    currentStem.store();
                 }
 
                 final String name = stressTestRootStem + ":" + groupsPrefix + cptStr;
@@ -229,12 +279,10 @@ public class StressTestGeneratorBatch implements InitializingBean {
                                 + nbAttempts + "/" + nbMaxAttempts);
                         done = nbAttempts > nbMaxAttempts;
                         sleep();
-                        sessionUtil.stopSession(session);
-                        session = sessionUtil.createSession();
+                       
 
                     }
                 }
-                sessionUtil.stopSession(session);
             }
 
         } catch (InsufficientPrivilegeException e) {
@@ -260,8 +308,89 @@ public class StressTestGeneratorBatch implements InitializingBean {
             LOGGER.fatal(e, e);
         }
 
-        sessionUtil.stopSession(session);
     }
+//    private void createGroups() {
+//        GrouperSession session = sessionUtil.createSession();
+//        final int nbMaxAttempts = 3;
+//        try {
+//            
+//            
+//            final Stem stRootStem = StemFinder.findByName(session, stressTestRootStem);
+//            sessionUtil.stopSession(session);
+//            final GroupType type = GroupTypeFinder.find(grouperParameters.getGrouperType());
+//            final String defField = grouperParameters.getGrouperDefinitionField();
+//            session = sessionUtil.createSession();
+//            Stem currentStem = null;
+//            
+//            for (int i = 0; i < nbGroups; i++) {
+//                
+//                session = sessionUtil.createSession();
+//                final String cptStr = generateNumberString(i);
+//                
+//                if ((i % nbGroupsPerStem) == 0 || currentStem == null) {
+//                    currentStem = stRootStem.addChildStem("st_" + cptStr, "st_" + cptStr);
+//                }
+//                
+//                final String name = stressTestRootStem + ":" + groupsPrefix + cptStr;
+//                final String ext = groupsPrefix + cptStr;
+//                LOGGER.debug("Creating group " + ext);
+//                
+//                final Group group = currentStem.addChildGroup(ext, ext);
+//                group.setDescription(ext);
+//                group.addType(type, true);
+//                group.store();
+//                final int defIndex = i % validPropositions.size();
+//                final String def = validPropositions.get(defIndex);
+//                LOGGER.debug("Definition: " + def + ".");
+//                LOGGER.debug("-> added to the group: " + name + ".");
+//                group.setAttribute(defField, def);
+//                int nbAttempts = 0;
+//                boolean done = false;
+//                while (!done) {
+//                    try {
+//                        group.store();
+//                        nbCreatedGroups++;
+//                        done = true;
+//                    } catch (NullPointerException e) {
+//                        nbErrors++;
+//                        nbAttempts++;
+//                        LOGGER.error("NullPointerException during group.store attempt " 
+//                                + nbAttempts + "/" + nbMaxAttempts);
+//                        done = nbAttempts > nbMaxAttempts;
+//                        sleep();
+//                        sessionUtil.stopSession(session);
+//                        session = sessionUtil.createSession();
+//                        
+//                    }
+//                }
+//                sessionUtil.stopSession(session);
+//            }
+//            
+//        } catch (InsufficientPrivilegeException e) {
+//            nbErrors++;
+//            LOGGER.fatal(e, e);
+//        } catch (GroupModifyException e) {
+//            nbErrors++;
+//            LOGGER.fatal(e, e);
+//        } catch (AttributeNotFoundException e) {
+//            nbErrors++;
+//            LOGGER.fatal(e, e);
+//        } catch (StemNotFoundException e) {
+//            nbErrors++;
+//            LOGGER.fatal(e, e);
+//        } catch (SchemaException e) {
+//            nbErrors++;
+//            LOGGER.fatal(e, e);
+//        } catch (GroupAddException e) {
+//            nbErrors++;
+//            LOGGER.fatal(e, e);
+//        } catch (StemAddException e) {
+//            nbErrors++;
+//            LOGGER.fatal(e, e);
+//        }
+//        
+//        sessionUtil.stopSession(session);
+//    }
 
     /**
      * Checks the parameters.

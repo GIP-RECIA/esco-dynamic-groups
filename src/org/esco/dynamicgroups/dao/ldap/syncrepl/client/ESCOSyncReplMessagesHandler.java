@@ -13,8 +13,8 @@ import org.esco.dynamicgroups.dao.ldap.syncrepl.client.util.logger.ISyncReplMess
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.CookieManager;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncInfoMessage;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncStateControl;
-import org.esco.dynamicgroups.domain.parameters.LDAPPersonsParametersSection;
 import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
+import org.esco.dynamicgroups.domain.parameters.PersonsParametersSection;
 import org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
@@ -64,7 +64,7 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
     private ParametersProvider parametersProvider;
 
     /** The LDAP Parameters. */
-    private LDAPPersonsParametersSection ldapParameters;
+    private PersonsParametersSection ldapParameters;
 
     /**
      * Constructor for ESCOSyncReplMessagesHandler.
@@ -112,7 +112,7 @@ public class ESCOSyncReplMessagesHandler implements ISyncReplMessagesHandler, In
         Assert.notNull(this.parametersProvider, 
                 "The property parametersProvider in the class " + this.getClass().getName() 
                 + cantBeNull);
-        ldapParameters = (LDAPPersonsParametersSection) parametersProvider.getPersonsParametersSection();
+        ldapParameters = (PersonsParametersSection) parametersProvider.getPersonsParametersSection();
         messagesLogger = messagesLoggerFactory.createLogger();
 
     }

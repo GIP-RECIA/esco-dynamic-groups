@@ -8,7 +8,7 @@
 	<bean id="parametersProvider" class="org.esco.dynamicgroups.domain.parameters.ParametersProvider">
 		<constructor-arg value="resources/esco-dynamic-groups.properties" />
 		<constructor-arg>
-			<bean class="org.esco.dynamicgroups.domain.parameters.LDAPPersonsParametersSection"/>
+			<bean class="org.esco.dynamicgroups.domain.parameters.PersonsParametersSection"/>
 		</constructor-arg>
 		<constructor-arg>
 			<bean class="org.esco.dynamicgroups.domain.parameters.GroupsParametersSection"/>
@@ -49,5 +49,17 @@
 	<bean id="stressTestGenerator" class="org.esco.dynamicgroups.util.StressTestGeneratorBatch">
 		<property name="propositionCodec" ref="propositionCodec"/>
 		<property name="parametersProvider" ref="parametersProvider"/>
+	</bean>
+	
+	<bean id="ldapConnectionManager" class="org.esco.dynamicgroups.dao.ldap.LDAPConnectionManager">
+		<property name="parametersProvider" ref="parametersProvider"/>
+	</bean>
+	
+	<bean id="statisticsExtractor" class="org.esco.dynamicgroups.util.StatisticsExtractorBatch">
+		<property name="separator" value=" ; "/>
+		<property name="groupsMembersOutputFile" value="stats.groups-members.csv"/>
+		<property name="usersMembershipsOutputFile" value="stats.users-memberships.csv"/>
+		<property name="parametersProvider" ref="parametersProvider"/>
+		<property name="connectionManager" ref="ldapConnectionManager"/>
 	</bean>
 </beans>
