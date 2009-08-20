@@ -132,7 +132,7 @@
 		
 		<input
 			message="Database inititalization - everything in the database will be lost - Proceed [y/N]?"
-			validargs="Y,N"
+			validargs="Y,N,y,n"
 			addproperty="do.dbinit"
 			defaultvalue="N"/>
 		<if>

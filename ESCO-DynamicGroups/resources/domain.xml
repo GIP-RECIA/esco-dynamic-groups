@@ -7,7 +7,7 @@
 	<bean id="parametersProvider" class="org.esco.dynamicgroups.domain.parameters.ParametersProvider">
 		<constructor-arg value="resources/esco-dynamic-groups.properties" />
 		<constructor-arg>
-			<bean class="org.esco.dynamicgroups.domain.parameters.LDAPPersonsParametersSection"/>
+			<bean class="org.esco.dynamicgroups.domain.parameters.PersonsParametersSection"/>
 		</constructor-arg>
 		<constructor-arg>
 			<bean class="org.esco.dynamicgroups.domain.parameters.GroupsParametersSection"/>

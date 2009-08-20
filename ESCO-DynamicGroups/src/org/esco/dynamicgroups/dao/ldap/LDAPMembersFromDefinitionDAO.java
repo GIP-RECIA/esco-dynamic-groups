@@ -18,8 +18,8 @@ import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.domain.definition.AtomicProposition;
 import org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition;
 import org.esco.dynamicgroups.domain.definition.IProposition;
-import org.esco.dynamicgroups.domain.parameters.LDAPPersonsParametersSection;
 import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
+import org.esco.dynamicgroups.domain.parameters.PersonsParametersSection;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
@@ -60,7 +60,7 @@ public class LDAPMembersFromDefinitionDAO implements IMembersFromDefinitionDAO, 
     private ParametersProvider parametersProvider;
     
     /** The user parameters for the LDAP. */
-    private LDAPPersonsParametersSection ldapParameters;
+    private PersonsParametersSection ldapParameters;
 
     /** The uidAttribute as a String array. */
     private String[] uidAttributeArray;
@@ -107,7 +107,7 @@ public class LDAPMembersFromDefinitionDAO implements IMembersFromDefinitionDAO, 
                 "The property connectionManager in the class " + this.getClass().getName() 
                 + " can't be null.");
         
-        ldapParameters = (LDAPPersonsParametersSection) parametersProvider.getPersonsParametersSection();
+        ldapParameters = (PersonsParametersSection) parametersProvider.getPersonsParametersSection();
         uidAttributeArray = new String[] {ldapParameters.getLdapUidAttribute()};
         connection = connectionManager.connect();
         constraints = new LDAPSearchConstraints();
@@ -141,7 +141,8 @@ public class LDAPMembersFromDefinitionDAO implements IMembersFromDefinitionDAO, 
                 }
 
             } catch (LDAPException e) {
-                translateToLdapFilter(definition);
+                LOGGER.error("Error while trying to retrieve the members for the definition: " + definition 
+                        + " - associated filter: " + filter);
                 LOGGER.error(e, e);
             }
         }

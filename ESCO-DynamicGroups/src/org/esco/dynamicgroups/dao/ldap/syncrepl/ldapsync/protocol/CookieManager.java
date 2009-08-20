@@ -14,10 +14,9 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-
 import org.apache.log4j.Logger;
-import org.esco.dynamicgroups.domain.parameters.LDAPPersonsParametersSection;
 import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
+import org.esco.dynamicgroups.domain.parameters.PersonsParametersSection;
 import org.esco.dynamicgroups.exceptions.DynamicGroupsException;
 import org.esco.dynamicgroups.util.IResourcesProvider;
 import org.springframework.beans.factory.InitializingBean;
@@ -65,7 +64,7 @@ public class CookieManager implements InitializingBean, ApplicationListener, Ser
     private ParametersProvider parametersProvider;
 
     /** The LDAP Parameters. */
-    private LDAPPersonsParametersSection ldapParameters;
+    private PersonsParametersSection ldapParameters;
 
     /** The cookie file. */
     private transient File cookieFile;
@@ -99,7 +98,7 @@ public class CookieManager implements InitializingBean, ApplicationListener, Ser
                 + getClass().getName() + " can't be null.");
         Assert.notNull(this.resourceProvider, "The property resourceProvider in the class " 
                 + getClass().getName() + " can't be null.");
-        ldapParameters = (LDAPPersonsParametersSection) parametersProvider.getPersonsParametersSection();
+        ldapParameters = (PersonsParametersSection) parametersProvider.getPersonsParametersSection();
 
         
     }
