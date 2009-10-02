@@ -3,6 +3,7 @@
  */
 package org.esco.dynamicgroups.util;
 
+import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
@@ -13,11 +14,19 @@ import edu.internet2.middleware.grouper.GroupFinder;
 import edu.internet2.middleware.grouper.GroupType;
 import edu.internet2.middleware.grouper.GroupTypeFinder;
 import edu.internet2.middleware.grouper.GrouperSession;
+import edu.internet2.middleware.grouper.Member;
+import edu.internet2.middleware.grouper.MemberFinder;
+import edu.internet2.middleware.grouper.Stem;
+import edu.internet2.middleware.grouper.Stem.Scope;
+import edu.internet2.middleware.grouper.StemFinder;
 import edu.internet2.middleware.grouper.SubjectFinder;
 import edu.internet2.middleware.grouper.exception.GrouperSessionException;
 import edu.internet2.middleware.grouper.exception.SchemaException;
 import edu.internet2.middleware.grouper.exception.SessionException;
 import edu.internet2.middleware.grouper.misc.GrouperSessionHandler;
+import edu.internet2.middleware.subject.Subject;
+import edu.internet2.middleware.subject.SubjectNotFoundException;
+import edu.internet2.middleware.subject.SubjectNotUniqueException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -38,12 +47,12 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.springframework.util.Assert;
 
 /**
- * Callback used to create the groups.
+ * Callback used to extract the statistics.
  * @author GIP RECIA - A. Deman
  * 14 août 2009
  *
  */
-class ExtractDynamicGroupsCardinalCallback implements GrouperSessionHandler, Serializable {
+class StatiticsExtractorCallback implements GrouperSessionHandler, Serializable {
 
     /** Serial version UID.*/
     private static final long serialVersionUID = 7657254084831471327L;
@@ -51,12 +60,25 @@ class ExtractDynamicGroupsCardinalCallback implements GrouperSessionHandler, Ser
     /** Cardinals extractor. */
     private StatisticsExtractorBatch cardinalsExtractor;
 
+    /** The list of the ids. */
+    private Set<String> userIds;
+
     /**
      * Builds an instance of CreateGroupsCallback.
      * @param cardinalsExtractor The StatisticsExtractorBatch to use.
      */
-    public ExtractDynamicGroupsCardinalCallback(final StatisticsExtractorBatch cardinalsExtractor) {
+    public StatiticsExtractorCallback(final StatisticsExtractorBatch cardinalsExtractor) {
         this.cardinalsExtractor = cardinalsExtractor;
+    }
+    /**
+     * Builds an instance of CreateGroupsCallback.
+     * @param cardinalsExtractor The StatisticsExtractorBatch to use.
+     * @param userIds The list of the ids.
+     */
+    public StatiticsExtractorCallback(final StatisticsExtractorBatch cardinalsExtractor,
+            final Set<String> userIds) {
+        this.cardinalsExtractor = cardinalsExtractor;
+        this.userIds = userIds;
     }
 
     /**
@@ -68,7 +90,11 @@ class ExtractDynamicGroupsCardinalCallback implements GrouperSessionHandler, Ser
      */
     public Object callback(final GrouperSession session)
     throws GrouperSessionException {
-        cardinalsExtractor.extractCardinalsInternal(session);
+        if (userIds == null) {
+            cardinalsExtractor.extractCardinalsInternal(session);
+        } else {
+            cardinalsExtractor.extractUsersMembershipsCountInternal(session, userIds);
+        }
         return null;
     }
 }
@@ -151,6 +177,7 @@ public class StatisticsExtractorBatch implements Serializable, InitializingBean 
 
         grouperParameters = (GroupsParametersSection) parametersProvider.getGroupsParametersSection();
         ldapParameters = (PersonsParametersSection) parametersProvider.getPersonsParametersSection();
+        connection = connectionManager.connect();
     }
 
     /**
@@ -160,8 +187,9 @@ public class StatisticsExtractorBatch implements Serializable, InitializingBean 
     private Set<String> getUserIds() {
         final String[] uidAtt = new String[]{ldapParameters.getLdapUidAttribute()};
         final Set<String> userIds = new HashSet<String>();
+        checkConnection();
         try {
-            
+
             final LDAPSearchResults result = getConnection().search(ldapParameters.getLdapSearchBase(), 
                     LDAPConnection.SCOPE_SUB, 
                     null, 
@@ -170,51 +198,77 @@ public class StatisticsExtractorBatch implements Serializable, InitializingBean 
 
             while (result.hasMore()) {
                 final LDAPEntry entry = result.next();
-                userIds.add(entry.getAttribute(ldapParameters.getLdapUidAttribute()).getStringValue());
+                final LDAPAttribute attribute = entry.getAttribute(ldapParameters.getLdapUidAttribute());
+                if (attribute != null) {
+                    userIds.add(attribute.getStringValue());
+                }
             }
         } catch (LDAPException e) {
             LOGGER.error(e, e);
         }
         return userIds;
     }
+
     /**
-  public Set<String> getMembers(final DynamicGroupDefinition definition) {
-        final Set<String> userIds = new HashSet<String>();
-        if (definition.isValid()) {
-            checkConnection();
+     * Counts for each user the number of its memberships to dynamic groups.
+     * @param session The grouper session.
+     * @param userIds The list of the ids.
+     */
+    protected void extractUsersMembershipsCountInternal(final GrouperSession session, final Set<String> userIds) {
+        PrintWriter pw = null;
+        try {
+            final GroupType type = GroupTypeFinder.find(grouperParameters.getGrouperType());
+            pw = new PrintWriter(new File(usersMembershipsOutputFile));
+            for (final String userId : userIds) {
+                final Subject subject = SubjectFinder.findById(userId);
+                final Member member = MemberFinder.findBySubject(session, subject);
+                final Set<Group> groups = member.getImmediateGroups();
 
-            final String filter = translateToLdapFilter(definition);
-
-            try {
-                final LDAPSearchResults result = getConnection().search(ldapParameters.getLdapSearchBase(), 
-                        LDAPConnection.SCOPE_SUB, 
-                        filter, 
-                        uidAttributeArray, 
-                        false, 
-                        constraints);
-
-                while (result.hasMore()) {
-                    final LDAPEntry entry = result.next();
-                    userIds.add(entry.getAttribute(ldapParameters.getLdapUidAttribute()).getStringValue());
+                // Count the number of dynamic groups that the current user belongs to.
+                int membershipTouDGCount = 0;
+                for (final Group group : groups) {
+                    if (group.getTypes().contains(type)) {
+                        membershipTouDGCount++;
+                    }
                 }
 
-            } catch (LDAPException e) {
-                translateToLdapFilter(definition);
-                LOGGER.error(e, e);
+                // Prints the values into the file.
+                final StringBuilder sb = new StringBuilder();
+                sb.append(userId);
+                sb.append(separator);
+                sb.append(subject.getName());
+                sb.append(separator);
+                sb.append(membershipTouDGCount);
+                LOGGER.info(sb.toString());
+                pw.println(sb.toString());
             }
-        }
-        return userIds;
-    }
 
-     */
+        } catch (IllegalArgumentException e) {
+            LOGGER.fatal(e, e);
+        } catch (FileNotFoundException e) {
+            LOGGER.fatal(e, e);
+        } catch (SubjectNotFoundException e) {
+            LOGGER.error(e, e);
+        } catch (SubjectNotUniqueException e) {
+            LOGGER.error(e, e);
+        } catch (SchemaException e) {
+            LOGGER.fatal(e, e);
+        } finally {
+            if (pw != null) {
+                pw.close();
+            }
+        }  
+    }
 
     /**
      * Extract the cardinals of the group.
      * @param session The grouper session to use.
      */
-    protected void extractCardinalsInternal(final GrouperSession session) {
+    protected void extractCardinalsInternalOld(final GrouperSession session) {
         PrintWriter pw = null;
         try {
+
+
             pw = new PrintWriter(new File(groupsMembersOutputFile));
             final GroupType type = GroupTypeFinder.find(grouperParameters.getGrouperType());
             final Set<Group> groups = GroupFinder.findAllByType(session, type);
@@ -241,6 +295,66 @@ public class StatisticsExtractorBatch implements Serializable, InitializingBean 
     }
 
     /**
+     * Process the dynamic groups under a stem an call recursively on the child stems.
+     * @param session The Grouper session.
+     * @param type The custom type associated to the dynamic groups.
+     * @param pw The print writer.
+     * @param stem The stem to process.
+     */
+    protected void processStem(final GrouperSession session, 
+            final GroupType type, final PrintWriter pw, final Stem stem) {
+        
+        LOGGER.debug("Processing stem " + stem.getName());
+        final Set<Stem> children = stem.getChildStems(Scope.ONE);
+
+        // Process the children
+        for (Stem child : children) {
+            processStem(session, type, pw, child);
+        }
+
+        // Process the groups.
+        final Set<Group> groups = stem.getChildGroups(Scope.ONE);
+        for (Group group : groups) {
+            if (group.getTypes().contains(type)) {
+                final StringBuilder sb = new StringBuilder();
+                sb.append(group.getName());
+                sb.append(separator);
+                sb.append(group.getImmediateMembers().size());
+
+                LOGGER.info(sb.toString());
+                pw.println(sb.toString());
+            }
+        }
+        pw.flush();
+        LOGGER.debug("Finished stem " + stem.getName());
+    }
+
+    /**
+     * Extract the cardinals of the group.
+     * @param session The grouper session to use.
+     */
+    protected void extractCardinalsInternal(final GrouperSession session) {
+        PrintWriter pw = null;
+        try {
+            final Stem root = StemFinder.findRootStem(session);
+
+            pw = new PrintWriter(new File(groupsMembersOutputFile));
+            final GroupType type = GroupTypeFinder.find(grouperParameters.getGrouperType());
+            processStem(session, type, pw, root);
+        } catch (SchemaException e) {
+            LOGGER.fatal(e, e);
+        } catch (IllegalArgumentException e) {
+            LOGGER.fatal(e, e);
+        } catch (FileNotFoundException e) {
+            LOGGER.fatal(e, e);
+        } finally {
+            if (pw != null) {
+                pw.close();
+            }
+        }
+    }
+
+    /**
      * Extract the cardinals.
      */
     public void  extractCardinals() {
@@ -249,7 +363,7 @@ public class StatisticsExtractorBatch implements Serializable, InitializingBean 
 
 
             session = GrouperSession.start(SubjectFinder.findRootSubject(), false);
-            GrouperSession.callbackGrouperSession(session, new ExtractDynamicGroupsCardinalCallback(this));
+            GrouperSession.callbackGrouperSession(session, new StatiticsExtractorCallback(this));
 
         } catch (SessionException e) {
             LOGGER.error(e, e);
@@ -257,20 +371,22 @@ public class StatisticsExtractorBatch implements Serializable, InitializingBean 
             GrouperSession.stopQuietly(session);
         }
     }
-
     /**
-     * Main method.
-     * @param args The user arguments.
+     * Extracts the memberships count.
      */
-    public static void main(final String[] args) {
+    public void  extractMembershipsCount() {
+        GrouperSession session = null;
+        try {
 
-        final ThreadLocal<ApplicationContext> appCtx = new ThreadLocal<ApplicationContext>();
-        appCtx.set(new FileSystemXmlApplicationContext(CTX_FILE));
-        final BeanFactory beanFactory = appCtx.get();
+            final Set<String> userIds = getUserIds();
+            session = GrouperSession.start(SubjectFinder.findRootSubject(), false);
+            GrouperSession.callbackGrouperSession(session, new StatiticsExtractorCallback(this, userIds));
 
-        final StatisticsExtractorBatch extractor = 
-            (StatisticsExtractorBatch) beanFactory.getBean(BEAN_NAME);
-        extractor.extractCardinals();
+        } catch (SessionException e) {
+            LOGGER.error(e, e);
+        } finally {
+            GrouperSession.stopQuietly(session);
+        }
     }
 
     /**
@@ -393,5 +509,21 @@ public class StatisticsExtractorBatch implements Serializable, InitializingBean 
         synchronized (connection) {
             return connection;
         }
+    }
+
+    /**
+     * Main method.
+     * @param args The user arguments.
+     */
+    public static void main(final String[] args) {
+
+        final ThreadLocal<ApplicationContext> appCtx = new ThreadLocal<ApplicationContext>();
+        appCtx.set(new FileSystemXmlApplicationContext(CTX_FILE));
+        final BeanFactory beanFactory = appCtx.get();
+
+        final StatisticsExtractorBatch extractor = 
+            (StatisticsExtractorBatch) beanFactory.getBean(BEAN_NAME);
+        extractor.extractCardinals();
+        extractor.extractMembershipsCount();
     }
 }

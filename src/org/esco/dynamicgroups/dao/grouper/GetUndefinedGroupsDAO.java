@@ -4,9 +4,11 @@
 package org.esco.dynamicgroups.dao.grouper;
 
 import edu.internet2.middleware.grouper.Group;
-import edu.internet2.middleware.grouper.GroupFinder;
 import edu.internet2.middleware.grouper.GroupType;
 import edu.internet2.middleware.grouper.GrouperSession;
+import edu.internet2.middleware.grouper.Stem;
+import edu.internet2.middleware.grouper.Stem.Scope;
+import edu.internet2.middleware.grouper.StemFinder;
 import edu.internet2.middleware.grouper.SubjectFinder;
 import edu.internet2.middleware.grouper.exception.AttributeNotFoundException;
 import edu.internet2.middleware.grouper.exception.GrouperSessionException;
@@ -78,6 +80,42 @@ public class GetUndefinedGroupsDAO extends BaseGrouperDAO {
     public GetUndefinedGroupsDAO(final GroupsParametersSection grouperParameters) {
         this.grouperParameters = grouperParameters;
     }
+    
+    /**
+     * Builds recursively the set of undefined groups.
+     * @param session The grouper session to use.
+     * @param type The Grouper's custom type associated to the dynamic groups.
+     * @param setToPopulate The set to populate with the name of the undefined groups.
+     * @param stem The current stem.
+     */
+    private void populateUndefinedGroupsSet(final GrouperSession session, 
+            final GroupType type, 
+            final Set<String> setToPopulate, 
+            final Stem stem) {
+        
+        final Set<Stem> children = stem.getChildStems(Scope.ONE);
+        
+        for (Stem child : children) {
+            populateUndefinedGroupsSet(session, type, setToPopulate, child);
+        }
+        
+        final Set<Group> groups = stem.getChildGroups(Scope.ONE);
+        for (Group group : groups) {
+            if (group.getTypes().contains(type)) {
+                String membersDef = null;
+                try {
+                    membersDef = group.getAttribute(grouperParameters.getGrouperDefinitionField());
+                    if ("".equals(membersDef)) {
+                        setToPopulate.add(group.getName());
+                    }
+                } catch (AttributeNotFoundException e) {
+                    LOGGER.error("Unable to retrieve the attribute "  
+                            + grouperParameters.getGrouperDefinitionField()
+                            + " for the group: " + group.getName() + ".");
+                }
+            }
+        }
+    }
 
     /**
      * Gives the list of groups with no membership defintions.
@@ -85,22 +123,10 @@ public class GetUndefinedGroupsDAO extends BaseGrouperDAO {
      * @return The group names.
      */
     protected Set<String> getUndefinedDynamicGroupsInternal(final GrouperSession session) {
-        GroupType type = retrieveType(grouperParameters.getGrouperType());
-        final Set<Group> groups = GroupFinder.findAllByType(session, type);
+        final GroupType type = retrieveType(grouperParameters.getGrouperType());
+        final Stem root = StemFinder.findRootStem(session);
         final Set<String> undefGroups = new HashSet<String>();
-        for (Group group : groups) {
-            String membersDef = null;
-            try {
-                membersDef = group.getAttribute(grouperParameters.getGrouperDefinitionField());
-                if ("".equals(membersDef)) {
-                    undefGroups.add(group.getName());
-                }
-            } catch (AttributeNotFoundException e) {
-                LOGGER.error("Unable to retrieve the attribute "  
-                        + grouperParameters.getGrouperDefinitionField()
-                        + " for the group: " + group.getName() + ".");
-            }
-        }
+        populateUndefinedGroupsSet(session, type, undefGroups, root);
         return undefGroups;
     }
     /**

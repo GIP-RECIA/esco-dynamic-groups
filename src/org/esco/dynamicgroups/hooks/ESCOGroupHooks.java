@@ -186,27 +186,6 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
     }
 
     /**
-     * called right after a group update.
-     * @param hooksContext
-     * @param postUpdateBean
-     */
-//    public void groupPostUpdate(HooksContext hooksContext, HooksGroupBean postUpdateBean) {
-//        final Group group = postUpdateBean.getGroup();
-//        if (isDynamicGroup(group)) {
-//
-//            try {
-//                String  def = group.getAttribute(definitionField);
-//                System.out.println("def: " + def);
-//            } catch (AttributeNotFoundException e) {
-//                // TODO Auto-generated catch block
-//                e.printStackTrace();
-//            }
-//
-//        }
-//    }
-
-
-    /**
      * Tests if the extension of a group is modified.
      * @param group the group to test.
      * @return True if the extension of the group is modified.
@@ -308,6 +287,4 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
 
         return groupDef;
     }
-
-
 }
