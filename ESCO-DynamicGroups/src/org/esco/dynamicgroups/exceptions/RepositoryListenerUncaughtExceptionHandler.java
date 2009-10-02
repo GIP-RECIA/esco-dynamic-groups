@@ -1,8 +1,6 @@
 package org.esco.dynamicgroups.exceptions;
 
-import java.io.Serializable;
 
-import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.domain.IRepositoryListener;
 import org.esco.dynamicgroups.util.IMailer;
 
@@ -12,28 +10,23 @@ import org.esco.dynamicgroups.util.IMailer;
  * 9 févr. 2009
  *
  */
-public class UncaughtExceptionHandlerImpl implements Thread.UncaughtExceptionHandler, Serializable {
+public class RepositoryListenerUncaughtExceptionHandler extends UncaughtExceptionHandler {
 
     /** Serial veriosn uid.*/
     private static final long serialVersionUID = 1776039245072654844L;
 
-    /** The logger to use. */
-    private static final Logger LOGGER = Logger.getLogger(UncaughtExceptionHandlerImpl.class);
-
     /** The listener associated to this listener. */
     private IRepositoryListener listener;
     
-    /** The mailer to use to send the notifications of exceptions. */
-    private IMailer mailer;
 
     /**
      * Builds an instance of ExceptionHandler.
      * @param listener The listener associated to this handler.
      * @param mailer The mailer used to notify the exceptions.
      */
-    public UncaughtExceptionHandlerImpl(final IRepositoryListener listener, final IMailer mailer) {
+    public RepositoryListenerUncaughtExceptionHandler(final IMailer mailer, final IRepositoryListener listener) {
+        super(mailer);
         this.listener = listener;
-        this.mailer = mailer;
     }
 
     /**
@@ -42,11 +35,10 @@ public class UncaughtExceptionHandlerImpl implements Thread.UncaughtExceptionHan
      * @param exception The exception to handle.
      * @see java.lang.Thread.UncaughtExceptionHandler#uncaughtException(java.lang.Thread, java.lang.Throwable)
      */
+    @Override
     public void uncaughtException(final Thread thread, final Throwable exception) {
-        LOGGER.fatal("!!! Uncaught exception in the thread. The handler is trying to stop the listener." 
-                + " See below for the traces. The listener will be stoped !!!");
-        LOGGER.fatal(exception, exception);
-        mailer.sendExeceptionNotification(exception);
+        super.uncaughtException(thread, exception);
+        getLogger().fatal("Trying to stop the listener.");
         listener.stop();
     }
 }

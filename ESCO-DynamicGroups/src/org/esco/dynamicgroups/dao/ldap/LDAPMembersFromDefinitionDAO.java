@@ -144,6 +144,8 @@ public class LDAPMembersFromDefinitionDAO implements IMembersFromDefinitionDAO, 
                 LOGGER.error("Error while trying to retrieve the members for the definition: " + definition 
                         + " - associated filter: " + filter);
                 LOGGER.error(e, e);
+                final String filter2 = translateToLdapFilter(definition);
+                LOGGER.error("!!! Remove this message : " + filter2);
             }
         }
         return userIds;

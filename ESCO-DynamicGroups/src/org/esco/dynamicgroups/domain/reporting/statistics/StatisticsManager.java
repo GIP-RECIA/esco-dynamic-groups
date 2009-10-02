@@ -539,7 +539,7 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
 
         if (statsBundle.getGroupsActivityStats() != null) {
             synchronized (statsBundle.getGroupsActivityStats()) {
-                statsBundle.getGroupsActivityStats();
+                statsBundle.getGroupsActivityStats().reset();
             }
         }
 

@@ -109,11 +109,14 @@
 	
 	<bean id="repositoryListener" class="org.esco.dynamicgroups.domain.SyncReplClientListenerImpl">
 		<property name="syncReplClient" ref="syncReplClient" />
-		<property name="exceptionHandlerFactory" ref="uncaughtExceptionHandlerFactory" />
+		<property name="exceptionHandlerFactory" ref="repositoryListenerExceptHandlerFact" />
 	</bean>
 	
-	<bean id="uncaughtExceptionHandlerFactory" class="org.esco.dynamicgroups.exceptions.UncaughtExceptionHandlerFactoryImpl">
+	<bean id="repositoryListenerExceptHandlerFact" class="org.esco.dynamicgroups.exceptions.RepositoryListenerUncaughtExceptionHandlerFactory">
 		<property name="listener" ref="repositoryListener"/>
+		<property name="mailer" ref="mailer"/>
+	</bean>
+	<bean id="exceptHandlerFact" class="org.esco.dynamicgroups.exceptions.RepositoryListenerUncaughtExceptionHandlerFactory">
 		<property name="mailer" ref="mailer"/>
 	</bean>
 	
@@ -125,6 +128,7 @@
 		<property name="repositoryListener" ref="repositoryListener" />
 		<property name="statisticsManager" ref="statisticsManager" />
 		<property name="reportingManager" ref="reportingManager"/>
+		<property name="exceptionHandlerFactory" ref="repositoryListenerExceptHandlerFact"/>
 	</bean>
 	
 	<bean id="domainServiceProvider" class="org.esco.dynamicgroups.domain.DomainServiceProviderForHooks">
