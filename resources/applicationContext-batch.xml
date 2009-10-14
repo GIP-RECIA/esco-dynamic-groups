@@ -37,7 +37,7 @@
 		<property name="messageSource" ref="i18nService"/>
 	</bean>
 	
-	<bean id="atomValidator" class="org.esco.dynamicgroups.domain.definition.AtomicPropositionValidatorFromList">
+	<bean id="atomValidator" class="org.esco.dynamicgroups.domain.definition.AtomicPropositionValidatorFromListBean">
 		<property name="parametersProvider" ref="parametersProvider"/>
 		<property name="i18n" ref="i18n"/>
 	</bean>
