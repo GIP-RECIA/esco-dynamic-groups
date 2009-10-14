@@ -40,12 +40,12 @@
 		<property name="messageSource" ref="i18nService"/>
 	</bean>
 	
-	<bean id="atomValidator" class="org.esco.dynamicgroups.domain.definition.AtomicPropositionValidatorFromList">
+	<bean id="atomValidator" class="org.esco.dynamicgroups.domain.definition.AtomicPropositionValidatorFromListBean">
 		<property name="parametersProvider" ref="parametersProvider"/>
 		<property name="i18n" ref="i18n"/>
 	</bean>
 	
-	<bean id="propositionCodec" class="org.esco.dynamicgroups.domain.definition.PropositionCodec">
+	<bean id="propositionCodec" class="org.esco.dynamicgroups.domain.definition.PropositionCodecBean">
 		<property name="i18n" ref= "i18n"/>
 		<property name="atomValidator" ref="atomValidator"/>
 	</bean>
@@ -116,10 +116,10 @@
 		<property name="listener" ref="repositoryListener"/>
 		<property name="mailer" ref="mailer"/>
 	</bean>
-	<bean id="exceptHandlerFact" class="org.esco.dynamicgroups.exceptions.RepositoryListenerUncaughtExceptionHandlerFactory">
+	<!-- 	<bean id="exceptHandlerFact" class="org.esco.dynamicgroups.exceptions.RepositoryListenerUncaughtExceptionHandlerFactory">
 		<property name="mailer" ref="mailer"/>
 	</bean>
-	
+	-->
 	<bean id="domainService" class="org.esco.dynamicgroups.domain.ESCODomainServiceImpl">
 		<property name="parametersProvider" ref="parametersProvider" />
 		<property name="daoService" ref="daoService" />

@@ -1,3 +1,14 @@
+Cassification
+
+Verifier Suppression d'un group dynamique
+	Suppression du groupe.
+	Suppression du type.
+	
+Sessions Grouper : utiliser l'utilisateur specifie dans le parametrage.	
+	
+Verifier que les stats sont tjrs OK (notamment creation/suppression de groupes).
+
+
 OK parametrer la serialization du statisticsManager.
 
 OK tâche ant pour la verification de propositions logiques
@@ -82,7 +93,7 @@ OK * Rapport uniquement de la vérification des membres au démarrage.
 
 OK * Reflechir aux problèmes de synchronization lors de la modification ou lors de la creation.
 
-* recuperation du timezone suffix dans le cookieManager (i18n ou pas de creation de cookie).
+OK * recuperation du timezone suffix dans le cookieManager (i18n ou pas de creation de cookie).
 
 OK parameterer les options de compilation.
 
