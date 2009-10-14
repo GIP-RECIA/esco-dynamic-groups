@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
+ * Logical proposition that defines a dynamic group.
  * @author GIP RECIA - A. Deman
  * 16 janv. 2009
  *

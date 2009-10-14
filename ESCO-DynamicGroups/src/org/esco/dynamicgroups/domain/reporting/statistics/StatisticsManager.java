@@ -17,7 +17,7 @@ import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.dao.grouper.IGroupsDAOService;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncStateControl;
 import org.esco.dynamicgroups.domain.IDomainService;
-import org.esco.dynamicgroups.domain.beans.I18NManager;
+import org.esco.dynamicgroups.domain.beans.II18NManager;
 import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
 import org.esco.dynamicgroups.domain.parameters.ReportingParametersSection;
 import org.esco.dynamicgroups.domain.reporting.IReportFormatter;
@@ -185,7 +185,7 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
     private transient ReportingParametersSection reportingParameters;
 
     /** The I18N Manager. */
-    private transient I18NManager i18n;
+    private transient II18NManager i18n;
 
     /** Bundle of statistic data. */
     private StatsBundle statsBundle = new StatsBundle();
@@ -669,7 +669,7 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
      * Getter for i18n.
      * @return i18n.
      */
-    public I18NManager getI18n() {
+    public II18NManager getI18n() {
         return i18n;
     }
 
@@ -677,7 +677,7 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
      * Setter for i18n.
      * @param i18n the new value for i18n.
      */
-    public void setI18n(final I18NManager i18n) {
+    public void setI18n(final II18NManager i18n) {
         this.i18n = i18n;
     }
 

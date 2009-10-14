@@ -10,7 +10,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.esco.dynamicgroups.domain.beans.I18NManager;
+import org.esco.dynamicgroups.domain.beans.II18NManager;
 
 /**
  * Statistics about the group activities.
@@ -101,7 +101,7 @@ public class GroupsActivityStatsEntry implements IGroupsActivityStatsEntry {
     private Map<String, GroupActivity> activities = new HashMap<String, GroupActivity>();
     
     /** The I18NManager. */
-    private transient I18NManager i18n;
+    private transient II18NManager i18n;
     
     
     
@@ -109,7 +109,7 @@ public class GroupsActivityStatsEntry implements IGroupsActivityStatsEntry {
      * Builds an instance of GroupsActivityStatsEntry.
      * @param i18n The i18n manager.
      */
-    public GroupsActivityStatsEntry(final I18NManager i18n) {
+    public GroupsActivityStatsEntry(final II18NManager i18n) {
         this.i18n = i18n;
     }
 

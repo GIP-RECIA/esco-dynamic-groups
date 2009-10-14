@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.esco.dynamicgroups.domain.beans.I18NManager;
+import org.esco.dynamicgroups.domain.beans.II18NManager;
 
 /**
  * Statistics about the verification process of the memebers of a group.
@@ -39,7 +39,7 @@ public class CheckedMembersStatsEntry implements ICheckedMembersStatsEntry {
     private static final String DURATION_KEY = "stats.members.checking.duration";
 
     /** The I18N manager to use. */
-    private transient I18NManager i18n;
+    private transient II18NManager i18n;
 
     /** The number of checked groups. */
     private int checkedGroups;
@@ -59,7 +59,7 @@ public class CheckedMembersStatsEntry implements ICheckedMembersStatsEntry {
      * Builds an instance of CheckedMembersStatsEntry.
      * @param i18n The i18n manager.
      */
-    public CheckedMembersStatsEntry(final I18NManager i18n) {
+    public CheckedMembersStatsEntry(final II18NManager i18n) {
         this.i18n = i18n;
     }
 

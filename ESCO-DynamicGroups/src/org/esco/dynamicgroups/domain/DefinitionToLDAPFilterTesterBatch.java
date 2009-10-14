@@ -5,7 +5,7 @@ package org.esco.dynamicgroups.domain;
 
 
 import org.esco.dynamicgroups.dao.ldap.LDAPMembersFromDefinitionDAO;
-import org.esco.dynamicgroups.domain.beans.I18NManager;
+import org.esco.dynamicgroups.domain.beans.II18NManager;
 import org.esco.dynamicgroups.domain.definition.DecodedPropositionResult;
 import org.esco.dynamicgroups.domain.definition.DynamicGroupDefinition;
 import org.esco.dynamicgroups.domain.definition.PropositionCodec;
@@ -48,7 +48,7 @@ public class DefinitionToLDAPFilterTesterBatch {
     
     
     /** The i18N managager. */
-    private I18NManager i18n; 
+    private II18NManager i18n; 
    
     
 
@@ -56,7 +56,7 @@ public class DefinitionToLDAPFilterTesterBatch {
      * Builds an instance of DefinitionToLDAPFilterTesterBatch.
      * @param i18n The i18N manager.
      */
-    private DefinitionToLDAPFilterTesterBatch(final I18NManager i18n) {
+    private DefinitionToLDAPFilterTesterBatch(final II18NManager i18n) {
         this.i18n = i18n;
     }
 
@@ -93,7 +93,7 @@ public class DefinitionToLDAPFilterTesterBatch {
         final ThreadLocal<ApplicationContext> appCtx = new ThreadLocal<ApplicationContext>();
         appCtx.set(new FileSystemXmlApplicationContext(BATCH_CTX_FILE));
         final BeanFactory beanFactory = appCtx.get();
-        final I18NManager i18n = (I18NManager) beanFactory.getBean(I18N_BEAN); 
+        final II18NManager i18n = (II18NManager) beanFactory.getBean(I18N_BEAN); 
         
         final DefinitionToLDAPFilterTesterBatch tester = new DefinitionToLDAPFilterTesterBatch(i18n);
         for (String defString : args) {

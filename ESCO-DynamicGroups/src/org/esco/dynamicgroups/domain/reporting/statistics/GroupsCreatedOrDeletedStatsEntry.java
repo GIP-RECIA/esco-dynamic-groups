@@ -3,7 +3,8 @@
  */
 package org.esco.dynamicgroups.domain.reporting.statistics;
 
-import org.esco.dynamicgroups.domain.beans.I18NManager;
+import org.esco.dynamicgroups.domain.beans.II18NManager;
+
 
 /**
  * Count the number of dynamic groups created or deleted.
@@ -32,13 +33,13 @@ public class GroupsCreatedOrDeletedStatsEntry implements IGroupCreatedOrDeletedS
     private int deletedCount;
     
     /** I18N manager. */
-    private transient I18NManager i18n;
+    private transient II18NManager i18n;
 
     /**
      * Builds an instance of GroupsCreatedOrDeletedStatsEntry.
      * @param i18n The i18n manager to use.
      */
-    public GroupsCreatedOrDeletedStatsEntry(final I18NManager i18n) {
+    public GroupsCreatedOrDeletedStatsEntry(final II18NManager i18n) {
         this.i18n = i18n;
     }
     
