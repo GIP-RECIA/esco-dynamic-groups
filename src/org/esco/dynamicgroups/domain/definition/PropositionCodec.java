@@ -5,17 +5,15 @@ package org.esco.dynamicgroups.domain.definition;
 
 import java.io.Serializable;
 
-import org.esco.dynamicgroups.domain.beans.I18NManager;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.util.Assert;
+import org.esco.dynamicgroups.domain.beans.II18NManager;
 
 /**
- * Used to decode a String that represents an IProposition.
+ * Used to code and decode a String that represents an IProposition.
  * @author GIP RECIA - A. Deman
  * 16 janv. 2009
  *
  */
-public class PropositionCodec implements InitializingBean, Serializable {
+public class PropositionCodec implements Serializable {
     
     /** Serial Version UID.*/
     private static final long serialVersionUID = -67872885435776773L;
@@ -69,29 +67,27 @@ public class PropositionCodec implements InitializingBean, Serializable {
     private IAtomicPropositionValidator atomValidator;
     
     /** I18N manager. */
-    private transient I18NManager i18n;
+    private transient II18NManager i18n;
    
     /**
      * Builds an instance of PropositionCodec.
      */
-    protected PropositionCodec() {
+    public PropositionCodec() {
         instance = this;
     }
     
-
     /**
-     * Checks the bean injection.
-     * @throws Exception
-     * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
+     * Builds an instance of PropositionCodec.
+     * @param atomValidator The atom validator to use.
+     * @param i18n The I18N manager.
      */
-    public void afterPropertiesSet() throws Exception {
-        Assert.notNull(atomValidator, 
-                "The property atomValidator in the class " + getClass().getName()
-                + " can't be null.");
-        Assert.notNull(i18n, 
-                "The property i18n in the class " + getClass().getName()
-                + " can't be null.");
+    public PropositionCodec(final IAtomicPropositionValidator atomValidator, 
+            final II18NManager i18n) {
+        this();
+        this.atomValidator = atomValidator;
+        this.i18n = i18n;
     }
+    
     
     /**
      * Gives the available instance.
@@ -189,7 +185,7 @@ public class PropositionCodec implements InitializingBean, Serializable {
         final String content = extractContent(coded);
         int pos = getSplitPosition(content);
         if (pos == 0) {
-            return new DecodedPropositionResult(coded, i18n.getI18nMessage(INVALID_PROP) + coded);
+            return new DecodedPropositionResult(coded, i18n.getI18nMessage(INVALID_PROP, coded));
         }
         final String firstPart = content.substring(0, pos).trim();
         final String secondPart = content.substring(pos + 1).trim();
@@ -220,7 +216,7 @@ public class PropositionCodec implements InitializingBean, Serializable {
         final String content = extractContent(coded);
         int pos = getSplitPosition(content);
         if (pos == 0) {
-            return new DecodedPropositionResult(coded, i18n.getI18nMessage(INVALID_PROP) + coded);
+            return new DecodedPropositionResult(coded, i18n.getI18nMessage(INVALID_PROP, coded));
         }
         final String firstPart = content.substring(0, pos).trim();
         final String secondPart = content.substring(pos + 1).trim();
@@ -334,15 +330,15 @@ public class PropositionCodec implements InitializingBean, Serializable {
      */
     public DecodedPropositionResult decode(final String coded) {
         if (coded == null) {
-            return new DecodedPropositionResult("null", i18n.getI18nMessage(INVALID_PROP) + "null");
+            return new DecodedPropositionResult("null", i18n.getI18nMessage(INVALID_PROP, "null"));
         }
         
         final String trimed = coded.trim();
         final String trimedUC = trimed.toUpperCase();
         
         if ("".equals(trimed)) {
-            return new DecodedPropositionResult("", i18n.getI18nMessage(INVALID_PROP) 
-                    + i18n.getI18nMessage(EMPTY_STRING_ERROR));
+            return new DecodedPropositionResult("", i18n.getI18nMessage(INVALID_PROP, 
+                    i18n.getI18nMessage(EMPTY_STRING_ERROR)));
         }
         
         if (trimedUC.startsWith(OR)) {
@@ -448,7 +444,7 @@ public class PropositionCodec implements InitializingBean, Serializable {
      * Getter for i18n.
      * @return i18n.
      */
-    public I18NManager getI18n() {
+    public II18NManager getI18n() {
         return i18n;
     }
 
@@ -457,7 +453,7 @@ public class PropositionCodec implements InitializingBean, Serializable {
      * Setter for i18n.
      * @param i18n the new value for i18n.
      */
-    public void setI18n(final I18NManager i18n) {
+    public void setI18n(final II18NManager i18n) {
         this.i18n = i18n;
     }
 

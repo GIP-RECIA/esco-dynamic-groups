@@ -17,7 +17,7 @@ import org.springframework.util.Assert;
  * 30 avr. 2009
  *
  */
-public class I18NManager implements Serializable, InitializingBean {
+public class I18NManager implements II18NManager, Serializable, InitializingBean {
 
     /** Serial version UIDs.*/
     private static final long serialVersionUID = 8053619606448404446L;
@@ -50,6 +50,7 @@ public class I18NManager implements Serializable, InitializingBean {
         Assert.notNull(this.parametersProvider, 
                 "The property parametersProvider in the class " + this.getClass().getName() 
                 + " can't be null.");
+        
         Assert.notNull(this.messageSource, 
                 "The property messageSource in the class " + this.getClass().getName() 
                 + " can't be null.");
@@ -61,6 +62,7 @@ public class I18NManager implements Serializable, InitializingBean {
      * Gives the messge that corresponds to an i18n key.
      * @param key The i18n key.
      * @return The message.
+     * @see org.esco.dynamicgroups.domain.beans.II18NManager#getI18nMessage(java.lang.String)
      */
     public String getI18nMessage(final String key) {
         return getI18nMessage(key, (String[]) null);
@@ -70,6 +72,7 @@ public class I18NManager implements Serializable, InitializingBean {
      * @param key The i18n key.
      * @param args The arguments to include in the message.
      * @return The message.
+     * @see org.esco.dynamicgroups.domain.beans.II18NManager#getI18nMessage(java.lang.String, java.lang.String[])
      */
     public String getI18nMessage(final String key, final String...args) {
         return messageSource.getMessage(key, args, UNDEF_I18N + key, commonsParameters.getLocale());

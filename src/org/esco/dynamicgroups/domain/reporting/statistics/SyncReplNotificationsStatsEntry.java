@@ -6,7 +6,7 @@ package org.esco.dynamicgroups.domain.reporting.statistics;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.esco.dynamicgroups.domain.beans.I18NManager;
+import org.esco.dynamicgroups.domain.beans.II18NManager;
 
 /**
  * Sync Repl notifications.
@@ -50,13 +50,13 @@ public class SyncReplNotificationsStatsEntry implements ISyncReplNotificationsSt
     private int presentCount;
 
     /** The I18N manager. */
-    private transient I18NManager i18n;
+    private transient II18NManager i18n;
 
     /**
      * Builds an instance of SyncReplNotificationsStatsEntry.
      * @param i18n The i18N manager.
      */
-    public SyncReplNotificationsStatsEntry(final I18NManager i18n) {
+    public SyncReplNotificationsStatsEntry(final II18NManager i18n) {
         this.i18n = i18n;
     }
 

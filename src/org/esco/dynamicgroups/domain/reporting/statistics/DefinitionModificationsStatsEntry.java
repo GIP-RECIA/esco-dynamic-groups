@@ -3,7 +3,7 @@
  */
 package org.esco.dynamicgroups.domain.reporting.statistics;
 
-import org.esco.dynamicgroups.domain.beans.I18NManager;
+import org.esco.dynamicgroups.domain.beans.II18NManager;
 
 
 /**
@@ -24,19 +24,16 @@ public class DefinitionModificationsStatsEntry implements IDefinitionModificatio
     private static final String LABEL_KEY = "stats.modified.definitions";
 
     /** The I18NManager. */
-    private transient I18NManager i18n;
+    private transient II18NManager i18n;
     
     /** Number of modified definitions. */
     private int nbModifiedDefinitions;
     
-    
-    
-
     /**
      * Builds an instance of DefinitionModificationsStatsEntry.
      * @param i18n The I18N manager.
      */
-    public DefinitionModificationsStatsEntry(final I18NManager i18n) {
+    public DefinitionModificationsStatsEntry(final II18NManager i18n) {
         this.i18n = i18n;
     }
 
