@@ -15,12 +15,17 @@
 	<property name="esco-dg.version" value="0.1.0-alpha0"/>
 	<property name="esco-dg.grouper-dg.lib" value="${esco-dg.dist.dir}grouper-esco-dg-hooks-${esco-dg.version}.jar"/>
 	<property name="esco-dg.definition.lib" value="${esco-dg.dist.dir}grouper-esco-dg-definition-${esco-dg.version}.jar"/>
-	<property name="esco-dg.definition.includes" value="org/esco/dynamicgroups/domain/definition/* org/esco/dynamicgroups/domain/beans/II18NManager*  org/esco/dynamicgroups/domain/beans/DisabledI18NManager*"/>
+	<property name="esco-dg.definition.includes" value="org/esco/dynamicgroups/domain/definition/**/* org/esco/dynamicgroups/domain/beans/II18NManager*  org/esco/dynamicgroups/domain/beans/DisabledI18NManager*  org/esco/dynamicgroups/exceptions/*"/>
 	<property name="esco-dg.schema.file" value="${esco-dg.build.dir}schema.ddl"/>
-		
+	
+	<!-- Properties for antlr -->
+	<property name="esco-dg.antlr.grammar.file" value="${esco-dg.prop.dir}DynamicGroupDefinition.g"/>
+	<property name="esco-dg.antlr.generated.dir" value="${esco-dg.src.dir}org/esco/dynamicgroups/domain/definition/antlr/generated/"/>
+	
 	<!-- jars to copy for the deployment -->
 	<property name="esco-dg.3part.spring.lib" value="${esco-dg.lib.dir}spring-2.5.5.jar"/>
 	<property name="esco-dg.3part.ldap.lib" value="${esco-dg.lib.dir}ldap.jar"/>
+	<property name="esco-dg.3part.antlr.lib" value="${esco-dg.lib.dir}antlr-3.2.jar"/>
 	
 	<property name="esco-dg.grouper.ws.lib.dir" value="${esco-dg.grouper.ws.dir}/lib/custom/"/>
 	<property name="esco-dg.grouper.ws.prop.dir" value="${esco-dg.grouper.ws.dir}/resources/resources/"/>
@@ -46,11 +51,12 @@
 		<pathelement location="${esco-dg.prop.dir}"/>
 		<fileset dir="${esco-dg.lib.dir}" includes="**/*.jar" />
 	</path>
-		
-	<taskdef resource="net/sf/antcontrib/antlib.xml" classpath="${esco-dg.lib.dir}/ant-contrib-1.0b3.jar"/>
-			
 	
-	<!-- Displays tsome properties. -->	
+	<!-- Tasks definitions -->	
+	<taskdef resource="net/sf/antcontrib/antlib.xml" classpath="${esco-dg.lib.dir}ant-contrib-1.0b3.jar"/>
+	<taskdef resource="org/apache/tools/ant/antlr/antlib.xml" classpath="${esco-dg.lib.dir}antlr3-task.jar"/>			
+	
+	<!-- Displays some properties. -->	
 	<target name="esco-dg.display" description="Displays the user properties">
 		<property name = "esco-dg.classpath.value" refid="esco-dg.classpath"/>
 		<echo >
@@ -74,6 +80,9 @@
 			esco-dg.definition.lib                 = ${esco-dg.definition.lib}
 			esco-dg.definition.includes            = ${esco-dg.definition.includes}
 			
+			esco-dg.antlr.grammar.file                    = ${esco-dg.antlr.grammar.file}
+			esco-dg.antlr.generated.dir                   = ${esco-dg.antlr.generated.dir}
+			
 			esco-dg.grouper.ws.dir                 = ${esco-dg.grouper.ws.dir}
 			esco-dg.grouper.ws.lib                 = ${esco-dg.grouper.ws.lib}
 			esco-dg.grouper.ws.prop.dir            = ${esco-dg.grouper.ws.prop.dir}
@@ -85,7 +94,7 @@
 			esco-dg.grouper.custom.ui.build.file   = ${esco-dg.grouper.custom.ui.build.file}
 			esco-dg.grouper.custom.ui.web.file     = ${esco-dg.grouper.custom.ui.web.file}
 			
-			esco-dg.st.grouper.conf.dir            = ${esco-dg.grouper.conf.dir}	
+			esco-dg.st.grouper.conf.dir            = ${esco-dg.st.grouper.conf.dir}	
 			esco-dg.st.grouper.lib.dir             = ${esco-dg.st.grouper.lib.dir}
 			
 			esco-dg.3part.spring.lib               = ${esco-dg.3part.spring.lib}
@@ -97,7 +106,9 @@
 		</echo>
 	</target>
 	
-	<!-- Compilation and packaging targets -->
+	
+	
+	<!-- Directories creation.-->
 	<target name="esco-dg.create.build.dir">
 		<mkdir dir="${esco-dg.build.dir}"/>
 	</target>
@@ -106,6 +117,23 @@
 		<mkdir dir="${esco-dg.dist.dir}"/>
 	</target>
 	
+	<target name="esco-dg.antlr.create.generated.dir">
+		<mkdir dir="${esco-dg.antlr.generated.dir}"/>
+	</target>    
+			
+	<!-- Antlr generation.-->		
+	<target name="esco-dg.antlr.generate" 
+			description="Generates the classes from the grammar file."
+			depends="esco-dg.antlr.create.generated.dir" >
+				
+	  	    <antlr3  xmlns:antlr="antlib:org/apache/tools/ant/antlr" target="${esco-dg.antlr.grammar.file}" outputdirectory="${esco-dg.antlr.generated.dir}">
+			   <classpath>
+				   <path refid="esco-dg.classpath"/>
+				</classpath>
+			</antlr3>
+	</target>
+	
+    <!-- Compilation and packaging targets -->
 	<target name="esco-dg.compile" description="Compilation of the aspects.">
 		<mkdir dir="${esco-dg.build.dir}"/>
 		<javac  srcdir="${esco-dg.src.dir}"
@@ -135,7 +163,7 @@
 	</target>
 	<target name="esco-dg.build.definition.lib" 
 			description="Creates the jar for the dynamic definitions jar." 
-			depends="esco-dg.create.dist.dir, esco-dg.compile" >
+			depends="esco-dg.antlr.generate, esco-dg.create.dist.dir, esco-dg.compile" >
 			
 			<copy todir="${esco-dg.build.dir}">
 					<fileset dir="${esco-dg.src.dir}" includes="${esco-dg.definition.includes}"/>
@@ -248,6 +276,7 @@
 		</copy>
 		<copy file="${esco-dg.3part.ldap.lib}" todir="${esco-dg.grouper.custom.ui.lib.dir}" />
 		<copy file="${esco-dg.3part.spring.lib}" todir="${esco-dg.grouper.custom.ui.lib.dir}" />
+		<copy file="${esco-dg.3part.antlr.lib}" todir="${esco-dg.grouper.custom.ui.lib.dir}" />
 		<copy file="${esco-dg.grouper-dg.lib}" todir="${esco-dg.grouper.custom.ui.lib.dir}" />
  	</target>
 	
@@ -273,6 +302,7 @@
 		
 		<copy file="${esco-dg.3part.ldap.lib}" todir="${esco-dg.grouper.ws.lib.dir}" />
 		<copy file="${esco-dg.3part.spring.lib}" todir="${esco-dg.grouper.ws.lib.dir}" />
+		<copy file="${esco-dg.3part.antlr.lib}" todir="${esco-dg.grouper.ws.lib.dir}" />
 		<copy file="${esco-dg.grouper-dg.lib}" todir="${esco-dg.grouper.ws.lib.dir}" />
  	</target>
 	
