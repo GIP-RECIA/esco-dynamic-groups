@@ -216,13 +216,3 @@ fragment escaped returns [String stringContent] :       ESCAPE (
   	  | esc2=ESCAPE {stringContent = $esc2.text; }
   	  );
    
-/*
-fragment escaped_or returns [ String stringContent ] : ESCAPE OR {stringContent = $OR.text; };
-fragment escaped_and returns [ String stringContent ] : ESCAPE AND {stringContent = $AND.text; };
-fragment escaped_not returns [ String stringContent ] : ESCAPE NOT {stringContent = $NOT.text; };
-fragment escaped_escape returns [ String stringContent ] : ESCAPE esc2=ESCAPE {stringContent = $esc2.text; };
-*/
-// Handles the escaped chars.	
-/*
-fragment escaped_char returns [ String stringContent ] : ESCAPE CHAR { stringContent = $ESCAPE.text + $CHAR.text; };
-*/
