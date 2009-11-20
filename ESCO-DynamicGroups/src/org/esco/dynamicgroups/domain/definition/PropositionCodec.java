@@ -14,6 +14,7 @@ import org.esco.dynamicgroups.domain.beans.II18NManager;
 import org.esco.dynamicgroups.domain.definition.antlr.error.handling.ErrorHandlerImpl;
 import org.esco.dynamicgroups.domain.definition.antlr.generated.DynamicGroupDefinitionLexer;
 import org.esco.dynamicgroups.domain.definition.antlr.generated.DynamicGroupDefinitionParser;
+import org.esco.dynamicgroups.exceptions.InvalidDynamicGroupDefinitionException;
 
 /**
  * Used to code and decode a String that represents an IProposition.
@@ -58,7 +59,7 @@ public class PropositionCodec implements Serializable {
    
     /** I18n entry for an empty string atom. */
     private static final String EMPTY_STRING_ERROR = "proposition.decoding.error.empty.string";
-    
+      
     /** The atom validator to use. */
     private IAtomicPropositionValidator atomValidator;
     
@@ -137,7 +138,6 @@ public class PropositionCodec implements Serializable {
         }
         
         final String trimed = coded.trim();
-        final String trimedUC = trimed.toUpperCase();
         
         if ("".equals(trimed)) {
             return new DecodedPropositionResult("", i18n.getI18nMessage(INVALID_PROP, 
@@ -163,9 +163,9 @@ public class PropositionCodec implements Serializable {
             return new DecodedPropositionResult(proposition);
             
         } catch (RecognitionException e) {
-            // TODO Change the error message.
-            return new DecodedPropositionResult(coded, i18n.getI18nMessage(INVALID_PROP, 
-                    i18n.getI18nMessage(EMPTY_STRING_ERROR)));
+            return new DecodedPropositionResult(coded, i18n.getI18nMessage(INVALID_PROP) + coded);
+        } catch (InvalidDynamicGroupDefinitionException e) {
+            return new DecodedPropositionResult(coded, i18n.getI18nMessage(INVALID_PROP) + coded);
         }
     }
     
