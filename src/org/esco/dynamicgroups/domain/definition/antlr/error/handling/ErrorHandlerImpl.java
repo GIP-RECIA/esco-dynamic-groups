@@ -5,6 +5,8 @@ package org.esco.dynamicgroups.domain.definition.antlr.error.handling;
 
 import java.io.Serializable;
 
+import org.esco.dynamicgroups.exceptions.InvalidDynamicGroupDefinitionException;
+
 /**
  * Implementation of the error handler.
  * @author GIP RECIA - A. Deman
@@ -28,10 +30,10 @@ public class ErrorHandlerImpl implements IErrorHandler, Serializable {
      * @param line The line in error.
      * @param charPos the position of the invalid char.
      * @param invalidChar The invalid char.
-     * @see antlrp.antlr.error.handling.IErrorHandler#handleError(int, int, char)
+     * @see org.esco.dynamicgroups.domain.definition.antlr.error.handling.IErrorHandler#handleError(int, int, char)
      */
     public void handleError(final int line, final int charPos, final char invalidChar) {
-        
+        throw new InvalidDynamicGroupDefinitionException(charPos, invalidChar);
     }
     
 
