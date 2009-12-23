@@ -268,5 +268,8 @@ public class PropositionCodec implements Serializable {
         this.i18n = i18n;
     }
 
+    public static void main(String[] args) {
+    	
+    }
     
 }

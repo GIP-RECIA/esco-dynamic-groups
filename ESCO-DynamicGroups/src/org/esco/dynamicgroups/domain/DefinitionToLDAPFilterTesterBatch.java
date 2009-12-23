@@ -47,7 +47,7 @@ public class DefinitionToLDAPFilterTesterBatch {
     private LDAPMembersFromDefinitionDAO ldapMembers = new LDAPMembersFromDefinitionDAO();
     
     
-    /** The i18N managager. */
+    /** The i18N manager. */
     private II18NManager i18n; 
    
     
@@ -96,6 +96,7 @@ public class DefinitionToLDAPFilterTesterBatch {
         final II18NManager i18n = (II18NManager) beanFactory.getBean(I18N_BEAN); 
         
         final DefinitionToLDAPFilterTesterBatch tester = new DefinitionToLDAPFilterTesterBatch(i18n);
+        
         for (String defString : args) {
             tester.check(defString);
         }

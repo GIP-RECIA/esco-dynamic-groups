@@ -23,12 +23,12 @@ import org.esco.dynamicgroups.domain.parameters.ParametersProviderForHooks;
 /**
  * Hooks to handle the field associated to the dynamic group type.
  * @author GIP RECIA - A. Deman
- * 18 mai 2009
+ * 18 May 2009
  *
  */
 public class ESCOAttributeHooks extends AttributeHooks implements Serializable {
     
-    /** Serial versin UID.*/
+    /** Serial version UID.*/
     private static final long serialVersionUID = 9122480003264627999L;
 
     /** The logger to use. */
@@ -37,7 +37,7 @@ public class ESCOAttributeHooks extends AttributeHooks implements Serializable {
     /** The definition field. */
     private String definitionField;
     
-    /** The domain service, used to handle thy operations associated to the dynamic groups. */
+    /** The domain service, used to handle the operations associated to the dynamic groups. */
     private transient IDomainService domainService;
 
 

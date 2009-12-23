@@ -64,7 +64,7 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
     /** The Database DAO Service to use. */
     private IDBDAOService daoService;
 
-    /** Service used to retrives the members from the logic defintion 
+    /** Service used to retrieve the members from the logic definition 
      * of the group. */
     private IMembersFromDefinitionDAO membersFromDefinitionService;
 
@@ -77,13 +77,13 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
     /** Reporting manager. */
     private IReportingManager reportingManager; 
 
-    /** Handler factory for the groups' members verificaiton thread. */
+    /** Handler factory for the groups' members verification thread. */
     private IUncaughtExceptionHandlerFactory exceptionHandlerFactory;
 
-    /** Flag to determine if the memebrs of the dynamic groups should be checked on startup. */
+    /** Flag to determine if the members of the dynamic groups should be checked on startup. */
     private boolean checkMembersOnStartup;
 
-    /** Flag to determine if the verification of the dynamic group memebrs
+    /** Flag to determine if the verification of the dynamic group members
      * should be reported. */
     private boolean reportCheckMemebersOnStartup;
 
@@ -227,7 +227,7 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
 
     /**
      * Removes a deleted user user from its groups. 
-     * The whole groups or only the dynmic groups may be considered, depending
+     * The whole groups or only the dynamic groups may be considered, depending
      * on the configuration.
      * @param entry The entry associated to the user.
      * @see org.esco.dynamicgroups.domain.IDomainService#removeDeletedUserFromGroups(org.esco.dynamicgroups.IEntryDTO)
@@ -250,7 +250,7 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
 
         // For each value of attribute, computes the candidat groups and their number of occurences.
         // If the attribute is a and the value is v, a candidat group is a group 
-        // wich uses a=v in its definition.
+        // which uses a=v in its definition.
         for (String attributeName : dynamicAttributes) {
             String[] attributeValues = entry.getAttributeValues(attributeName);
             if (attributeValues != null) {
@@ -315,7 +315,7 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
     /**
      * Initializes the group : removes all the existing members and retrieves the 
      * new members from the group definition.
-     * @param definition The dfinition associated to the group to initialize.
+     * @param definition The definition associated to the group to initialize.
      */
     private void initialize(final DynamicGroupDefinition definition) {
 
@@ -334,7 +334,7 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
 
     /**
      * Retrieves the list of the dynamic groups definitions.
-     * @return The defintions of the members of the dynamic groups.
+     * @return The definitions of the members of the dynamic groups.
      */
     private synchronized List<DynamicGroupDefinition> retrieveDynamicGroupsDefinitionsList() {
         // Gets the list of the dynamic groups definitions.
@@ -457,8 +457,8 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
 
     /**
      * Handles a new or modified group.
-     * If the deinition is not valid the entry in the DB is deleted if exist else
-     * the entry is creted or modified.
+     * If the definition is not valid the entry in the DB is deleted if exist else
+     * the entry is created or modified.
      * @param definition The dynamic group definition.
      * @see org.esco.dynamicgroups.domain.IDomainService#handleNewOrModifiedDynamicGroup(DynamicGroupDefinition)
      */
@@ -470,7 +470,7 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
     /**
      * Gives the members definition for a dynamic group.
      * @param groupUUID The uuid of the dynamic group.
-     * @return The definition if it exists, null oterwise.
+     * @return The definition if it exists, null otherwise.
      * @see org.esco.dynamicgroups.domain.IDomainService#getMembershipExpression(java.lang.String)
      */
     public synchronized  String getMembershipExpression(final String groupUUID) {

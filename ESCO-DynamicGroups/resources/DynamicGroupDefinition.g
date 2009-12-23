@@ -64,7 +64,7 @@ options {output=text;backtrack=true; memoize=true;}
     }
     
     /**
-     * Setter for the class menmber tokensEscaper.
+     * Setter for the class member tokensEscaper.
      * @param newTokensEscaper The new tokens escaper to use for the class.
      */
     public static void setTokensEscaper(final ITokensEscaper newTokensEscaper) {
@@ -85,7 +85,7 @@ options {output=text;backtrack=true; memoize=true;}
      * @param expression The expression to parse.
      * @return The proposition corresponding to the expression.
      */
-    public static IProposition parseExpression(final String expression) {
+    public static IProposition parseExpression(final String expression) throws RecognitionException {
     	final DynamicGroupDefinitionParser parser = new DynamicGroupDefinitionParser(expression);
     	parser.setErrorHandler(new ErrorHandlerImpl());
     	return parser.evaluateExpression();
@@ -151,8 +151,6 @@ SPACE 	:
  
 
 NUMBER : ('0'..'9');
-//C : (~('\\'|'"'|('0'..'9')|';'|','));   
-//WORD :('a'..'z' | 'A'..'Z')+;
 CHAR : ~(('0'..'9'| '\\'));
 ESCAPE 	: ('\\');
 
