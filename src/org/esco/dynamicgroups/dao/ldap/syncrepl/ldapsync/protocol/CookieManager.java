@@ -156,7 +156,7 @@ public class CookieManager implements InitializingBean, ApplicationListener, Ser
     }
 
     /**
-     * Tries to load the las cookie from the file system.
+     * Tries to load the last cookie from the file system.
      * @return the cookie if a file can be loaded, null otherwise.
      */
     private byte[] read() {
@@ -251,7 +251,7 @@ public class CookieManager implements InitializingBean, ApplicationListener, Ser
     }
 
     /**
-     * Updates the las cookie.
+     * Updates the last cookie.
      * @param newRecievedCookie The new value for the cookie.
      */
     public synchronized void updateCurrentCookie(final byte[] newRecievedCookie) {

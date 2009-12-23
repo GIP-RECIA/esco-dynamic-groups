@@ -1,4 +1,4 @@
-// $ANTLR 3.2 Sep 23, 2009 12:02:23 /home/arnaud/.Travaux/RECIA/ESCO-DynamicGroups/resources/DynamicGroupDefinition.g 2009-10-23 16:14:45
+// $ANTLR 3.2 Sep 23, 2009 12:02:23 /home/arnaud/.Travaux/RECIA/ESCO-DynamicGroups/resources/DynamicGroupDefinition.g 2009-12-22 11:22:57
 
  package org.esco.dynamicgroups.domain.definition.antlr.generated;
 
@@ -359,8 +359,8 @@ public class DynamicGroupDefinitionLexer extends Lexer {
         try {
             int _type = CHAR;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /home/arnaud/.Travaux/RECIA/ESCO-DynamicGroups/resources/DynamicGroupDefinition.g:156:6: (~ ( ( '0' .. '9' | '\\\\' ) ) )
-            // /home/arnaud/.Travaux/RECIA/ESCO-DynamicGroups/resources/DynamicGroupDefinition.g:156:8: ~ ( ( '0' .. '9' | '\\\\' ) )
+            // /home/arnaud/.Travaux/RECIA/ESCO-DynamicGroups/resources/DynamicGroupDefinition.g:154:6: (~ ( ( '0' .. '9' | '\\\\' ) ) )
+            // /home/arnaud/.Travaux/RECIA/ESCO-DynamicGroups/resources/DynamicGroupDefinition.g:154:8: ~ ( ( '0' .. '9' | '\\\\' ) )
             {
             if ( (input.LA(1)>='\u0000' && input.LA(1)<='/')||(input.LA(1)>=':' && input.LA(1)<='[')||(input.LA(1)>=']' && input.LA(1)<='\uFFFF') ) {
                 input.consume();
@@ -387,11 +387,11 @@ public class DynamicGroupDefinitionLexer extends Lexer {
         try {
             int _type = ESCAPE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /home/arnaud/.Travaux/RECIA/ESCO-DynamicGroups/resources/DynamicGroupDefinition.g:157:9: ( ( '\\\\' ) )
-            // /home/arnaud/.Travaux/RECIA/ESCO-DynamicGroups/resources/DynamicGroupDefinition.g:157:11: ( '\\\\' )
+            // /home/arnaud/.Travaux/RECIA/ESCO-DynamicGroups/resources/DynamicGroupDefinition.g:155:9: ( ( '\\\\' ) )
+            // /home/arnaud/.Travaux/RECIA/ESCO-DynamicGroups/resources/DynamicGroupDefinition.g:155:11: ( '\\\\' )
             {
-            // /home/arnaud/.Travaux/RECIA/ESCO-DynamicGroups/resources/DynamicGroupDefinition.g:157:11: ( '\\\\' )
-            // /home/arnaud/.Travaux/RECIA/ESCO-DynamicGroups/resources/DynamicGroupDefinition.g:157:12: '\\\\'
+            // /home/arnaud/.Travaux/RECIA/ESCO-DynamicGroups/resources/DynamicGroupDefinition.g:155:11: ( '\\\\' )
+            // /home/arnaud/.Travaux/RECIA/ESCO-DynamicGroups/resources/DynamicGroupDefinition.g:155:12: '\\\\'
             {
             match('\\'); 
 

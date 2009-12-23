@@ -28,12 +28,12 @@ import org.esco.dynamicgroups.domain.reporting.statistics.StatisticsManagerProvi
  * Dynamic groups hook.
  * This hook managed the creation of the dynamic groups.
  * @author GIP RECIA - A. Deman
- * 9 févr. 2009
+ * 9 February. 2009
  *
  */
 public class ESCOGroupHooks extends GroupHooks implements Serializable {
 
-    /** Prefixe used by grouper for the attributes in the changed fields. */
+    /** Prefix used by grouper for the attributes in the changed fields. */
     private static final String ATTRIBUTE_PREFIX = "attribute__";
 
     /** Extension field in Grouper. */ 
@@ -107,7 +107,7 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
     /**
      * Post delete hook point.
      * @param hooksContext The hook context.
-     * @param postDeleteBean The availbale Grouper information.
+     * @param postDeleteBean The available Grouper information.
      */
     @Override
     public void groupPostDelete(final HooksContext hooksContext, 
@@ -206,9 +206,9 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
     }
 
     /**
-     * Tests if the definiton field associated to a dynamic group is changed.
+     * Tests if the definition field associated to a dynamic group is changed.
      * @param group The group.
-     * @return true if the fied that contains the defintion of the group is changed.
+     * @return true if the field that contains the definition of the group is changed.
      */
     protected boolean isDefinitionUpdate(final Group group) {
 
@@ -273,7 +273,7 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
     /**
      * Builds the definition of a dynamic group.
      * @param groupUUID The uuid of the group.
-     * @param definition The logic expresion of the memberships.
+     * @param definition The logic expression of the memberships.
      * @return The dynamic group definition.
      */
     protected DynamicGroupDefinition buildDefinition(final String groupUUID, final String definition) {
