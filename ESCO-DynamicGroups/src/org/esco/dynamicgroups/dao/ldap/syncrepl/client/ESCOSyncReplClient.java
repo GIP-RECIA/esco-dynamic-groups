@@ -133,7 +133,7 @@ public class ESCOSyncReplClient implements Serializable, InitializingBean {
     }
 
     /**
-     * Sleep method without interruption notifiction.
+     * Sleep method without interruption notification.
      * @param millis The sleep duration time.
      */
     private void sleepSafe(final long millis) {
