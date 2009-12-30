@@ -116,10 +116,7 @@
 		<property name="listener" ref="repositoryListener"/>
 		<property name="mailer" ref="mailer"/>
 	</bean>
-	<!-- 	<bean id="exceptHandlerFact" class="org.esco.dynamicgroups.exceptions.RepositoryListenerUncaughtExceptionHandlerFactory">
-		<property name="mailer" ref="mailer"/>
-	</bean>
-	-->
+	
 	<bean id="domainService" class="org.esco.dynamicgroups.domain.ESCODomainServiceImpl">
 		<property name="parametersProvider" ref="parametersProvider" />
 		<property name="daoService" ref="daoService" />
