@@ -28,12 +28,12 @@ import org.esco.dynamicgroups.domain.reporting.statistics.StatisticsManagerProvi
  * Dynamic groups hook.
  * This hook managed the creation of the dynamic groups.
  * @author GIP RECIA - A. Deman
- * 9 févr. 2009
+ * 9 February. 2009
  *
  */
 public class ESCOGroupHooks extends GroupHooks implements Serializable {
 
-    /** Prefixe used by grouper for the attributes in the changed fields. */
+    /** Prefix used by grouper for the attributes in the changed fields. */
     private static final String ATTRIBUTE_PREFIX = "attribute__";
 
     /** Extension field in Grouper. */ 
@@ -66,7 +66,7 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
      */
     public ESCOGroupHooks() {
         final ParametersProvider parametersProvider = ParametersProviderForHooks.instance().getParametersProvider();
-        
+
         final GroupsParametersSection grouperParameters = 
             (GroupsParametersSection) parametersProvider.getGroupsParametersSection();
         dynamicType = grouperParameters.getGrouperType();
@@ -107,54 +107,54 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
     /**
      * Post delete hook point.
      * @param hooksContext The hook context.
-     * @param postDeleteBean The availbale Grouper information.
+     * @param postDeleteBean The available Grouper information.
      */
     @Override
     public void groupPostDelete(final HooksContext hooksContext, 
             final HooksGroupBean postDeleteBean) {
-        
+
         final Group group = postDeleteBean.getGroup();
 
         if (isDynamicGroup(group)) {
             domainService.handleDeletedGroup(group.getUuid());
             statisticsManager.handleDeletedGroup(group.getName());
-            
+
         }
     }
-//
-//    /**
-//     * Post commit Delete hook point.
-//     * @param hooksContext The hook context.
-//     * @param postCommitDeleteBean The availbale Grouper information.
-//     * @see edu.internet2.middleware.grouper.hooks.GroupHooks#groupPostCommitDelete(HooksContext, HooksGroupBean)
-//     */
-//    @Override
-//    public void groupPostCommitDelete(final HooksContext hooksContext, 
-//            final HooksGroupBean postCommitDeleteBean) {
-//
-//        final Group group = postCommitDeleteBean.getGroup();
-//
-//        if (isDynamicGroup(group)) {
-//            domainService.handleDeletedGroup(group.getName());
-//            statisticsManager.handleDeletedGroup(group.getName());
-//        }
-//    }
-//    
-//    
-//    /**
-//     * called right before a group delete.
-//     * @param hooksContext
-//     * @param preDeleteBean
-//     */
-//    @Override
-//    public void groupPreDelete(final HooksContext hooksContext, 
-//            final HooksGroupBean preDeleteBean) {
-//        final Group group = preDeleteBean.getGroup();
-//        if (isDynamicGroup(group)) {
-//            System.out.println("ICI");
-//        }
-//    }
-    
+    //
+    //    /**
+    //     * Post commit Delete hook point.
+    //     * @param hooksContext The hook context.
+    //     * @param postCommitDeleteBean The availbale Grouper information.
+    //     * @see edu.internet2.middleware.grouper.hooks.GroupHooks#groupPostCommitDelete(HooksContext, HooksGroupBean)
+    //     */
+    //    @Override
+    //    public void groupPostCommitDelete(final HooksContext hooksContext, 
+    //            final HooksGroupBean postCommitDeleteBean) {
+    //
+    //        final Group group = postCommitDeleteBean.getGroup();
+    //
+    //        if (isDynamicGroup(group)) {
+    //            domainService.handleDeletedGroup(group.getName());
+    //            statisticsManager.handleDeletedGroup(group.getName());
+    //        }
+    //    }
+    //    
+    //    
+    //    /**
+    //     * called right before a group delete.
+    //     * @param hooksContext
+    //     * @param preDeleteBean
+    //     */
+    //    @Override
+    //    public void groupPreDelete(final HooksContext hooksContext, 
+    //            final HooksGroupBean preDeleteBean) {
+    //        final Group group = preDeleteBean.getGroup();
+    //        if (isDynamicGroup(group)) {
+    //            System.out.println("ICI");
+    //        }
+    //    }
+
 
     /**
      * Pre update hook point.
@@ -170,7 +170,7 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
                 final String newDefinitionAtt = PropositionCodec.instance().nomalize(getDefinitionAttribute(group));
                 if (newDefinitionAtt != null) {
                     final String prevDefinitionAtt = domainService.getMembershipExpression(group.getUuid());
-                    
+
                     if (newDefinitionAtt.equalsIgnoreCase(prevDefinitionAtt)) {
                         LOGGER.debug("Nothing to do, previous definion is equal to the new one. Previous: " 
                                 + prevDefinitionAtt + " new: " + newDefinitionAtt + ".");
@@ -184,7 +184,6 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
             }
         }
     }
-
 
     /**
      * Tests if the extension of a group is modified.
@@ -207,9 +206,9 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
     }
 
     /**
-     * Tests if the definiton field associated to a dynamic group is changed.
+     * Tests if the definition field associated to a dynamic group is changed.
      * @param group The group.
-     * @return true if the fied that contains the defintion of the group is changed.
+     * @return true if the field that contains the definition of the group is changed.
      */
     protected boolean isDefinitionUpdate(final Group group) {
 
@@ -219,7 +218,11 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
         final String currentDefinition = group.getAttributeOrNull(definitionField);
         final String previousDefinition = group.dbVersion().getAttributeOrNull(definitionField);
         if (!currentDefinition.equals(previousDefinition)) {
-            statisticsManager.handleDefinitionModification(group.getName(), previousDefinition, currentDefinition);
+            if ("".equals(currentDefinition)) {
+             statisticsManager.handleDeletedGroup(group.getName());   
+            } else {
+                statisticsManager.handleDefinitionModification(group.getName(), previousDefinition, currentDefinition);
+            }
             return true;
         }
         return false;
@@ -270,7 +273,7 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
     /**
      * Builds the definition of a dynamic group.
      * @param groupUUID The uuid of the group.
-     * @param definition The logic expresion of the memberships.
+     * @param definition The logic expression of the memberships.
      * @return The dynamic group definition.
      */
     protected DynamicGroupDefinition buildDefinition(final String groupUUID, final String definition) {
@@ -284,6 +287,4 @@ public class ESCOGroupHooks extends GroupHooks implements Serializable {
 
         return groupDef;
     }
-
-
 }

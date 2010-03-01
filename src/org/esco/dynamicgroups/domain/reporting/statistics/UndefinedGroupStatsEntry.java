@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.esco.dynamicgroups.dao.grouper.IGroupsDAOService;
-import org.esco.dynamicgroups.domain.beans.I18NManager;
+import org.esco.dynamicgroups.domain.beans.II18NManager;
 
 /**
  * Stats for the groups whithout a membership definition.
@@ -30,7 +30,7 @@ public class UndefinedGroupStatsEntry implements IUndefinedGroupStatsEntry {
     private transient IGroupsDAOService groupsService;
 
     /** The I18N Manager. */
-    private transient I18NManager i18n;
+    private transient II18NManager i18n;
 
     /** Names of the groups whithout a membership definition. */
     private Set<String> undefinedGroups;
@@ -40,7 +40,7 @@ public class UndefinedGroupStatsEntry implements IUndefinedGroupStatsEntry {
      * @param groupsService The groups service.
      * @param  i18n Th I18n manager.
      */
-    public UndefinedGroupStatsEntry(final IGroupsDAOService groupsService, final I18NManager i18n) {
+    public UndefinedGroupStatsEntry(final IGroupsDAOService groupsService, final II18NManager i18n) {
         this.groupsService = groupsService;
         this.i18n = i18n;
     }

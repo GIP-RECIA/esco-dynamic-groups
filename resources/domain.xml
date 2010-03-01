@@ -7,7 +7,7 @@
 	<bean id="parametersProvider" class="org.esco.dynamicgroups.domain.parameters.ParametersProvider">
 		<constructor-arg value="resources/esco-dynamic-groups.properties" />
 		<constructor-arg>
-			<bean class="org.esco.dynamicgroups.domain.parameters.LDAPPersonsParametersSection"/>
+			<bean class="org.esco.dynamicgroups.domain.parameters.PersonsParametersSection"/>
 		</constructor-arg>
 		<constructor-arg>
 			<bean class="org.esco.dynamicgroups.domain.parameters.GroupsParametersSection"/>
@@ -40,12 +40,12 @@
 		<property name="messageSource" ref="i18nService"/>
 	</bean>
 	
-	<bean id="atomValidator" class="org.esco.dynamicgroups.domain.definition.AtomicPropositionValidatorFromList">
+	<bean id="atomValidator" class="org.esco.dynamicgroups.domain.definition.AtomicPropositionValidatorFromListBean">
 		<property name="parametersProvider" ref="parametersProvider"/>
 		<property name="i18n" ref="i18n"/>
 	</bean>
 	
-	<bean id="propositionCodec" class="org.esco.dynamicgroups.domain.definition.PropositionCodec">
+	<bean id="propositionCodec" class="org.esco.dynamicgroups.domain.definition.PropositionCodecBean">
 		<property name="i18n" ref= "i18n"/>
 		<property name="atomValidator" ref="atomValidator"/>
 	</bean>
@@ -64,7 +64,7 @@
 		<property name="reportFormatter" ref="reportFormatter"/>
 		<property name="groupsService" ref="groupsService"/>
 		<property name="domainService" ref="domainService"/>
-		<property name="resourceProvider" ref="resourceProviderManager"/>
+		<property name="resourcesProvider" ref="resourcesProvider"/>
 	</bean>
 	
 	<bean id="statisticsManagerProvider" class="org.esco.dynamicgroups.domain.reporting.statistics.StatisticsManagerProviderForHooks">
@@ -83,6 +83,7 @@
      	<property name="reportFormatter" ref="reportFormatter"/>
      	<property name="parametersProvider" ref="parametersProvider"/>
 	</bean>
+	
 	<bean name="reportingJob" class="org.springframework.scheduling.quartz.JobDetailBean">
   		<property name="jobClass" value="org.esco.dynamicgroups.domain.reporting.ReportingJob"/>
   		<property name="jobDataAsMap">
@@ -96,20 +97,22 @@
 		<constructor-arg ref="parametersProvider"/>
 		<property name="jobDetail" ref="reportingJob"/>
 	</bean>
-	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
-  		<property name="triggers">
+	
+	<bean id ="schedulerFactoryBean" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+  	 	<property name="triggers">
     		<list>
       			<ref bean="cronTrigger"/>
     		</list>
   		</property>
+  		
 	</bean>
 	
 	<bean id="repositoryListener" class="org.esco.dynamicgroups.domain.SyncReplClientListenerImpl">
 		<property name="syncReplClient" ref="syncReplClient" />
-		<property name="exceptionHandlerFactory" ref="uncaughtExceptionHandlerFactory" />
+		<property name="exceptionHandlerFactory" ref="repositoryListenerExceptHandlerFact" />
 	</bean>
 	
-	<bean id="uncaughtExceptionHandlerFactory" class="org.esco.dynamicgroups.exceptions.UncaughtExceptionHandlerFactoryImpl">
+	<bean id="repositoryListenerExceptHandlerFact" class="org.esco.dynamicgroups.exceptions.RepositoryListenerUncaughtExceptionHandlerFactory">
 		<property name="listener" ref="repositoryListener"/>
 		<property name="mailer" ref="mailer"/>
 	</bean>
@@ -122,6 +125,7 @@
 		<property name="repositoryListener" ref="repositoryListener" />
 		<property name="statisticsManager" ref="statisticsManager" />
 		<property name="reportingManager" ref="reportingManager"/>
+		<property name="exceptionHandlerFactory" ref="repositoryListenerExceptHandlerFact"/>
 	</bean>
 	
 	<bean id="domainServiceProvider" class="org.esco.dynamicgroups.domain.DomainServiceProviderForHooks">

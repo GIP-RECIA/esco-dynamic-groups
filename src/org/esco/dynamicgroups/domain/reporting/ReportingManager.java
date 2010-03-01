@@ -5,7 +5,7 @@ package org.esco.dynamicgroups.domain.reporting;
 
 import java.util.Calendar;
 
-import org.esco.dynamicgroups.domain.beans.I18NManager;
+import org.esco.dynamicgroups.domain.beans.II18NManager;
 import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
 import org.esco.dynamicgroups.domain.parameters.ReportingParametersSection;
 import org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager;
@@ -48,7 +48,7 @@ public class ReportingManager implements IReportingManager, InitializingBean {
     private IMailer mailer;
 
     /** The I18n manager. */
-    private transient I18NManager i18n;
+    private transient II18NManager i18n;
 
     /** The user paramters provider. */
     private ParametersProvider parametersProvider;
@@ -90,8 +90,6 @@ public class ReportingManager implements IReportingManager, InitializingBean {
                 + getClass() + " can't be null.");
 
         reportingParameters = (ReportingParametersSection) parametersProvider.getReportingParametersSection();
-
-
 
     }
 
@@ -182,7 +180,7 @@ public class ReportingManager implements IReportingManager, InitializingBean {
      * Getter for i18n.
      * @return i18n.
      */
-    public I18NManager getI18n() {
+    public II18NManager getI18n() {
         return i18n;
     }
 
@@ -191,7 +189,7 @@ public class ReportingManager implements IReportingManager, InitializingBean {
      * Setter for i18n.
      * @param i18n the new value for i18n.
      */
-    public void setI18n(final I18NManager i18n) {
+    public void setI18n(final II18NManager i18n) {
         this.i18n = i18n;
     }
 

@@ -3,8 +3,8 @@
  */
 package org.esco.dynamicgroups.dao.ldap.syncrepl.client.util.logger;
 
-import org.esco.dynamicgroups.domain.parameters.LDAPPersonsParametersSection;
 import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
+import org.esco.dynamicgroups.domain.parameters.PersonsParametersSection;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
@@ -23,7 +23,7 @@ public class SyncReplMessagesLoggerFactoryImpl implements ISyncReplMessagesLogge
     private ParametersProvider parametersProvider;
 
     /** The LDAP Parameters. */
-    private LDAPPersonsParametersSection ldapParameters;
+    private PersonsParametersSection ldapParameters;
 
     /**
      * Builds an instance of SyncReplMessagesLoggerFactoryImpl.
@@ -56,7 +56,7 @@ public class SyncReplMessagesLoggerFactoryImpl implements ISyncReplMessagesLogge
         Assert.notNull(this.parametersProvider, "The property parametersProvider in the class " 
                 + getClass().getName() + " can't be null.");
 
-        ldapParameters = (LDAPPersonsParametersSection) parametersProvider.getPersonsParametersSection();
+        ldapParameters = (PersonsParametersSection) parametersProvider.getPersonsParametersSection();
 
     }
 

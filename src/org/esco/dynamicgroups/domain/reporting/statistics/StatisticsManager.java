@@ -10,17 +10,18 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.esco.dynamicgroups.dao.grouper.IGroupsDAOService;
 import org.esco.dynamicgroups.dao.ldap.syncrepl.ldapsync.protocol.SyncStateControl;
 import org.esco.dynamicgroups.domain.IDomainService;
-import org.esco.dynamicgroups.domain.beans.I18NManager;
+import org.esco.dynamicgroups.domain.beans.II18NManager;
 import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
 import org.esco.dynamicgroups.domain.parameters.ReportingParametersSection;
 import org.esco.dynamicgroups.domain.reporting.IReportFormatter;
-import org.esco.dynamicgroups.util.IResourceProvider;
+import org.esco.dynamicgroups.util.IResourcesProvider;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
@@ -30,7 +31,11 @@ import org.springframework.util.Assert;
  * 24 juil. 2009
  *
  */
-class StatsBundle {
+class StatsBundle implements Serializable {
+
+    /** Serial version UID.*/
+    private static final long serialVersionUID = -4096407571735607701L;
+
     /** The statistics regarding the modifications of definition. */
     private IDefinitionModificationsStatsEntry definitionModifications;
 
@@ -180,10 +185,10 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
     private transient ReportingParametersSection reportingParameters;
 
     /** The I18N Manager. */
-    private transient I18NManager i18n;
+    private transient II18NManager i18n;
 
     /** Bundle of statistic data. */
-    private StatsBundle statsBundle;
+    private StatsBundle statsBundle = new StatsBundle();
 
     /** The report formatter to use. */
     private transient IReportFormatter reportFormatter;
@@ -196,7 +201,7 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
     private transient IGroupsDAOService groupsService;
 
     /**Util class to serialize and load the instance.*/
-    private transient IResourceProvider resourceProvider;
+    private transient IResourcesProvider resourcesProvider;
 
     /**
      * Builds an instance of StatisticsManager.
@@ -226,8 +231,8 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
                 "The property reportFormatter in the class " + this.getClass().getName() 
                 + canNotBeNull);
 
-        Assert.notNull(this.resourceProvider, 
-                "The property resourceProvider in the class " + this.getClass().getName() 
+        Assert.notNull(this.resourcesProvider, 
+                "The property resourcesProvider in the class " + this.getClass().getName() 
                 + canNotBeNull);
 
         Assert.notNull(this.groupsService, 
@@ -534,7 +539,7 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
 
         if (statsBundle.getGroupsActivityStats() != null) {
             synchronized (statsBundle.getGroupsActivityStats()) {
-                statsBundle.getGroupsActivityStats();
+                statsBundle.getGroupsActivityStats().reset();
             }
         }
 
@@ -664,7 +669,7 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
      * Getter for i18n.
      * @return i18n.
      */
-    public I18NManager getI18n() {
+    public II18NManager getI18n() {
         return i18n;
     }
 
@@ -672,7 +677,7 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
      * Setter for i18n.
      * @param i18n the new value for i18n.
      */
-    public void setI18n(final I18NManager i18n) {
+    public void setI18n(final II18NManager i18n) {
         this.i18n = i18n;
     }
 
@@ -716,7 +721,7 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
         if (reportingParameters.getEnabled()) {
             if (reportingParameters.getPersistent()) {
                 try {
-                    final File file = resourceProvider.getResource(SER_FILE_NAME).getFile();
+                    final File file = resourcesProvider.getResource(SER_FILE_NAME).getFile();
                     if (file.exists()) {
                         if (LOGGER.isDebugEnabled()) {
                             LOGGER.debug("Loading serialized instance from: " + file.getAbsolutePath());
@@ -760,7 +765,7 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
         if (reportingParameters.getEnabled()) {
             if (reportingParameters.getPersistent()) {
                 try {
-                    final File file = resourceProvider.getResource(SER_FILE_NAME).getFile();
+                    final File file = resourcesProvider.getResource(SER_FILE_NAME).getFile();
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("Serialization of the instance into the file: " + file.getAbsolutePath());
                     }
@@ -793,18 +798,18 @@ public class StatisticsManager implements IStatisticsManager, InitializingBean {
     }
 
     /**
-     * Getter for resourceProvider.
-     * @return resourceProvider.
+     * Getter for resourcesProvider.
+     * @return resourcesProvider.
      */
-    public IResourceProvider getResourceProvider() {
-        return resourceProvider;
+    public IResourcesProvider getResourcesProvider() {
+        return resourcesProvider;
     }
 
     /**
-     * Setter for resourceProvider.
-     * @param resourceProvider the new value for resourceProvider.
+     * Setter for resourcesProvider.
+     * @param resourcesProvider the new value for resourcesProvider.
      */
-    public void setResourceProvider(final IResourceProvider resourceProvider) {
-        this.resourceProvider = resourceProvider;
+    public void setResourcesProvider(final IResourcesProvider resourcesProvider) {
+        this.resourcesProvider = resourcesProvider;
     }
 }

@@ -33,8 +33,8 @@ public interface IDomainService {
     
     /**
      * Handles a new or modified group.
-     * If the deinition is not valid the entry in the DB is deleted if exist else
-     * the entry is creted or modified.
+     * If the definition is not valid the entry in the DB is deleted if exist else
+     * the entry is created or modified.
      * @param definition The dynamic group definition.
      */
     void handleNewOrModifiedDynamicGroup(final DynamicGroupDefinition definition);
@@ -42,7 +42,7 @@ public interface IDomainService {
     /**
      * Gives the members definition for a dynamic group.
      * @param groupUUID The uuid of the dynamic group.
-     * @return The definition if it exists, null oterwise.
+     * @return The definition if it exists, null otherwise.
      */
     String getMembershipExpression(final String groupUUID);
     

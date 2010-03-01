@@ -29,6 +29,7 @@ import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
 import org.esco.dynamicgroups.domain.parameters.ReportingParametersSection;
 import org.esco.dynamicgroups.domain.reporting.IReportingManager;
 import org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager;
+import org.esco.dynamicgroups.exceptions.IUncaughtExceptionHandlerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
@@ -63,7 +64,7 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
     /** The Database DAO Service to use. */
     private IDBDAOService daoService;
 
-    /** Service used to retrives the members from the logic defintion 
+    /** Service used to retrieve the members from the logic definition 
      * of the group. */
     private IMembersFromDefinitionDAO membersFromDefinitionService;
 
@@ -76,10 +77,13 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
     /** Reporting manager. */
     private IReportingManager reportingManager; 
 
-    /** Flag to determine if the memebrs of the dynamic groups should be checked on startup. */
+    /** Handler factory for the groups' members verification thread. */
+    private IUncaughtExceptionHandlerFactory exceptionHandlerFactory;
+
+    /** Flag to determine if the members of the dynamic groups should be checked on startup. */
     private boolean checkMembersOnStartup;
 
-    /** Flag to determine if the verification of the dynamic group memebrs
+    /** Flag to determine if the verification of the dynamic group members
      * should be reported. */
     private boolean reportCheckMemebersOnStartup;
 
@@ -130,6 +134,10 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
                 "The property reportingManager in the class " + this.getClass().getName() 
                 + cantBeNull);
 
+        Assert.notNull(this.exceptionHandlerFactory, 
+                "The property exceptionHandlerFactory in the class " + this.getClass().getName() 
+                + cantBeNull);
+
         IDynamicAttributesProvider dynAttProvider = 
             (IDynamicAttributesProvider) parametersProvider.getPersonsParametersSection();
         dynamicAttributes = dynAttProvider.getDynamicAttributes();
@@ -151,6 +159,7 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
     }
 
 
+
     /**
      * Listen for an application event.
      * @param event The event.
@@ -162,15 +171,7 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
             if (!repositoryListener.isListening()) {
                 statisticsManager.load();
 
-                if (checkMembersOnStartup) {
-                    LOGGER.info("Starting to check the members of dynamic groups.");
-
-                    startMembersCheckingProcess();
-                    LOGGER.info("Members of dynamic groups checked.");
-                    if (reportCheckMemebersOnStartup) {
-                        reportingManager.doReportingForGroupsMembersCheck();
-                    }
-                }
+                checkMembersOnStartup();
 
                 repositoryListener.listen();
                 LOGGER.info("-----------------------------------------------");
@@ -179,6 +180,7 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
 
             }
         } else if (event instanceof ContextClosedEvent) {
+            
             if (repositoryListener.isListening()) {
                 repositoryListener.stop();
                 statisticsManager.save();
@@ -225,7 +227,7 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
 
     /**
      * Removes a deleted user user from its groups. 
-     * The whole groups or only the dynmic groups may be considered, depending
+     * The whole groups or only the dynamic groups may be considered, depending
      * on the configuration.
      * @param entry The entry associated to the user.
      * @see org.esco.dynamicgroups.domain.IDomainService#removeDeletedUserFromGroups(org.esco.dynamicgroups.IEntryDTO)
@@ -248,7 +250,7 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
 
         // For each value of attribute, computes the candidat groups and their number of occurences.
         // If the attribute is a and the value is v, a candidat group is a group 
-        // wich uses a=v in its definition.
+        // which uses a=v in its definition.
         for (String attributeName : dynamicAttributes) {
             String[] attributeValues = entry.getAttributeValues(attributeName);
             if (attributeValues != null) {
@@ -313,7 +315,7 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
     /**
      * Initializes the group : removes all the existing members and retrieves the 
      * new members from the group definition.
-     * @param definition The dfinition associated to the group to initialize.
+     * @param definition The definition associated to the group to initialize.
      */
     private void initialize(final DynamicGroupDefinition definition) {
 
@@ -331,30 +333,77 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
     }
 
     /**
-     * Checks all the groups.
-     * @see org.esco.dynamicgroups.domain.IDomainService#startMembersCheckingProcess()
+     * Retrieves the list of the dynamic groups definitions.
+     * @return The definitions of the members of the dynamic groups.
      */
-    public synchronized  void startMembersCheckingProcess() {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Starting the checking of the dynamic groups.");
-        }
-        stopCheckingProcess.set(false);
-
-
-
+    private synchronized List<DynamicGroupDefinition> retrieveDynamicGroupsDefinitionsList() {
         // Gets the list of the dynamic groups definitions.
         // This list is shuffled for the case that only a part of the list is control.
         final List<DynamicGroupDefinition> definitions = new ArrayList<DynamicGroupDefinition>();
         definitions.addAll(groupsService.getAllDynamicGroupDefinitions());
         Collections.shuffle(definitions);
+        return definitions;
+    }
+
+    /**
+     * Checks the members of a group.
+     * @param definition The definition of the group.
+     */
+    private synchronized void checkGroupMembers(final DynamicGroupDefinition definition) {
+        final Set<String> expectedMembers = membersFromDefinitionService.getMembers(definition);
+        groupsService.checkGroupMembers(definition, expectedMembers);
+    }
+
+    /**
+     * Launches the check of the dynamic group members in a thread.
+     */
+    private void checkMembersOnStartup() {
+        if (checkMembersOnStartup) {
+            final Logger logger = LOGGER;
+            final Thread thread = new Thread() {
+
+                /**
+                 * Run method.
+                 * @see java.lang.Runnable#run()
+                 */
+                @Override
+                public void run() {
+
+                    logger.info("Starting to check the members of dynamic groups.");
+
+                    startMembersCheckingProcess();
+                    logger.info("Members of dynamic groups checked.");
+                    if (getReportCheckMemebersOnStartup()) {
+                        getReportingManager().doReportingForGroupsMembersCheck();
+                    }
+                }
+            };
+
+            thread.setUncaughtExceptionHandler(exceptionHandlerFactory.createExceptionHandler());
+            thread.start();
+        }
+    }
+
+    /**
+     * Checks all the groups.
+     * @see org.esco.dynamicgroups.domain.IDomainService#startMembersCheckingProcess()
+     */
+    public  void startMembersCheckingProcess() {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Starting to check the dynamic groups.");
+        }
+        stopCheckingProcess.set(false);
+
+
+        final List<DynamicGroupDefinition> definitions = retrieveDynamicGroupsDefinitionsList();
+
 
         final Iterator<DynamicGroupDefinition> definitionsIter = definitions.iterator();
 
         // The definitions are checked until the end of the list or the processus is stopped.
         while (definitionsIter.hasNext() && !stopCheckingProcess.get()) {
             final DynamicGroupDefinition definition = definitionsIter.next();
-            final Set<String> expectedMembers = membersFromDefinitionService.getMembers(definition);
-            groupsService.checkGroupMembers(definition, expectedMembers);
+            checkGroupMembers(definition);
         }
 
         if (LOGGER.isDebugEnabled()) {
@@ -408,8 +457,8 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
 
     /**
      * Handles a new or modified group.
-     * If the deinition is not valid the entry in the DB is deleted if exist else
-     * the entry is creted or modified.
+     * If the definition is not valid the entry in the DB is deleted if exist else
+     * the entry is created or modified.
      * @param definition The dynamic group definition.
      * @see org.esco.dynamicgroups.domain.IDomainService#handleNewOrModifiedDynamicGroup(DynamicGroupDefinition)
      */
@@ -421,7 +470,7 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
     /**
      * Gives the members definition for a dynamic group.
      * @param groupUUID The uuid of the dynamic group.
-     * @return The definition if it exists, null oterwise.
+     * @return The definition if it exists, null otherwise.
      * @see org.esco.dynamicgroups.domain.IDomainService#getMembershipExpression(java.lang.String)
      */
     public synchronized  String getMembershipExpression(final String groupUUID) {
@@ -519,5 +568,29 @@ public class ESCODomainServiceImpl implements IDomainService, ApplicationListene
      */
     public void setReportingManager(final IReportingManager reportingManager) {
         this.reportingManager = reportingManager;
+    }
+
+    /**
+     * Getter for exceptionHandlerFactory.
+     * @return exceptionHandlerFactory.
+     */
+    public IUncaughtExceptionHandlerFactory getExceptionHandlerFactory() {
+        return exceptionHandlerFactory;
+    }
+
+    /**
+     * Setter for exceptionHandlerFactory.
+     * @param exceptionHandlerFactory the new value for exceptionHandlerFactory.
+     */
+    public void setExceptionHandlerFactory(final IUncaughtExceptionHandlerFactory exceptionHandlerFactory) {
+        this.exceptionHandlerFactory = exceptionHandlerFactory;
+    }
+
+    /**
+     * Getter for reportCheckMemebersOnStartup.
+     * @return reportCheckMemebersOnStartup.
+     */
+    protected boolean getReportCheckMemebersOnStartup() {
+        return reportCheckMemebersOnStartup;
     }
 }

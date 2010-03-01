@@ -14,12 +14,11 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-
 import org.apache.log4j.Logger;
-import org.esco.dynamicgroups.domain.parameters.LDAPPersonsParametersSection;
 import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
+import org.esco.dynamicgroups.domain.parameters.PersonsParametersSection;
 import org.esco.dynamicgroups.exceptions.DynamicGroupsException;
-import org.esco.dynamicgroups.util.IResourceProvider;
+import org.esco.dynamicgroups.util.IResourcesProvider;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
@@ -65,7 +64,7 @@ public class CookieManager implements InitializingBean, ApplicationListener, Ser
     private ParametersProvider parametersProvider;
 
     /** The LDAP Parameters. */
-    private LDAPPersonsParametersSection ldapParameters;
+    private PersonsParametersSection ldapParameters;
 
     /** The cookie file. */
     private transient File cookieFile;
@@ -80,7 +79,7 @@ public class CookieManager implements InitializingBean, ApplicationListener, Ser
     private byte[] createdCookie;
 
     /** Util class to read and write the cookie under the servlet context. */
-    private IResourceProvider resourceProvider;
+    private IResourcesProvider resourceProvider;
 
     /**
      * Builds an instance of CookieManager.
@@ -99,7 +98,7 @@ public class CookieManager implements InitializingBean, ApplicationListener, Ser
                 + getClass().getName() + " can't be null.");
         Assert.notNull(this.resourceProvider, "The property resourceProvider in the class " 
                 + getClass().getName() + " can't be null.");
-        ldapParameters = (LDAPPersonsParametersSection) parametersProvider.getPersonsParametersSection();
+        ldapParameters = (PersonsParametersSection) parametersProvider.getPersonsParametersSection();
 
         
     }
@@ -157,7 +156,7 @@ public class CookieManager implements InitializingBean, ApplicationListener, Ser
     }
 
     /**
-     * Tries to load the las cookie from the file system.
+     * Tries to load the last cookie from the file system.
      * @return the cookie if a file can be loaded, null otherwise.
      */
     private byte[] read() {
@@ -252,7 +251,7 @@ public class CookieManager implements InitializingBean, ApplicationListener, Ser
     }
 
     /**
-     * Updates the las cookie.
+     * Updates the last cookie.
      * @param newRecievedCookie The new value for the cookie.
      */
     public synchronized void updateCurrentCookie(final byte[] newRecievedCookie) {
@@ -326,7 +325,7 @@ public class CookieManager implements InitializingBean, ApplicationListener, Ser
      * Getter for resourceProvider.
      * @return resourceProvider.
      */
-    public IResourceProvider getResourceProvider() {
+    public IResourcesProvider getResourceProvider() {
         return resourceProvider;
     }
 
@@ -334,7 +333,7 @@ public class CookieManager implements InitializingBean, ApplicationListener, Ser
      * Setter for resourceProvider.
      * @param resourceProvider the new value for resourceProvider.
      */
-    public void setResourceProvider(final IResourceProvider resourceProvider) {
+    public void setResourceProvider(final IResourcesProvider resourceProvider) {
         this.resourceProvider = resourceProvider;
     }
 }

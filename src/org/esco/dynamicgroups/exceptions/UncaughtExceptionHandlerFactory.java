@@ -6,34 +6,29 @@ package org.esco.dynamicgroups.exceptions;
 import java.io.Serializable;
 import java.lang.Thread.UncaughtExceptionHandler;
 
-import org.esco.dynamicgroups.domain.IRepositoryListener;
 import org.esco.dynamicgroups.util.IMailer;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
 /**
- * Reference implementation of UncaughtExcptionHanlderFactory.
+ * Implementation of UncaughtExcptionHanlderFactory used to create the base exception handlers for the threads.
  * @author GIP RECIA - A. Deman
  * 18 mai 2009
  *
  */
-public class UncaughtExceptionHandlerFactoryImpl 
+public class UncaughtExceptionHandlerFactory 
     implements IUncaughtExceptionHandlerFactory, InitializingBean, Serializable {
 
     /** Serial version UID.*/
-    private static final long serialVersionUID = 1478142432687769977L;
-
-
-    /** The listener associated to this listener. */
-    private IRepositoryListener listener;
-    
+    private static final long serialVersionUID = 9125801065236845241L;
+      
     /** The mailer to use to send the notifications of exceptions. */
     private IMailer mailer;
     
     /**
-     * Builds an instance of UncaughtExceptionHandlerFactoryImpl.
+     * Builds an instance of UncaughtExceptionHandlerFactory.
      */
-    public UncaughtExceptionHandlerFactoryImpl() {
+    public UncaughtExceptionHandlerFactory() {
         super();
     }
     
@@ -44,10 +39,7 @@ public class UncaughtExceptionHandlerFactoryImpl
      * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
      */
     public void afterPropertiesSet() throws Exception {
-        Assert.notNull(this.listener, 
-                "The property listener in the class " + this.getClass().getName() 
-                + " can't be null.");
-        
+       
         Assert.notNull(this.mailer,
                 "The property mailer in the class " + this.getClass().getName() 
                 + " can't be null.");
@@ -59,23 +51,7 @@ public class UncaughtExceptionHandlerFactoryImpl
      * @see org.esco.dynamicgroups.exceptions.IUncaughtExceptionHandlerFactory#createExceptionHandler()
      */
     public UncaughtExceptionHandler createExceptionHandler() {
-       return new UncaughtExceptionHandlerImpl(listener, mailer);
-    }
-
-    /**
-     * Getter for listener.
-     * @return listener.
-     */
-    public IRepositoryListener getListener() {
-        return listener;
-    }
-
-    /**
-     * Setter for listener.
-     * @param listener the new value for listener.
-     */
-    public void setListener(final IRepositoryListener listener) {
-        this.listener = listener;
+        return new org.esco.dynamicgroups.exceptions.UncaughtExceptionHandler(mailer);
     }
 
     /**

@@ -12,8 +12,8 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 
 import org.apache.log4j.Logger;
-import org.esco.dynamicgroups.domain.parameters.LDAPPersonsParametersSection;
 import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
+import org.esco.dynamicgroups.domain.parameters.PersonsParametersSection;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
@@ -41,7 +41,7 @@ public class LDAPConnectionManager implements InitializingBean, Serializable {
     private ParametersProvider parametersProvider;
     
     /** LDAP parameters. */
-    private LDAPPersonsParametersSection ldapParameters;
+    private PersonsParametersSection ldapParameters;
     /**
      * Builds an instance of LDAPConnectionManager.
      */
@@ -57,7 +57,7 @@ public class LDAPConnectionManager implements InitializingBean, Serializable {
     public void afterPropertiesSet() throws Exception {
         Assert.notNull(parametersProvider, "The property parametersProvider in the class " 
                 + getClass().getName() + " can't be null.");
-       ldapParameters = (LDAPPersonsParametersSection) parametersProvider.getPersonsParametersSection();
+       ldapParameters = (PersonsParametersSection) parametersProvider.getPersonsParametersSection();
        if (ldapParameters.getUseSSLConnection()) {
            System.setProperty(JAVAPROP_TRUST_STORE, ldapParameters.getKeystorePath());
            final LDAPSocketFactory ssf = new LDAPJSSESecureSocketFactory();
