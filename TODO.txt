@@ -1,0 +1,100 @@
+Cassification
+
+Verifier Suppression d'un group dynamique
+	Suppression du groupe.
+	Suppression du type.
+	
+Sessions Grouper : utiliser l'utilisateur specifie dans le parametrage.	
+	
+Verifier que les stats sont tjrs OK (notamment creation/suppression de groupes).
+
+
+OK parametrer la serialization du statisticsManager.
+
+OK tâche ant pour la verification de propositions logiques
+
+OK Prendre en compte la suppression d'un groupe dynamique.
+OK Verifier ce qui se passe lorsque le type dynamique est retiré d'un groupe.
+
+OK * tester la desactivation du reporting
+OK * Desactivation du cron si reporting disabled
+
+OK * help du ant avec la description des cibles
+
+* Vérifier dans les rapports les groupes sans définition et les groupes supprimés
+
+OK ServletResource=> ResourceProvider (fait tout le travail)
+
+OK revoir la réinitialization de tous les groupes
+    - verifier que le client LDAP n'est pas démarré
+    - récupérer les groupes via le type.
+    - effectuer une comparaison plutôt qu'un vidage/remplissage.
+
+OK * Suppression du domainregistry dans le hook -> utiliser un provider.
+
+OK - i18n
+
+ - chaque entree, groupe d'entrée doit être activable/ desactivable.
+ - Envoyé par mail.
+ - format text / HTML.
+ - Serialisation pour les arrêts reprises
+
+   xNombre de notifications / add / modify/ delete
+   x Nombre de groupes dynamiques crees/supprimes.
+   xNombre de definitions modifiees
+   Nombre de groupes dynamiques inactifs (sans definition).
+   + liste
+     	
+
+Activités des groupes :
+	esco:grouper1 : 30 ajouts, 50 suppressions
+	utilisateurs ajoutés : uid1, uid2...
+	utilisateurs supprimés : uid1, uid2...
+	
+	esco:groupe2 : 10 ajouts
+	utilisateurs ajoutés : uid1, uid2...
+	utilisateurs supprimés : uid1, uid2...
+	
+	
+	
+OK * Vérifications de cohérence.	 	
+    N premiers groupes != peuplement obtenu par le processus d'initialisation. 	
+ 	  
+   
+   - [* Gérer les erreurs lors de la saisie des definitions dynamiques :
+    - +fois le même attribut e.g. And(att=1, And (att1=1,...)]
+ 
+[* And et Or non binaires.]
+ 
+OK * Separer LDAPDynamicGroupInitializer en domain et DAO.   
+
+
+OK * Revoir le schema de la base pour être en FN.
+
+OK * Voir la creation de la base.
+
+OK * Statistiques + rapport:
+
+OK * tâche ant pour l'installation.
+
+OK Repartir ESCOParameters dans plusieurs classes pour faciliter les
+  implementations vers d'autres backends. 
+  
+OK Passer les différentes sections au niveau du constructeur et supprimer les depends on dans
+ les xml spring.
+ 
+OK * Supprimer l'uid de la liste des attributs dynamiques.
+
+OK * Utiliser un provider egalement pour les parametres utilisateurs.
+
+OK * Utilisation de ldaps
+
+OK * Rapport uniquement de la vérification des membres au démarrage.
+
+OK * Reflechir aux problèmes de synchronization lors de la modification ou lors de la creation.
+
+OK * recuperation du timezone suffix dans le cookieManager (i18n ou pas de creation de cookie).
+
+OK parameterer les options de compilation.
+
+OK * Cassification

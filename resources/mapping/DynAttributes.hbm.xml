@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="org.esco.dynamicgroups.domain.beans">
+    <class name="DynAttribute" table="DYN_ATTRIBUTES">
+        <id name="attributeId" column="ATT_ID" >
+        	<generator class="native"/>
+        </id>
+        <property name="attributeName" column="ATT_NAME" index="INDEX_ATT_NAME"/>
+    </class>
+</hibernate-mapping>

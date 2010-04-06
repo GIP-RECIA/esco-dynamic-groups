@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="org.esco.dynamicgroups.domain.beans">
+    <class name="GroupAttributeValueAssoc" table="DYN_ATTRIBUTE_VALUES">
+        <id name="attributeValueId" column="ATTVAL_ID">
+        	<generator class="native"/>
+        </id>
+        <many-to-one class="DynAttribute" name="attribute" column="ATT_ID"/>
+        <many-to-one class="DynGroup" name="group" column="GRP_ID"/>
+       	<property name="attributeValue" column="ATTVAL_VALUE" index="INDEX_ATTVAL_VALUE"/> 
+       	<property name="negative" column="ATTVAL_NEGATIVE"/> 
+    </class>
+</hibernate-mapping>
