@@ -104,7 +104,7 @@ public class GetUndefinedGroupsDAO extends BaseGrouperDAO {
             if (group.getTypes().contains(type)) {
                 String membersDef = null;
                 try {
-                    membersDef = group.getAttribute(grouperParameters.getGrouperDefinitionField());
+                    membersDef = group.getAttributeValue(grouperParameters.getGrouperDefinitionField(),true,true);
                     if ("".equals(membersDef)) {
                         setToPopulate.add(group.getName());
                     }

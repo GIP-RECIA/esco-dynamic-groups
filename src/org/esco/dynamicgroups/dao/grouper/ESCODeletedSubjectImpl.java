@@ -130,20 +130,35 @@ public class ESCODeletedSubjectImpl implements Subject, Serializable {
     }
 
     /**
-     * Getter for sourceId.
-     * @return sourceId.
-     */
-    public static String getSourceId() {
-        return sourceId;
-    }
-
-    /**
      * Setter for sourceId.
      * @param newSourceId the new value for sourceId.
      */
     public static void setSourceId(final String newSourceId) {
         sourceId = newSourceId;
     }
+
+	@Override
+	public String getAttributeValueOrCommaSeparated(String attributeName) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getAttributeValueSingleValued(String attributeName) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getSourceId() {
+		return sourceId;
+	}
+
+	@Override
+	public String getTypeName() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
     
     

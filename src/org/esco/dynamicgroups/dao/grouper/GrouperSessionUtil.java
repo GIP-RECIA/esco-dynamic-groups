@@ -48,7 +48,7 @@ public class GrouperSessionUtil implements Serializable {
     public GrouperSession createSession() {
 
         try {
-            final Subject subject = SubjectFinder.findById(subjectId);
+            final Subject subject = SubjectFinder.findById(subjectId, true);
             final GrouperSession session = GrouperSession.start(subject);
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Starting a new session: " + session.getSessionId());

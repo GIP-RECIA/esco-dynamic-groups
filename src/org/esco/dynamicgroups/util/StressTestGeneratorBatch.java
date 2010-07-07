@@ -238,8 +238,8 @@ public class StressTestGeneratorBatch implements InitializingBean {
         try {
 
 
-            final Stem stRootStem = StemFinder.findByName(session, stressTestRootStem);
-            final GroupType type = GroupTypeFinder.find(grouperParameters.getGrouperType());
+            final Stem stRootStem = StemFinder.findByName(session, stressTestRootStem,true);
+            final GroupType type = GroupTypeFinder.find(grouperParameters.getGrouperType(),true);
             final String defField = grouperParameters.getGrouperDefinitionField();
             Stem currentStem = null;
             

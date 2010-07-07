@@ -124,7 +124,7 @@ public class GetAllDynamicGroupDefintionsDAO extends BaseGrouperDAO {
             for (Group group : groups) {
                 String membersDef = null;
                 try {
-                    membersDef = group.getAttribute(definitionField);
+                    membersDef = group.getAttributeValue(definitionField,true,true);
                     definitions.add(new DynamicGroupDefinition(group.getUuid(), membersDef));
                 } catch (AttributeNotFoundException e) {
                     LOGGER.error("Unable to retrieve the attribute "  

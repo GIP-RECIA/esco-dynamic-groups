@@ -40,7 +40,7 @@ public abstract class BaseGrouperDAO implements Serializable {
     protected Group retrieveGroup(final GrouperSession session, final String groupUUID) {
         Group group = null;
         try {
-            group = GroupFinder.findByUuid(session, groupUUID);
+            group = GroupFinder.findByUuid(session, groupUUID,true);
         } catch (GroupNotFoundException e) {
             LOGGER.warn("The group: " + groupUUID + " can't be retrieved from Grouper.");
         }
@@ -55,7 +55,7 @@ public abstract class BaseGrouperDAO implements Serializable {
     protected GroupType retrieveType(final String typeName) {
         GroupType type;
         try {
-            type = GroupTypeFinder.find(typeName);
+            type = GroupTypeFinder.find(typeName,true);
         } catch (SchemaException e) {
             LOGGER.fatal(e, e);
             type = null;

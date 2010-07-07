@@ -28,7 +28,7 @@
 	<property name="esco-dg.3part.antlr.lib" value="${esco-dg.lib.dir}antlr-3.2.jar"/>
 	
 	<property name="esco-dg.grouper.ws.lib.dir" value="${esco-dg.grouper.ws.dir}/lib/custom/"/>
-	<property name="esco-dg.grouper.ws.prop.dir" value="${esco-dg.grouper.ws.dir}/resources/resources/"/>
+	<property name="esco-dg.grouper.ws.prop.dir" value="${esco-dg.grouper.ws.dir}/conf/resources/"/>
 	
 	<property name="esco-dg.grouper.custom.ui.lib.dir" value="${esco-dg.grouper.custom.ui.dir}/WEB-INF/lib/"/>
 	<property name="esco-dg.grouper.custom.ui.prop.dir" value="${esco-dg.grouper.custom.ui.dir}/resources/"/>

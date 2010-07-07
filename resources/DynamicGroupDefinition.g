@@ -138,7 +138,8 @@ options {output=text;backtrack=true; memoize=true;}
 SPACE 	:	
 (' '
  | '\t'
- );
+ ) {skip(); }
+ ;
 
  WS :
  (
@@ -147,12 +148,9 @@ SPACE 	:
  ) { skip(); }
  ;
 
-
- 
-
-NUMBER : ('0'..'9');
-CHAR : ~(('0'..'9'| '\\'));
 ESCAPE 	: ('\\');
+
+IDENT : ('a'..'z'|'A'..'Z'|'0'..'9'|'_'|'*'|'$')+;
 
 // Start of the expressions. 
 fragment evaluateExpression returns [IProposition evaluatedExpression = null] : 
@@ -160,7 +158,7 @@ fragment evaluateExpression returns [IProposition evaluatedExpression = null] :
 
 // General expression.
 fragment expression returns [IProposition proposition = null]: 
-	 L_BRACKET (SPACE)* e=expression (SPACE)* R_BRACKET {proposition = $e.proposition;}
+	 L_BRACKET  e=expression  R_BRACKET {proposition = $e.proposition;}
 	| not_expression {proposition = $not_expression.negation;}
 	| and_expression {proposition = $and_expression.conjunction;}
 	| or_expression {proposition = $or_expression.disjunction;}
@@ -168,42 +166,29 @@ fragment expression returns [IProposition proposition = null]:
 
 // Not expression.	
 fragment  not_expression returns [IProposition negation = null] 
-     : NOT (SPACE)* L_BRACKET (SPACE)* expression (SPACE)* R_BRACKET{negation = new Negation($expression.proposition);};
+     : NOT  L_BRACKET  expression  R_BRACKET{negation = new Negation($expression.proposition);};
 
 // Or expression.     
 fragment or_expression returns [IProposition disjunction = null]
-	: OR (SPACE)* L_BRACKET (SPACE)* e1=expression (SPACE)* COMMA (SPACE)* e2=expression (SPACE)* R_BRACKET {disjunction = new Disjunction($e1.proposition, $e2.proposition);};
+	: OR  L_BRACKET  e1=expression  COMMA  e2=expression  R_BRACKET {disjunction = new Disjunction($e1.proposition, $e2.proposition);};
 
 // And expression.
 fragment and_expression returns [IProposition conjunction = null]
- 	: AND (SPACE)* L_BRACKET (SPACE)* e1=expression (SPACE)* COMMA (SPACE)* e2=expression (SPACE)* R_BRACKET {conjunction = new Conjunction($e1.proposition, $e2.proposition);};
+ 	: AND  L_BRACKET  e1=expression  COMMA  e2=expression  R_BRACKET {conjunction = new Conjunction($e1.proposition, $e2.proposition);};
 
 // Atomic expression.   
 fragment atomic_expression returns [IProposition atomicExpression = null] 
-       :  attribute (SPACE)* EQUAL (SPACE)* value 
+       :  attribute  EQUAL  value 
      {atomicExpression = new AtomicProposition($attribute.stringContent.trim(), $value.stringContent.trim(), false);} ; 
 
 // Atribute's name.
-fragment  attribute returns [String stringContent = ""] : c1=CHAR {stringContent += $c1.text;} (
-	 c2 = CHAR {stringContent += $c2.text;}
-	 | n = NUMBER {stringContent += $n.text;}
-	 | OR {stringContent += $OR.text;}
-	 | AND {stringContent += $AND.text;}
-	 | NOT {stringContent += $NOT.text;}
-	 | SPACE {stringContent += $SPACE.text;}
-	 | escaped {stringContent = $escaped.stringContent;}
-	 )*;     
+fragment  attribute returns [String stringContent = ""] 
+	: m1=IDENT {stringContent += $m1.text;};     
+
 
 // Attribute's value. 	
-fragment  value returns [String stringContent = ""]: (c1=CHAR {stringContent += $c1.text;}
-	 | NUMBER {stringContent += $NUMBER.text;}
-	 | OR {stringContent += $OR.text;}
-	 | AND {stringContent += $AND.text;}
-	 | NOT {stringContent += $NOT.text;}
-         | EQUAL {stringContent += $EQUAL.text;}
-         | SPACE { stringContent += $SPACE.text;}
-         | escaped {stringContent = $escaped.stringContent;}
-	 )+;
+fragment  value returns [String stringContent = ""]
+	: m2=IDENT {stringContent += $m2.text;};
   
 
 // Escaped entity.  

@@ -142,7 +142,7 @@ public class CheckGroupMembersDAO extends BaseGrouperDAO {
                             + groupName + " member " + expectedMember + " not found (added).");
                     statisticsManager.handleMissingMember(groupName, expectedMember);
                     try {
-                        final Subject subj = SubjectFinder.findById(expectedMember);
+                        final Subject subj = SubjectFinder.findById(expectedMember,true);
                         group.addMember(subj);
                     } catch (SubjectNotFoundException e) {
                         LOGGER.error(e, e);
@@ -168,7 +168,7 @@ public class CheckGroupMembersDAO extends BaseGrouperDAO {
                         + groupName + " member " + invalidMember + " is invalid (removed).");
                 statisticsManager.handleInvalidMember(groupName, invalidMember);
                 try {
-                    Subject subj = SubjectFinder.findById(invalidMember);
+                    Subject subj = SubjectFinder.findById(invalidMember,true);
                     group.deleteMember(subj);
                 } catch (SubjectNotFoundException e) {
                     LOGGER.error(e, e);

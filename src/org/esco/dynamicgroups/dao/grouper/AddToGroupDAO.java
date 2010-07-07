@@ -111,7 +111,7 @@ public class AddToGroupDAO extends BaseGrouperDAO implements Serializable {
 
             for (String userId : userIds) {
                 try {
-                    final Subject subject = SubjectFinder.findById(userId);
+                    final Subject subject = SubjectFinder.findById(userId,true);
                     if (!group.hasImmediateMember(subject)) {
                         group.addMember(subject);
 

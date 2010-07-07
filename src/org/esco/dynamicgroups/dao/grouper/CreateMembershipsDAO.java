@@ -128,7 +128,7 @@ public class CreateMembershipsDAO extends BaseGrouperDAO {
         if (groups.size() > 0) {
 
             try {
-                final Subject subject = SubjectFinder.findById(userId);
+                final Subject subject = SubjectFinder.findById(userId,true);
                 // Adds the new memberships.
                 for (String  newGroup : groups.keySet()) {
                     final Group group = retrieveGroup(session, newGroup);

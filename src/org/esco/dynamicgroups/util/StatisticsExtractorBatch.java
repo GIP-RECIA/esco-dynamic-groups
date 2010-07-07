@@ -217,11 +217,11 @@ public class StatisticsExtractorBatch implements Serializable, InitializingBean 
     protected void extractUsersMembershipsCountInternal(final GrouperSession session, final Set<String> userIds) {
         PrintWriter pw = null;
         try {
-            final GroupType type = GroupTypeFinder.find(grouperParameters.getGrouperType());
+            final GroupType type = GroupTypeFinder.find(grouperParameters.getGrouperType(),true);
             pw = new PrintWriter(new File(usersMembershipsOutputFile));
             for (final String userId : userIds) {
-                final Subject subject = SubjectFinder.findById(userId);
-                final Member member = MemberFinder.findBySubject(session, subject);
+                final Subject subject = SubjectFinder.findById(userId,true);
+                final Member member = MemberFinder.findBySubject(session, subject,true);
                 final Set<Group> groups = member.getImmediateGroups();
 
                 // Count the number of dynamic groups that the current user belongs to.
@@ -270,7 +270,7 @@ public class StatisticsExtractorBatch implements Serializable, InitializingBean 
 
 
             pw = new PrintWriter(new File(groupsMembersOutputFile));
-            final GroupType type = GroupTypeFinder.find(grouperParameters.getGrouperType());
+            final GroupType type = GroupTypeFinder.find(grouperParameters.getGrouperType(),true);
             final Set<Group> groups = GroupFinder.findAllByType(session, type);
             for (Group group : groups) {
                 final StringBuilder sb = new StringBuilder();
@@ -339,7 +339,7 @@ public class StatisticsExtractorBatch implements Serializable, InitializingBean 
             final Stem root = StemFinder.findRootStem(session);
 
             pw = new PrintWriter(new File(groupsMembersOutputFile));
-            final GroupType type = GroupTypeFinder.find(grouperParameters.getGrouperType());
+            final GroupType type = GroupTypeFinder.find(grouperParameters.getGrouperType(),true);
             processStem(session, type, pw, root);
         } catch (SchemaException e) {
             LOGGER.fatal(e, e);

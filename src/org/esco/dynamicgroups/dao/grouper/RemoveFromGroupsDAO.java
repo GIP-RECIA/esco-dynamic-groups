@@ -139,7 +139,7 @@ public class RemoveFromGroupsDAO extends BaseGrouperDAO {
             final Subject subject = new ESCODeletedSubjectImpl(userId); 
             
             // Retrieves the groups the subject belongs to.
-            final Member member = MemberFinder.findBySubject(session, subject);
+            final Member member = MemberFinder.findBySubject(session, subject, true);
             
             @SuppressWarnings("unchecked")
             final Set memberships = member.getImmediateMemberships();

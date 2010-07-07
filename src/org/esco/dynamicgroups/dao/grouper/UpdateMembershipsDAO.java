@@ -121,7 +121,7 @@ public class UpdateMembershipsDAO extends BaseGrouperDAO {
     throws MemberNotFoundException, GroupNotFoundException {
         final Map<String, Group> dynamicGroups = new HashMap<String, Group>();
 
-        final Member member = MemberFinder.findBySubject(session, subject);
+        final Member member = MemberFinder.findBySubject(session, subject, true);
         @SuppressWarnings("unchecked")
         final Set memberships = member.getImmediateMemberships();
 
@@ -149,7 +149,7 @@ public class UpdateMembershipsDAO extends BaseGrouperDAO {
         }
 
         try {
-            final Subject subject = SubjectFinder.findById(userId);
+            final Subject subject = SubjectFinder.findById(userId, true);
             final Map<String, Group> previousGroups = retrieveDynamicGroupsForUser(session, subject);
 
             // Removes the obsolet memberships.
