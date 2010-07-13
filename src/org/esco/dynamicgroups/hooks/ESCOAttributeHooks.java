@@ -14,6 +14,7 @@ import org.esco.dynamicgroups.domain.definition.PropositionCodec;
 import org.esco.dynamicgroups.domain.parameters.GroupsParametersSection;
 import org.esco.dynamicgroups.domain.parameters.ParametersProvider;
 import org.esco.dynamicgroups.domain.parameters.ParametersProviderForHooks;
+import org.esco.dynamicgroups.domain.reporting.statistics.IStatisticsManager;
 
 import edu.internet2.middleware.grouper.Attribute;
 import edu.internet2.middleware.grouper.hooks.AttributeHooks;
@@ -40,6 +41,9 @@ public class ESCOAttributeHooks extends AttributeHooks implements Serializable {
     
     /** The domain service, used to handle the operations associated to the dynamic groups. */
     private transient IDomainService domainService;
+    
+    /** The statistics manager.*/
+    private transient IStatisticsManager statisticsManager;
 
 
     /**
@@ -98,6 +102,7 @@ public class ESCOAttributeHooks extends AttributeHooks implements Serializable {
         			// The defition field of the dynamic group has been normalized and is valid
         			final DynamicGroupDefinition def = buildDefinition(preUpdateBean.getAttribute().getGroupUuid(), newValue);
         			domainService.handleNewOrModifiedDynamicGroup(def);
+        			statisticsManager.handleDefinitionModification(preUpdateBean.getAttribute().getGroupUuid(), previousValue, newValue);
         		}
         	}
     	}
@@ -120,8 +125,8 @@ public class ESCOAttributeHooks extends AttributeHooks implements Serializable {
                 LOGGER.debug("Dynamic group - attribute deleted for the group: " 
                         + attribute.getGroupUuid());
             }
-            
             domainService.handleDeletedGroup(attribute.getGroupUuid());
+            statisticsManager.handleDeletedGroup(postDeleteBean.getAttribute().getGroupUuid());
         }
     }
 
@@ -168,6 +173,7 @@ public class ESCOAttributeHooks extends AttributeHooks implements Serializable {
                 final DynamicGroupDefinition def = buildDefinition(preInsertBean.getAttribute().getGroupUuid(), newDefinitionAtt);
                 // the new group is created using the definition (members are calculated and writen in grouper)
                 domainService.handleNewOrModifiedDynamicGroup(def);
+                statisticsManager.handleCreatedGroup(preInsertBean.getAttribute().getGroupUuid());
             }
     	}
     	/*
