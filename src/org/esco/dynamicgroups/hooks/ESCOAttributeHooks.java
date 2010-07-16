@@ -102,7 +102,7 @@ public class ESCOAttributeHooks extends AttributeHooks implements Serializable {
         			// The defition field of the dynamic group has been normalized and is valid
         			final DynamicGroupDefinition def = buildDefinition(preUpdateBean.getAttribute().getGroupUuid(), newValue);
         			domainService.handleNewOrModifiedDynamicGroup(def);
-        			statisticsManager.handleDefinitionModification(preUpdateBean.getAttribute().getGroupUuid(), previousValue, newValue);
+        			//statisticsManager.handleDefinitionModification(preUpdateBean.getAttribute().getGroupUuid(), previousValue, newValue);
         		}
         	}
     	}
@@ -126,7 +126,7 @@ public class ESCOAttributeHooks extends AttributeHooks implements Serializable {
                         + attribute.getGroupUuid());
             }
             domainService.handleDeletedGroup(attribute.getGroupUuid());
-            statisticsManager.handleDeletedGroup(postDeleteBean.getAttribute().getGroupUuid());
+            //statisticsManager.handleDeletedGroup(postDeleteBean.getAttribute().getGroupUuid());
         }
     }
 
@@ -173,7 +173,7 @@ public class ESCOAttributeHooks extends AttributeHooks implements Serializable {
                 final DynamicGroupDefinition def = buildDefinition(preInsertBean.getAttribute().getGroupUuid(), newDefinitionAtt);
                 // the new group is created using the definition (members are calculated and writen in grouper)
                 domainService.handleNewOrModifiedDynamicGroup(def);
-                statisticsManager.handleCreatedGroup(preInsertBean.getAttribute().getGroupUuid());
+                //statisticsManager.handleCreatedGroup(preInsertBean.getAttribute().getGroupUuid());
             }
     	}
     	/*
