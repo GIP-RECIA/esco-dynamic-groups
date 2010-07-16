@@ -12,7 +12,7 @@
 
 	
 	<property name="esco-dg.src.dir" value="src/"/>
-	<property name="esco-dg.version" value="0.1.0-alpha0"/>
+	<property name="esco-dg.version" value="0.1.0-alpha1"/>
 	<property name="esco-dg.grouper-dg.lib" value="${esco-dg.dist.dir}grouper-esco-dg-hooks-${esco-dg.version}.jar"/>
 	<property name="esco-dg.definition.lib" value="${esco-dg.dist.dir}grouper-esco-dg-definition-${esco-dg.version}.jar"/>
 	<property name="esco-dg.definition.includes" value="org/esco/dynamicgroups/domain/definition/**/* org/esco/dynamicgroups/domain/beans/II18NManager*  org/esco/dynamicgroups/domain/beans/DisabledI18NManager*  org/esco/dynamicgroups/exceptions/*"/>
