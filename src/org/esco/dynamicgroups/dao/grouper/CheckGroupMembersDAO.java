@@ -123,8 +123,7 @@ public class CheckGroupMembersDAO extends BaseGrouperDAO {
             // with the expected one.
             final Set<String> actualMembers = new HashSet<String>(); 
 
-            @SuppressWarnings("unchecked") 
-            final Set members = group.getImmediateMembers();
+            final Set<Member> members = group.getImmediateMembers();
             for (Object o : members) {
                 try {
                     final Subject subj = ((Member) o).getSubject();

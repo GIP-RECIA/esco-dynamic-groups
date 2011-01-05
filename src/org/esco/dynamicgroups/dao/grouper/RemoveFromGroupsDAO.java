@@ -141,8 +141,7 @@ public class RemoveFromGroupsDAO extends BaseGrouperDAO {
             // Retrieves the groups the subject belongs to.
             final Member member = MemberFinder.findBySubject(session, subject, true);
             
-            @SuppressWarnings("unchecked")
-            final Set memberships = member.getImmediateMemberships();
+            final Set<Membership> memberships = member.getImmediateMemberships();
             
             for (Object o : memberships) {
                 final Membership m = (Membership) o;

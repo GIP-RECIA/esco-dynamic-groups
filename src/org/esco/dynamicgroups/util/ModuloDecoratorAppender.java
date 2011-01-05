@@ -48,10 +48,11 @@ public class ModuloDecoratorAppender extends AppenderSkeleton implements Appende
     /**
      * @see org.apache.log4j.Appender#close()
      */
-        public void close() {
+        @Override
+		public void close() {
         synchronized (decoratedAppenders) {
-            @SuppressWarnings("unchecked")
-            final Enumeration appendersIt = decoratedAppenders.getAllAppenders();
+            @SuppressWarnings("rawtypes")
+			final Enumeration appendersIt = decoratedAppenders.getAllAppenders();
 
             if (appendersIt != null) {
                 while (appendersIt.hasMoreElements()) {
@@ -80,7 +81,7 @@ public class ModuloDecoratorAppender extends AppenderSkeleton implements Appende
         
         if (actuallyAppend) {
 
-            @SuppressWarnings("unchecked")
+            @SuppressWarnings("rawtypes")
             final Enumeration appendersIt = decoratedAppenders.getAllAppenders();
 
             if (appendersIt != null) {
@@ -136,7 +137,7 @@ public class ModuloDecoratorAppender extends AppenderSkeleton implements Appende
      * @return The decorated appenders.
      * @see org.apache.log4j.spi.AppenderAttachable#getAllAppenders()
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("rawtypes")
     public Enumeration getAllAppenders() {
         synchronized (decoratedAppenders) {
             return decoratedAppenders.getAllAppenders();
@@ -204,7 +205,8 @@ public class ModuloDecoratorAppender extends AppenderSkeleton implements Appende
     /**
      * {@inheritDoc}
      */
-    public boolean requiresLayout() {
+    @Override
+	public boolean requiresLayout() {
       return false;
     }
 

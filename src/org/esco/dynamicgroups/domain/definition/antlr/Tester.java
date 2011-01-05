@@ -10,9 +10,7 @@ import org.esco.dynamicgroups.domain.definition.antlr.generated.DynamicGroupDefi
 import org.esco.dynamicgroups.domain.definition.antlr.generated.DynamicGroupDefinitionParser;
 import org.esco.dynamicgroups.domain.definition.antlr.util.TokensEscaperImpl;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
 import org.antlr.runtime.ANTLRStringStream;
 import org.antlr.runtime.CommonTokenStream;
@@ -37,7 +35,8 @@ public class Tester {
      * @throws IOException 
      * @throws org.antlr.runtime.RecognitionException 
      */
-    public static void main(String[] args) throws RecognitionException, TokenStreamException, IOException, org.antlr.runtime.RecognitionException {
+    @SuppressWarnings("static-access")
+	public static void main(String[] args) throws RecognitionException, TokenStreamException, IOException, org.antlr.runtime.RecognitionException {
         final String[] expressions = { "Orx(AND(NoT (w41 or \\\\11w = 222), v=x),tutu=tralala)", };
         final String[] validAttributes = {"objectClass", "ENTPersonSexe", "ENTEleveEnseignements",
                 "ENTPersonVille", "ENTEleveBoursier", "ENTEleveDelegClass",

@@ -43,7 +43,8 @@ public class ESCOAttributeHooks extends AttributeHooks implements Serializable {
     private transient IDomainService domainService;
     
     /** The statistics manager.*/
-    private transient IStatisticsManager statisticsManager;
+    @SuppressWarnings("unused")
+	private transient IStatisticsManager statisticsManager;
 
 
     /**
@@ -135,7 +136,8 @@ public class ESCOAttributeHooks extends AttributeHooks implements Serializable {
      * Tests if the coded proposition is valid.
      * @param attribute The attribute that contains the coded definition.
      */
-    private void checkAttribute(final Attribute attribute) {
+    @SuppressWarnings("unused")
+	private void checkAttribute(final Attribute attribute) {
         if (definitionField.equals(attribute.getAttrName())) {
             final DecodedPropositionResult result = PropositionCodec.instance().decode(attribute.getValue());
             if (!result.isValid()) {

@@ -122,8 +122,7 @@ public class UpdateMembershipsDAO extends BaseGrouperDAO {
         final Map<String, Group> dynamicGroups = new HashMap<String, Group>();
 
         final Member member = MemberFinder.findBySubject(session, subject, true);
-        @SuppressWarnings("unchecked")
-        final Set memberships = member.getImmediateMemberships();
+        final Set<Membership> memberships = member.getImmediateMemberships();
 
         for (Object o : memberships) {
             final Membership m = (Membership) o;

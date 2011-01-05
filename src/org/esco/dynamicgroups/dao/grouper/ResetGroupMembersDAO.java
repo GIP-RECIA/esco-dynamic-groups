@@ -120,7 +120,6 @@ public class ResetGroupMembersDAO extends BaseGrouperDAO {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Resetting group: " + groupUUID);
             }
-            @SuppressWarnings("unchecked") 
             final Set<Member> members = group.getImmediateMembers();
             for (Member member : members) {
                 try {

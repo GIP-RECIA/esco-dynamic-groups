@@ -62,8 +62,8 @@ public class ESCODeletedSubjectImpl implements Subject, Serializable {
      * @return Null as the subject is deleted.
      * @see edu.internet2.middleware.subject.Subject#getAttributeValues(java.lang.String)
      */
-    @SuppressWarnings("unchecked")
-    public Set getAttributeValues(final String attributeName) {
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+	public Set getAttributeValues(final String attributeName) {
         return null;
     }
 
@@ -72,7 +72,7 @@ public class ESCODeletedSubjectImpl implements Subject, Serializable {
      * @return null.
      * @see edu.internet2.middleware.subject.Subject#getAttributes()
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public Map getAttributes() {
         return null;
     }
@@ -137,23 +137,40 @@ public class ESCODeletedSubjectImpl implements Subject, Serializable {
         sourceId = newSourceId;
     }
 
+	/**
+	 * @param attributeName
+	 * @return null
+	 * @see edu.internet2.middleware.subject.Subject#getAttributeValueOrCommaSeparated(java.lang.String)
+	 */
 	@Override
 	public String getAttributeValueOrCommaSeparated(String attributeName) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
+	/**
+	 * @param attributeName
+	 * @return null
+	 */
 	@Override
 	public String getAttributeValueSingleValued(String attributeName) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
+	/**
+	 * @return String sourceId
+	 * @see edu.internet2.middleware.subject.Subject#getSourceId()
+	 */
 	@Override
 	public String getSourceId() {
 		return sourceId;
 	}
 
+	/**
+	 * @return null
+	 * @see edu.internet2.middleware.subject.Subject#getTypeName()
+	 */
 	@Override
 	public String getTypeName() {
 		// TODO Auto-generated method stub
